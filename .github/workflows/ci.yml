@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate Fixtures
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate JSON fixtures
+        run: |
+          find fixtures/ test-cases/ -name '*.json' -exec python3 -m json.tool {} \; > /dev/null
+          echo "✅ All JSON fixtures valid"
+      - name: Validate Python scripts syntax
+        run: |
+          python3 -m py_compile scripts/extract_charterparty.py
+          python3 -m py_compile scripts/extract_sof_owner.py
+          python3 -m py_compile scripts/extract_sof_charterer.py
+          python3 -m py_compile scripts/generate_fixtures.py
+          python3 -m py_compile scripts/seed_voyages.py
+          echo "✅ All Python scripts compile"
