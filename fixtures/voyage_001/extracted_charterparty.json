@@ -1,0 +1,77 @@
+{
+  "vessel": "MV Hellenic Pioneer",
+  "charterer": "Mediterranean Grains Ltd.",
+  "owner": "Aegean Shipping Co.",
+  "load_port": "Piraeus, Greece",
+  "load_port_lat": 37.942,
+  "load_port_lon": 23.647,
+  "laytime_allowance_hours": 72.0,
+  "demurrage_rate_per_day_usd": 50000.0,
+  "despatch_rate_per_day_usd": 25000.0,
+  "nor_turn_time_hours": 6.0,
+  "laytime_exception": "SHEX",
+  "weather_clause": "WWD",
+  "rule_authority": "BIMCO_2013",
+  "clauses": [
+    {
+      "page": 2,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "Laytime allowed for loading shall be  72 running hours, Sundays and Holidays excepted (SHEX)."
+    },
+    {
+      "page": 2,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "The demurrage rate is USD 50,000 per running day and pro rata, payable by the Charterer for time used in excess of the laytime allowance."
+    },
+    {
+      "page": 3,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "Time lost on account of weather shall not count as laytime, provided that such weather actually prevented loading operations."
+    },
+    {
+      "page": 3,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "The threshold for invocation of the weather exception under Clause 3.1 shall be conditions of Beaufort Force 6 or above sustained for the period claimed, or precipitation of sufficient intensity to halt cargo operations under prevailing port practice."
+    },
+    {
+      "page": 4,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "Once on demurrage, the vessel shall remain on demurrage continuously until completion of loading, save only where the weather exception under Clause 3.1 is validly invoked in accordance with BIMCO 2013 thresholds."
+    },
+    {
+      "page": 5,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "NOR may be tendered upon arrival at the port limits, whether in berth or not, and shall be deemed accepted six (6) hours after tender."
+    }
+  ]
+}

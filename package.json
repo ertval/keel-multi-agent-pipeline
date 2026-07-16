@@ -1,0 +1,10 @@
+{
+  "name": "keel-project",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:web": "cd apps/web && pnpm dev",
+    "dev:api": "cd apps/api && uv run uvicorn keel_api.main:app --reload --port 8000",
+    "dev": "sh -c 'set -a; [ -f .env ] && . ./.env; set +a; pnpm run dev:web & pnpm run dev:api; wait'"
+  }
+}

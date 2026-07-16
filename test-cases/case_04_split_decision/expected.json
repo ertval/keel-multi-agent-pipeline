@@ -1,0 +1,17 @@
+{
+  "id": "case_04_split_decision",
+  "title": "Split decision \u2014 one owner-win day, one charterer-win day",
+  "owner_total_usd": 175000,
+  "charterer_total_usd": 100000,
+  "reconciled_total_usd": 125000,
+  "verdicts": [
+    {
+      "date": "2026-09-03",
+      "winner": "owner"
+    },
+    {
+      "date": "2026-09-05",
+      "winner": "charterer"
+    }
+  ]
+}

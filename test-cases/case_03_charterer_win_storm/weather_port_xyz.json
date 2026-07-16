@@ -1,0 +1,283 @@
+{
+  "port": "Santos, Brazil",
+  "lat": -23.9608,
+  "lon": -46.3336,
+  "source": "fixture",
+  "observations": [
+    {
+      "timestamp": "2026-08-12T00:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-00"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T01:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-01"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T02:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-02"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T03:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-03"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T04:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-04"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T05:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-05"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T06:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-06"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T07:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-07"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T08:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-08"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T09:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-09"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T10:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-10"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T11:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-11"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T12:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-12"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T13:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-13"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T14:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-14"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T15:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-15"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T16:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-16"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T17:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-17"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T18:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-18"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T19:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-19"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T20:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-20"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T21:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-21"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T22:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-22"
+      }
+    },
+    {
+      "timestamp": "2026-08-12T23:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260812-23"
+      }
+    },
+    {
+      "timestamp": "2026-08-13T00:00:00+00:00",
+      "wind_force_beaufort": 8,
+      "wind_speed_knots": 30.0,
+      "precipitation_mm_per_hour": 6.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://santos_port_records",
+        "observation_id": "CAS-20260813-00"
+      }
+    }
+  ]
+}

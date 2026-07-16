@@ -1,0 +1,13 @@
+{
+  "id": "case_02_owner_win_marginal",
+  "title": "Owner win \u2014 marginal weather (Force 5, ops not prevented)",
+  "owner_total_usd": 130000,
+  "charterer_total_usd": 80000,
+  "reconciled_total_usd": 104000,
+  "verdicts": [
+    {
+      "date": "2026-07-05",
+      "winner": "owner"
+    }
+  ]
+}

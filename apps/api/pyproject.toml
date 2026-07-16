@@ -1,0 +1,40 @@
+[project]
+name = "keel-api"
+version = "0.1.0"
+description = "Keel — maritime demurrage claims reconciliation API"
+authors = [
+    { name = "Ertval Karameta", email = "ertval@github.io" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pdfplumber>=0.11",
+    "pymupdf>=1.24",
+    "openai>=1.54",
+    "sqlalchemy>=2.0",
+    "jinja2>=3.1",
+    "python-multipart>=0.0.12",
+    "langgraph>=0.1.0",
+    "langchain-openai>=0.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "httpx>=0.27",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["keel_api"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "canonical: the north-star end-to-end assertion that voyage_001 reconciles to $112,000",
+]

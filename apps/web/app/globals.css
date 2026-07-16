@@ -1,0 +1,484 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&family=Source+Serif+4:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@import "tailwindcss";
+
+@import "tw-animate-css";
+
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─── Enterprise light theme (Default) ─────────────────────────────────────── */
+:root {
+  /* Keel custom tokens (HSL, used with hsl() wrapper) */
+  --surface: 220 20% 98%;
+  --surface-2: 220 20% 95%;
+  --surface-3: 220 20% 90%;
+
+  --owner: 158 75% 35%;
+  --owner-bg: 158 75% 94%;
+  --charterer: 0 75% 45%;
+  --charterer-bg: 0 75% 95%;
+
+  --keel-primary: 221 83% 53%;
+
+  /* shadcn theme tokens — enterprise light slate */
+  --radius: 0.625rem;
+  --background: oklch(0.98 0.005 240);
+  --foreground: oklch(0.20 0.015 240);
+  --card: oklch(1.0 0 0);
+  --card-foreground: oklch(0.20 0.015 240);
+  --popover: oklch(1.0 0 0);
+  --popover-foreground: oklch(0.20 0.015 240);
+  --primary: oklch(0.48 0.16 250);
+  --primary-foreground: oklch(0.98 0.005 240);
+  --secondary: oklch(0.94 0.01 240);
+  --secondary-foreground: oklch(0.20 0.015 240);
+  --muted: oklch(0.94 0.01 240);
+  --muted-foreground: oklch(0.45 0.01 240);
+  --accent: oklch(0.94 0.01 240);
+  --accent-foreground: oklch(0.20 0.015 240);
+  --destructive: oklch(0.60 0.20 25);
+  --border: oklch(0.88 0.01 240);
+  --input: oklch(0.88 0.01 240);
+  --ring: oklch(0.48 0.16 250);
+  --chart-1: oklch(0.48 0.16 250);
+  --chart-2: oklch(0.55 0.15 160);
+  --chart-3: oklch(0.60 0.20 25);
+  --chart-4: oklch(0.65 0.12 80);
+  --chart-5: oklch(0.50 0.20 300);
+
+  /* Sidebar tokens */
+  --sidebar: oklch(0.96 0.01 240);
+  --sidebar-foreground: oklch(0.25 0.015 240);
+  --sidebar-primary: oklch(0.48 0.16 250);
+  --sidebar-primary-foreground: oklch(0.98 0.005 240);
+  --sidebar-accent: oklch(0.92 0.01 240);
+  --sidebar-accent-foreground: oklch(0.20 0.015 240);
+  --sidebar-border: oklch(0.88 0.01 240);
+  --sidebar-ring: oklch(0.48 0.16 250);
+
+  /* Dynamic Custom Variable mappings for theme scaling */
+  --header-bg: oklch(0.98 0.005 240 / 0.9);
+  
+  --login-bg-1: oklch(0.85 0.08 250 / 0.3);
+  --login-bg-2: oklch(0.90 0.06 160 / 0.2);
+  --login-bg-3: oklch(0.95 0.04 255 / 0.4);
+  --login-grid-line: oklch(0.2 0.015 240 / 0.04);
+  --login-card-bg: oklch(1.0 0 0 / 0.95);
+  --login-card-border: oklch(0.88 0.01 240);
+}
+
+/* ─── Enterprise dark theme overrides ──────────────────────────────────────── */
+.dark {
+  /* Keel custom tokens (HSL, used with hsl() wrapper) */
+  --surface: 222 47% 11%;
+  --surface-2: 222 47% 14%;
+  --surface-3: 222 47% 18%;
+
+  --owner: 158 64% 52%;
+  --owner-bg: 158 64% 10%;
+  --charterer: 0 72% 60%;
+  --charterer-bg: 0 72% 10%;
+
+  --keel-primary: 221 83% 63%;
+
+  /* shadcn theme tokens — enterprise dark navy */
+  --background: oklch(0.13 0.015 255);
+  --foreground: oklch(0.95 0.005 250);
+  --card: oklch(0.17 0.015 255);
+  --card-foreground: oklch(0.95 0.005 250);
+  --popover: oklch(0.17 0.015 255);
+  --popover-foreground: oklch(0.95 0.005 250);
+  --primary: oklch(0.65 0.18 250);
+  --primary-foreground: oklch(0.13 0.015 255);
+  --secondary: oklch(0.22 0.015 255);
+  --secondary-foreground: oklch(0.95 0.005 250);
+  --muted: oklch(0.22 0.015 255);
+  --muted-foreground: oklch(0.65 0.01 250);
+  --accent: oklch(0.22 0.015 255);
+  --accent-foreground: oklch(0.95 0.005 250);
+  --destructive: oklch(0.60 0.20 25);
+  --border: oklch(0.28 0.015 255);
+  --input: oklch(0.28 0.015 255);
+  --ring: oklch(0.65 0.18 250);
+  --chart-1: oklch(0.65 0.18 250);
+  --chart-2: oklch(0.65 0.15 160);
+  --chart-3: oklch(0.60 0.20 25);
+  --chart-4: oklch(0.70 0.12 80);
+  --chart-5: oklch(0.55 0.20 300);
+
+  /* Sidebar tokens */
+  --sidebar: oklch(0.15 0.015 255);
+  --sidebar-foreground: oklch(0.85 0.005 250);
+  --sidebar-primary: oklch(0.65 0.18 250);
+  --sidebar-primary-foreground: oklch(0.13 0.015 255);
+  --sidebar-accent: oklch(0.20 0.02 255);
+  --sidebar-accent-foreground: oklch(0.95 0.005 250);
+  --sidebar-border: oklch(0.25 0.015 255);
+  --sidebar-ring: oklch(0.65 0.18 250);
+
+  /* Dynamic Custom Variable mappings for theme scaling */
+  --header-bg: oklch(0.14 0.015 255 / 0.9);
+  
+  --login-bg-1: oklch(0.30 0.12 250 / 0.25);
+  --login-bg-2: oklch(0.25 0.10 160 / 0.15);
+  --login-bg-3: oklch(0.18 0.08 255 / 0.3);
+  --login-grid-line: oklch(0.3 0.015 255 / 0.08);
+  --login-card-bg: oklch(0.17 0.015 255 / 0.8);
+  --login-card-border: oklch(0.30 0.015 255);
+}
+
+/* ─── Reset & base ──────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display headings — distinctive serif */
+.font-display {
+  font-family: 'Source Serif 4', Georgia, serif;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+/* ─── Legacy utility classes (backward compat with existing pages) ──────── */
+.card-flat {
+  background: hsl(var(--surface-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.badge-owner {
+  background: hsl(var(--owner-bg));
+  color: hsl(var(--owner));
+  border: 1px solid hsl(var(--owner) / 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.badge-charterer {
+  background: hsl(var(--charterer-bg));
+  color: hsl(var(--charterer));
+  border: 1px solid hsl(var(--charterer) / 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.badge-primary {
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover {
+  background: hsl(var(--surface-2));
+  color: var(--foreground);
+}
+
+/* ─── Table ─────────────────────────────────────────────────────────────────── */
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+.audit-table th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+}
+.audit-table td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid oklch(0.28 0.015 255 / 0.5);
+  vertical-align: top;
+}
+.audit-table tr:last-child td {
+  border-bottom: none;
+}
+.audit-table tr.selected td {
+  background: oklch(0.80 0.15 80 / 0.08);
+}
+.audit-table tr:hover td {
+  background: hsl(var(--surface-2));
+  cursor: pointer;
+}
+
+/* ─── Animations ────────────────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes dialogFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes glow-pulse {
+  0%, 100% { text-shadow: 0 0 8px color-mix(in srgb, hsl(var(--owner)) 40%, transparent); }
+  50%      { text-shadow: 0 0 24px color-mix(in srgb, hsl(var(--owner)) 70%, transparent); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-fade-in { animation: fadeIn 0.4s ease both; }
+.animate-slide-up { animation: slideUp 0.5s ease both; }
+
+.skeleton {
+  background: linear-gradient(90deg,
+    hsl(var(--surface-2)) 25%,
+    hsl(var(--surface-3)) 50%,
+    hsl(var(--surface-2)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius);
+}
+
+/* ─── Dialog overlay (legacy) ───────────────────────────────────────────────── */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: oklch(0 0 0 / 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  animation: fadeIn 0.2s ease;
+}
+.dialog-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 51;
+  background: hsl(var(--surface));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  max-width: 560px;
+  width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: dialogFadeIn 0.15s ease;
+}
+
+/* ─── Upload zone ───────────────────────────────────────────────────────────── */
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.dropzone:hover, .dropzone.active {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 4%, transparent);
+}
+
+/* ─── Money shot ────────────────────────────────────────────────────────────── */
+.money-shot {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 4rem;
+  font-weight: 800;
+  color: hsl(var(--owner));
+  line-height: 1;
+  letter-spacing: -0.02em;
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* ─── Verdict band ──────────────────────────────────────────────────────────── */
+.verdict-band {
+  background: linear-gradient(135deg,
+    hsl(var(--surface-2)) 0%,
+    hsl(var(--surface-3)) 100%
+  );
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+}
+
+/* ─── Verdict card ──────────────────────────────────────────────────────────── */
+.verdict-card-owner {
+  border-top: 3px solid hsl(var(--owner));
+}
+.verdict-card-charterer {
+  border-top: 3px solid hsl(var(--charterer));
+}
+
+/* ─── Weather pill ──────────────────────────────────────────────────────────── */
+.weather-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  background: hsl(var(--surface-3));
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* ─── Page layout helpers ───────────────────────────────────────────────────── */
+.page-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--header-bg);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.page-content {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ─── shadcn theme bridge ──────────────────────────────────────────────────── */
+@theme inline {
+  --font-heading: 'Source Serif 4', Georgia, serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

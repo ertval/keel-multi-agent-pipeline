@@ -1,0 +1,151 @@
+{
+  "port": "Valencia, Spain",
+  "lat": 39.4561,
+  "lon": -0.3262,
+  "source": "fixture",
+  "observations": [
+    {
+      "timestamp": "2026-07-05T08:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.5,
+      "precipitation_mm_per_hour": 0.5,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://valencia_port_records",
+        "observation_id": "CAS-20260705-08"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T09:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.5,
+      "precipitation_mm_per_hour": 0.5,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://valencia_port_records",
+        "observation_id": "CAS-20260705-09"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T10:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.5,
+      "precipitation_mm_per_hour": 0.5,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://valencia_port_records",
+        "observation_id": "CAS-20260705-10"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T11:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.5,
+      "precipitation_mm_per_hour": 0.5,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://valencia_port_records",
+        "observation_id": "CAS-20260705-11"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T12:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.5,
+      "precipitation_mm_per_hour": 0.5,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://valencia_port_records",
+        "observation_id": "CAS-20260705-12"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T13:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.5,
+      "precipitation_mm_per_hour": 0.5,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://valencia_port_records",
+        "observation_id": "CAS-20260705-13"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T14:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.5,
+      "precipitation_mm_per_hour": 0.5,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://valencia_port_records",
+        "observation_id": "CAS-20260705-14"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T15:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.5,
+      "precipitation_mm_per_hour": 0.5,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://valencia_port_records",
+        "observation_id": "CAS-20260705-15"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T16:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.5,
+      "precipitation_mm_per_hour": 0.5,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://valencia_port_records",
+        "observation_id": "CAS-20260705-16"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T17:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.5,
+      "precipitation_mm_per_hour": 0.5,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://valencia_port_records",
+        "observation_id": "CAS-20260705-17"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T18:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.5,
+      "precipitation_mm_per_hour": 0.5,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://valencia_port_records",
+        "observation_id": "CAS-20260705-18"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T19:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.5,
+      "precipitation_mm_per_hour": 0.5,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://valencia_port_records",
+        "observation_id": "CAS-20260705-19"
+      }
+    },
+    {
+      "timestamp": "2026-07-05T20:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.5,
+      "precipitation_mm_per_hour": 0.5,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://valencia_port_records",
+        "observation_id": "CAS-20260705-20"
+      }
+    }
+  ]
+}

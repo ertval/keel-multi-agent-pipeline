@@ -1,0 +1,92 @@
+[
+  {
+    "timestamp": "2026-07-03T06:00:00",
+    "event_type": "NOR_TENDERED",
+    "description": "Notice of Readiness tendered at port limits.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "Notice of Readiness tendered at port limits."
+    }
+  },
+  {
+    "timestamp": "2026-07-03T12:00:00",
+    "event_type": "NOR_ACCEPTED",
+    "description": "NOR accepted; laytime to commence per CP.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "NOR accepted; laytime to commence per CP."
+    }
+  },
+  {
+    "timestamp": "2026-07-03T18:00:00",
+    "event_type": "LOADING_START",
+    "description": "First cargo grab into hold. Laytime commenced.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "First cargo grab into hold. Laytime commenced."
+    }
+  },
+  {
+    "timestamp": "2026-07-05T08:00:00",
+    "event_type": "WEATHER_DELAY_START",
+    "description": "Loading suspended \u2014 adverse weather (Force 5).",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "Loading suspended \u2014 adverse weather (Force 5)."
+    }
+  },
+  {
+    "timestamp": "2026-07-05T20:00:00",
+    "event_type": "WEATHER_DELAY_END",
+    "description": "Conditions moderated. 12 hours weather delay logged.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "Conditions moderated. 12 hours weather delay logged."
+    }
+  },
+  {
+    "timestamp": "2026-07-06T10:00:00",
+    "event_type": "LOADING_END",
+    "description": "Loading completed; all hatches closed.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "Loading completed; all hatches closed."
+    }
+  }
+]

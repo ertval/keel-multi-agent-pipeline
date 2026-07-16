@@ -1,0 +1,75 @@
+{
+  "voyage_id": "voyage_001",
+  "owner_total_usd": 187000.0,
+  "charterer_total_usd": 62000.0,
+  "reconciled_total_usd": 112000.0,
+  "rule_authority": "BIMCO_2013",
+  "disputed_items": [
+    {
+      "description": "Weather exception, 14 June 2026",
+      "disputed_date": "2026-06-14",
+      "owner_position": "Exception does not apply: Force 5 sustained for 12 hours falls below the BIMCO 2013 WWD threshold of Force 6.",
+      "charterer_position": "Exception applies: SOF logs 12 hours of weather delay (10:00-22:00) during which loading was hampered.",
+      "owner_amount_usd": 25000.0,
+      "charterer_amount_usd": 0.0,
+      "verdict": {
+        "winner": "owner",
+        "justification": "Port weather records for 14 Jun 10:00-22:00 confirm Beaufort Force 5 with light precipitation (0.4 mm/h). Conditions did not meet the Clause 3.2 threshold; the weather exception is not validly invoked.",
+        "rule_id": "BIMCO_2013.WWD.threshold",
+        "rule_authority": "BIMCO_2013",
+        "hours_credited_to_owner": 12.0,
+        "dollars_credited_to_owner_usd": 25000.0
+      },
+      "clause_citations": [],
+      "sof_citations": [],
+      "weather_citations": [
+        {"source": "fixture://piraeus_port_records", "observation_id": "PIR-2026-0614-10"},
+        {"source": "fixture://piraeus_port_records", "observation_id": "PIR-2026-0614-21"}
+      ]
+    },
+    {
+      "description": "Weather exception, 15 June 2026",
+      "disputed_date": "2026-06-15",
+      "owner_position": "Exception does not apply: Force 4 sustained for 12 hours is well below the BIMCO 2013 WWD threshold.",
+      "charterer_position": "Exception applies: SOF logs 12 hours of weather delay (06:00-18:00).",
+      "owner_amount_usd": 25000.0,
+      "charterer_amount_usd": 0.0,
+      "verdict": {
+        "winner": "owner",
+        "justification": "Port weather records for 15 Jun 06:00-18:00 confirm Beaufort Force 4 and negligible precipitation. Operations were not in fact prevented; the weather exception is not validly invoked.",
+        "rule_id": "BIMCO_2013.WWD.threshold",
+        "rule_authority": "BIMCO_2013",
+        "hours_credited_to_owner": 12.0,
+        "dollars_credited_to_owner_usd": 25000.0
+      },
+      "clause_citations": [],
+      "sof_citations": [],
+      "weather_citations": [
+        {"source": "fixture://piraeus_port_records", "observation_id": "PIR-2026-0615-06"},
+        {"source": "fixture://piraeus_port_records", "observation_id": "PIR-2026-0615-17"}
+      ]
+    },
+    {
+      "description": "Weather exception, 16-17 June 2026 (heavy weather event)",
+      "disputed_date": "2026-06-16",
+      "owner_position": "Exception does not apply: vessel was already on demurrage and Clause 4.1 governs.",
+      "charterer_position": "Exception applies: Force 7 sustained with heavy rain prevented all loading operations for 36 hours.",
+      "owner_amount_usd": 75000.0,
+      "charterer_amount_usd": 75000.0,
+      "verdict": {
+        "winner": "charterer",
+        "justification": "Port weather records for 16 Jun 00:00 through 17 Jun 12:00 show Beaufort Force 7 sustained with heavy precipitation (5.6 mm/h). Conditions meet the Clause 3.2 threshold and the weather exception under Clause 3.1 is validly invoked notwithstanding demurrage state, per BIMCO 2013.",
+        "rule_id": "BIMCO_2013.WWD.threshold",
+        "rule_authority": "BIMCO_2013",
+        "hours_credited_to_owner": 0.0,
+        "dollars_credited_to_owner_usd": 0.0
+      },
+      "clause_citations": [],
+      "sof_citations": [],
+      "weather_citations": [
+        {"source": "fixture://piraeus_port_records", "observation_id": "PIR-2026-0616-00"},
+        {"source": "fixture://piraeus_port_records", "observation_id": "PIR-2026-0617-11"}
+      ]
+    }
+  ]
+}

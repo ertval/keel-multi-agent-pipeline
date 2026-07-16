@@ -1,0 +1,13 @@
+{
+  "id": "case_03_charterer_win_storm",
+  "title": "Charterer win \u2014 sustained storm (Force 8, ops prevented)",
+  "owner_total_usd": 150000,
+  "charterer_total_usd": 90000,
+  "reconciled_total_usd": 90000,
+  "verdicts": [
+    {
+      "date": "2026-08-12",
+      "winner": "charterer"
+    }
+  ]
+}

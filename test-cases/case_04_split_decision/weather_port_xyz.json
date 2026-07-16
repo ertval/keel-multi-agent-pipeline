@@ -1,0 +1,294 @@
+{
+  "port": "Algeciras, Spain",
+  "lat": 36.1408,
+  "lon": -5.4562,
+  "source": "fixture",
+  "observations": [
+    {
+      "timestamp": "2026-09-03T08:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 16.0,
+      "precipitation_mm_per_hour": 0.2,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260903-08"
+      }
+    },
+    {
+      "timestamp": "2026-09-03T09:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 16.0,
+      "precipitation_mm_per_hour": 0.2,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260903-09"
+      }
+    },
+    {
+      "timestamp": "2026-09-03T10:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 16.0,
+      "precipitation_mm_per_hour": 0.2,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260903-10"
+      }
+    },
+    {
+      "timestamp": "2026-09-03T11:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 16.0,
+      "precipitation_mm_per_hour": 0.2,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260903-11"
+      }
+    },
+    {
+      "timestamp": "2026-09-03T12:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 16.0,
+      "precipitation_mm_per_hour": 0.2,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260903-12"
+      }
+    },
+    {
+      "timestamp": "2026-09-03T13:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 16.0,
+      "precipitation_mm_per_hour": 0.2,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260903-13"
+      }
+    },
+    {
+      "timestamp": "2026-09-03T14:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 16.0,
+      "precipitation_mm_per_hour": 0.2,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260903-14"
+      }
+    },
+    {
+      "timestamp": "2026-09-03T15:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 16.0,
+      "precipitation_mm_per_hour": 0.2,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260903-15"
+      }
+    },
+    {
+      "timestamp": "2026-09-03T16:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 16.0,
+      "precipitation_mm_per_hour": 0.2,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260903-16"
+      }
+    },
+    {
+      "timestamp": "2026-09-03T17:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 16.0,
+      "precipitation_mm_per_hour": 0.2,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260903-17"
+      }
+    },
+    {
+      "timestamp": "2026-09-03T18:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 16.0,
+      "precipitation_mm_per_hour": 0.2,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260903-18"
+      }
+    },
+    {
+      "timestamp": "2026-09-03T19:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 16.0,
+      "precipitation_mm_per_hour": 0.2,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260903-19"
+      }
+    },
+    {
+      "timestamp": "2026-09-03T20:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 16.0,
+      "precipitation_mm_per_hour": 0.2,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260903-20"
+      }
+    },
+    {
+      "timestamp": "2026-09-05T00:00:00+00:00",
+      "wind_force_beaufort": 9,
+      "wind_speed_knots": 33.5,
+      "precipitation_mm_per_hour": 8.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260905-00"
+      }
+    },
+    {
+      "timestamp": "2026-09-05T01:00:00+00:00",
+      "wind_force_beaufort": 9,
+      "wind_speed_knots": 33.5,
+      "precipitation_mm_per_hour": 8.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260905-01"
+      }
+    },
+    {
+      "timestamp": "2026-09-05T02:00:00+00:00",
+      "wind_force_beaufort": 9,
+      "wind_speed_knots": 33.5,
+      "precipitation_mm_per_hour": 8.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260905-02"
+      }
+    },
+    {
+      "timestamp": "2026-09-05T03:00:00+00:00",
+      "wind_force_beaufort": 9,
+      "wind_speed_knots": 33.5,
+      "precipitation_mm_per_hour": 8.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260905-03"
+      }
+    },
+    {
+      "timestamp": "2026-09-05T04:00:00+00:00",
+      "wind_force_beaufort": 9,
+      "wind_speed_knots": 33.5,
+      "precipitation_mm_per_hour": 8.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260905-04"
+      }
+    },
+    {
+      "timestamp": "2026-09-05T05:00:00+00:00",
+      "wind_force_beaufort": 9,
+      "wind_speed_knots": 33.5,
+      "precipitation_mm_per_hour": 8.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260905-05"
+      }
+    },
+    {
+      "timestamp": "2026-09-05T06:00:00+00:00",
+      "wind_force_beaufort": 9,
+      "wind_speed_knots": 33.5,
+      "precipitation_mm_per_hour": 8.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260905-06"
+      }
+    },
+    {
+      "timestamp": "2026-09-05T07:00:00+00:00",
+      "wind_force_beaufort": 9,
+      "wind_speed_knots": 33.5,
+      "precipitation_mm_per_hour": 8.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260905-07"
+      }
+    },
+    {
+      "timestamp": "2026-09-05T08:00:00+00:00",
+      "wind_force_beaufort": 9,
+      "wind_speed_knots": 33.5,
+      "precipitation_mm_per_hour": 8.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260905-08"
+      }
+    },
+    {
+      "timestamp": "2026-09-05T09:00:00+00:00",
+      "wind_force_beaufort": 9,
+      "wind_speed_knots": 33.5,
+      "precipitation_mm_per_hour": 8.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260905-09"
+      }
+    },
+    {
+      "timestamp": "2026-09-05T10:00:00+00:00",
+      "wind_force_beaufort": 9,
+      "wind_speed_knots": 33.5,
+      "precipitation_mm_per_hour": 8.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260905-10"
+      }
+    },
+    {
+      "timestamp": "2026-09-05T11:00:00+00:00",
+      "wind_force_beaufort": 9,
+      "wind_speed_knots": 33.5,
+      "precipitation_mm_per_hour": 8.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260905-11"
+      }
+    },
+    {
+      "timestamp": "2026-09-05T12:00:00+00:00",
+      "wind_force_beaufort": 9,
+      "wind_speed_knots": 33.5,
+      "precipitation_mm_per_hour": 8.0,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://algeciras_port_records",
+        "observation_id": "CAS-20260905-12"
+      }
+    }
+  ]
+}

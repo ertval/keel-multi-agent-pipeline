@@ -1,0 +1,167 @@
+[
+  {
+    "timestamp": "2026-06-10T08:00:00",
+    "event_type": "NOR_TENDERED",
+    "description": "Notice of Readiness tendered at port limits.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "NOR Tendered Notice of Readiness tendered at port limits."
+    }
+  },
+  {
+    "timestamp": "2026-06-10T14:00:00",
+    "event_type": "NOR_ACCEPTED",
+    "description": "NOR accepted by port authority.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "NOR accepted by port authority."
+    }
+  },
+  {
+    "timestamp": "2026-06-10T20:00:00",
+    "event_type": "LOADING_START",
+    "description": "Berth 7. First cargo into Hold 1. Laytime commenced.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "Berth 7. First cargo into Hold 1. Laytime commenced."
+    }
+  },
+  {
+    "timestamp": "2026-06-13T20:00:00",
+    "event_type": "LOADING_END",
+    "description": "72-hour laytime allowance consumed. Vessel on demurrage.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "72-hour laytime allowance consumed. Vessel on demurrage."
+    }
+  },
+  {
+    "timestamp": "2026-06-14T10:00:00",
+    "event_type": "WEATHER_DELAY_START",
+    "description": "Loading hampered by adverse weather. Foreman halted Commenced shore equipment.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "Loading hampered by adverse weather. Foreman halted Commenced shore equipment."
+    }
+  },
+  {
+    "timestamp": "2026-06-14T22:00:00",
+    "event_type": "WEATHER_DELAY_END",
+    "description": "Conditions moderated. 12 hours weather delay logged.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "Conditions moderated. 12 hours weather delay logged."
+    }
+  },
+  {
+    "timestamp": "2026-06-15T06:00:00",
+    "event_type": "WEATHER_DELAY_START",
+    "description": "Crane operations suspended. Commenced",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "Crane operations suspended. Commenced"
+    }
+  },
+  {
+    "timestamp": "2026-06-15T18:00:00",
+    "event_type": "WEATHER_DELAY_END",
+    "description": "12 hours weather delay logged.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "12 hours weather delay logged."
+    }
+  },
+  {
+    "timestamp": "2026-06-16T00:00:00",
+    "event_type": "WEATHER_DELAY_START",
+    "description": "Severe gale, Force 7, heavy rain. Loading suspended on Master's instruction.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "Severe gale, Force 7, heavy rain. Loading suspended on Master's instruction."
+    }
+  },
+  {
+    "timestamp": "2026-06-17T12:00:00",
+    "event_type": "WEATHER_DELAY_END",
+    "description": "Conditions moderated. 36 hours heavy weather logged.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "Conditions moderated. 36 hours heavy weather logged."
+    }
+  },
+  {
+    "timestamp": "2026-06-17T13:46:00",
+    "event_type": "LOADING_END",
+    "description": "All hatches closed.",
+    "source": {
+      "page": 1,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "row_text": "All hatches closed."
+    }
+  }
+]

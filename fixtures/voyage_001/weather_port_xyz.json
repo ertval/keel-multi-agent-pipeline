@@ -1,0 +1,1064 @@
+{
+  "port": "Piraeus, Greece",
+  "lat": 37.942,
+  "lon": 23.647,
+  "source": "fixture",
+  "observations": [
+    {
+      "timestamp": "2026-06-14T00:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-00"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T01:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-01"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T02:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-02"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T03:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-03"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T04:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-04"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T05:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-05"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T06:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-06"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T07:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-07"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T08:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-08"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T09:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-09"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T10:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.0,
+      "precipitation_mm_per_hour": 0.4,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-10"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T11:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.0,
+      "precipitation_mm_per_hour": 0.4,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-11"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T12:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.0,
+      "precipitation_mm_per_hour": 0.4,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-12"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T13:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.0,
+      "precipitation_mm_per_hour": 0.4,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-13"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T14:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.0,
+      "precipitation_mm_per_hour": 0.4,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-14"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T15:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.0,
+      "precipitation_mm_per_hour": 0.4,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-15"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T16:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.0,
+      "precipitation_mm_per_hour": 0.4,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-16"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T17:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.0,
+      "precipitation_mm_per_hour": 0.4,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-17"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T18:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.0,
+      "precipitation_mm_per_hour": 0.4,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-18"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T19:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.0,
+      "precipitation_mm_per_hour": 0.4,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-19"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T20:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.0,
+      "precipitation_mm_per_hour": 0.4,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-20"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T21:00:00+00:00",
+      "wind_force_beaufort": 5,
+      "wind_speed_knots": 19.0,
+      "precipitation_mm_per_hour": 0.4,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-21"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T22:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-22"
+      }
+    },
+    {
+      "timestamp": "2026-06-14T23:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0614-23"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T00:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-00"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T01:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-01"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T02:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-02"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T03:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-03"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T04:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-04"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T05:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-05"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T06:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 13.0,
+      "precipitation_mm_per_hour": 0.1,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-06"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T07:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 13.0,
+      "precipitation_mm_per_hour": 0.1,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-07"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T08:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 13.0,
+      "precipitation_mm_per_hour": 0.1,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-08"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T09:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 13.0,
+      "precipitation_mm_per_hour": 0.1,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-09"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T10:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 13.0,
+      "precipitation_mm_per_hour": 0.1,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-10"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T11:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 13.0,
+      "precipitation_mm_per_hour": 0.1,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-11"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T12:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 13.0,
+      "precipitation_mm_per_hour": 0.1,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-12"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T13:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 13.0,
+      "precipitation_mm_per_hour": 0.1,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-13"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T14:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 13.0,
+      "precipitation_mm_per_hour": 0.1,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-14"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T15:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 13.0,
+      "precipitation_mm_per_hour": 0.1,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-15"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T16:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 13.0,
+      "precipitation_mm_per_hour": 0.1,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-16"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T17:00:00+00:00",
+      "wind_force_beaufort": 4,
+      "wind_speed_knots": 13.0,
+      "precipitation_mm_per_hour": 0.1,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-17"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T18:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-18"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T19:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-19"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T20:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-20"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T21:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-21"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T22:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-22"
+      }
+    },
+    {
+      "timestamp": "2026-06-15T23:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0615-23"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T00:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-00"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T01:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-01"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T02:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-02"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T03:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-03"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T04:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-04"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T05:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-05"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T06:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-06"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T07:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-07"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T08:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-08"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T09:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-09"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T10:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-10"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T11:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-11"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T12:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-12"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T13:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-13"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T14:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-14"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T15:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-15"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T16:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-16"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T17:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-17"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T18:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-18"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T19:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-19"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T20:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-20"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T21:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-21"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T22:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-22"
+      }
+    },
+    {
+      "timestamp": "2026-06-16T23:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0616-23"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T00:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-00"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T01:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-01"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T02:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-02"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T03:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-03"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T04:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-04"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T05:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-05"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T06:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-06"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T07:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-07"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T08:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-08"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T09:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-09"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T10:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-10"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T11:00:00+00:00",
+      "wind_force_beaufort": 7,
+      "wind_speed_knots": 32.0,
+      "precipitation_mm_per_hour": 5.6,
+      "operations_prevented": true,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-11"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T12:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-12"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T13:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-13"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T14:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-14"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T15:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-15"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T16:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-16"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T17:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-17"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T18:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-18"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T19:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-19"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T20:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-20"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T21:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-21"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T22:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-22"
+      }
+    },
+    {
+      "timestamp": "2026-06-17T23:00:00+00:00",
+      "wind_force_beaufort": 3,
+      "wind_speed_knots": 8.0,
+      "precipitation_mm_per_hour": 0.0,
+      "operations_prevented": false,
+      "citation": {
+        "source": "fixture://piraeus_port_records",
+        "observation_id": "PIR-2026-0617-23"
+      }
+    }
+  ]
+}

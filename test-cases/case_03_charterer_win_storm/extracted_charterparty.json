@@ -1,0 +1,77 @@
+{
+  "vessel": "MV Pacific Crest",
+  "charterer": "Sul Atl\u00e2ntico A\u00e7\u00facar Ltda.",
+  "owner": "Pacific Crest Maritime Inc.",
+  "load_port": "Santos, Brazil",
+  "load_port_lat": -23.9608,
+  "load_port_lon": -46.3336,
+  "laytime_allowance_hours": 84.0,
+  "demurrage_rate_per_day_usd": 60000.0,
+  "despatch_rate_per_day_usd": 30000.0,
+  "nor_turn_time_hours": 6.0,
+  "laytime_exception": "SHEX",
+  "weather_clause": "WWD",
+  "rule_authority": "BIMCO_2013",
+  "clauses": [
+    {
+      "page": 2,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "Laytime allowed for loading shall be 84 running hours, Sundays and Holidays excepted (SHEX)."
+    },
+    {
+      "page": 3,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "The demurrage rate is USD 60,000 per running day and pro rata, payable by the Charterers."
+    },
+    {
+      "page": 4,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "Time lost on account of weather shall not count as laytime, provided that such weather actually prevented loading operations."
+    },
+    {
+      "page": 5,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "The threshold for invocation of the weather exception under Clause 3.1 shall be conditions of Beaufort Force 6 or above sustained for the period claimed, assessed per BIMCO Laytime Definitions 2013."
+    },
+    {
+      "page": 6,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "Once on demurrage the Vessel shall remain on demurrage continuously until completion of loading, save only where the weather exception under Clause 3.1 is validly invoked per BIMCO 2013."
+    },
+    {
+      "page": 7,
+      "bbox": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "NOR may be tendered upon arrival at the port limits, whether in berth or not, and shall be deemed accepted 6 hours after tender."
+    }
+  ]
+}
