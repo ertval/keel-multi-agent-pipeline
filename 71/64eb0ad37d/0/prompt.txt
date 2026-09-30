@@ -1,0 +1,102 @@
+You are hardening the CI pipeline and closing the test-coverage gaps a hostile audit found. Repo: /home/ertval/code/project-modules/keel-multi-agent-pipeline. Backend: `apps/api` (uv, pytest). Frontend: `apps/web` (pnpm, Next.js 16, Playwright). Workflow: `.github/workflows/ci.yml`.
+
+## STRICT FILE OWNERSHIP
+You own: `.github/workflows/ci.yml`, `apps/api/tests/test_agent_graph.py`, `apps/api/tests/test_pdf_geometry.py`, `.gitattributes`, and you may create `apps/api/tests/test_reconciliation_contract.py`.
+**Off-limits**: everything under `apps/api/keel_api/**` (production code), every other file in `apps/api/tests/` (`test_bimco_rules.py`, `test_engine.py`, `test_weather.py`, `test_canonical.py`, `test_reconciliation_cases.py`, `test_adapters.py`, `test_api_hardening.py`, and the parser/extraction/fixture/validation/delete/extractor-feedback tests), all of `apps/web/**`, all of `docs/**`, `fixtures/**`, `test-cases/**`, `scripts/**`.
+**Never stage or commit anything.** The repo has a large pre-existing dirty working tree; touching git state is out of bounds. Report what the user must `git add`.
+
+## Baseline you must preserve exactly
+- `cd apps/api && uv run pytest -q` → **16 failed, 282 passed, 1 skipped**. The 16 are pre-existing **missing source PDFs** (the sanitised checkout ships no PDFs): 3 in `test_extraction.py`, 5 in `test_fixtures.py::test_fixture_file_exists[...]`, 8 in `test_parsers.py`. Their exception types are `FileNotFoundError`, `pymupdf.FileNotFoundError`, and `AssertionError: missing fixture`.
+- `cd apps/api && uv run pytest -m canonical -q` → **15 passed**, dollars 187000 / 62000 / 112000.
+- `cd apps/web && pnpm exec tsc --noEmit` → 0; `pnpm run lint` → 0 errors / **4** pre-existing warnings; `pnpm run build` → 0; `pnpm exec playwright test` → **31 passed**.
+- `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"` must parse.
+
+## Environment notes
+- **No backend is running on :8000 by default.** Start one detached: write a script under `/tmp/opencode/` that `cd`s into `apps/api` and `exec`s `uv run python -m uvicorn keel_api.main:app --host 127.0.0.1 --port 8000`, then `setsid` it with output redirected. A bare `nohup … &` in this shell gets killed. `apps/api/keel.db` is gitignored and re-seeds `voyage_001` at startup; you may delete it between runs.
+- The backend's CORS default is `KEEL_CORS_ORIGINS=["http://localhost:3000"]`, so a Playwright page must navigate to `http://localhost:3000` (Playwright's `webServer` already binds/probes `127.0.0.1`; read the comment in `apps/web/playwright.config.ts`).
+- **Next.js 16 allows ONE dev server per `apps/web`.** Check `ps aux | grep -i next` and reuse or kill before starting one.
+- Do not run `pnpm run build` in the repo while anything holds `.next`; build in a copy under `/tmp/opencode/`.
+
+## Previously claimed CI fixes, already verified sound — do not regress them
+1. `next build` runs in the `frontend` job.
+2. The JSON step fails on malformed JSON (a `while read -d ''` loop, not `find -exec`).
+3. The deselect audit asserts the **exception type from JUnit XML**, not a stdout grep.
+4. The Playwright report is uploaded via `actions/upload-artifact@v4` with `include-hidden-files: true`.
+
+## Task 1 — CRITICAL: CI cannot run on a clean checkout
+`apps/web/lib/{api,types,utils}.ts` is **untracked** but 24 tracked source files import `@/lib/api`, `@/lib/types`, `@/lib/utils`. On a clean checkout (`git archive HEAD` or `git ls-files`):
+```
+$ pnpm exec tsc --noEmit   # → TS2307 Cannot find module '@/lib/api' ×24, exit 2
+$ pnpm run build           # → Module not found: Can't resolve '@/lib/api', exit 1
+$ uv run pytest -q         # → 16 failed, 74 passed, 1 skipped   (100 tests missing)
+```
+Also untracked and equally required: `apps/web/proxy.ts` (the route guard `tests/e2e/proxy.spec.ts` depends on), `apps/web/tests/e2e/null-data.spec.ts` (2 of the 31 e2e tests), `apps/web/tests/e2e/fabricated-data.spec.ts`, `apps/web/tests/e2e/modals.spec.ts`, `apps/web/lib/sanitize-html.ts`, `apps/web/public/pdf.worker.min.mjs`, `apps/web/app/(dashboard)/error.tsx`, `apps/web/components/VoyageUnavailable.tsx`, `apps/api/tests/test_{agent_graph,extractor_feedback,pdf_geometry,validation,adapters,api_hardening}.py`, `apps/api/tests/test_reconciliation_contract.py` (if you create it), `.gitattributes`, `docs/continuation-plan.md`, and the deleted `apps/web/app/{page1.tsx,api/voyages/route.ts}`, `apps/web/app/(auth)/register/page.tsx`, `apps/api/keel_api/reconcile/*`, `apps/web/package-lock.json`.
+**You cannot stage.** Instead: (a) produce the exact `git add` / `git add -A` command list the user must run, verified against `git status --porcelain` and `git ls-files`; (b) add a **workflow step that fails when a build-critical path is not tracked**, so this class of defect cannot ship again. The reliable primitive is `git ls-files --error-unmatch <path>` (or `git ls-files --error-unmatch` on a list) — verify it actually fails on an untracked file in a scratch clone before you rely on it; `git diff --exit-code` and `git add -A --dry-run` do **not** work for this.
+
+## Task 2 — HIGH: the deselect audit buys a green job by editing its own allowlist
+`.github/workflows/ci.yml`'s classifier accepts `FileNotFoundError`/`pymupdf.FileNotFoundError` **unconditionally** whenever the message names an absent `fixtures/**/*.pdf`. Proven: adding a 17th entry to the allowlist for a genuinely broken test raised `FileNotFoundError` naming an absent fixture → `174 passed, 1 skipped, 17 deselected`, main run exit 0, audit **PASS**, canonical 15 passed. The audit's own comment claims to defend against exactly this.
+Fix: assert the allowlist length is exactly 16, and assert every deselected node id is one of the three quarantined test functions (`tests/test_extraction.py::`, `tests/test_fixtures.py::test_fixture_file_exists`, `tests/test_parsers.py::`). **Prove** the new audit rejects the 17th-entry attack, and still passes on the genuine 16. Also confirm what happens when the source PDFs are eventually restored: the audit currently fails with a "no longer fails but is still deselected" error. Make that failure message tell the maintainer exactly what to do (remove the entry), so landing the real fix is a one-line follow-up rather than a mystery.
+
+## Task 3 — HIGH: the JSON step passes when its glob matches nothing
+`ci.yml` uses `set -uo pipefail` (no `-e`) and a `< <(find …)` process substitution whose exit status is never checked. Proven: renaming `test-cases/` or `fixtures/` prints `All JSON fixtures valid` and exits 0 having validated nothing. Fix: check the `find` status and add a floor on the file count. **Prove** it fails for a missing root, and that it still passes normally.
+
+## Task 4 — MEDIUM: the e2e readiness probe is toothless
+`ci.yml`'s "Start API" step probes `/healthz`, which returns a literal. Proven: making `_seed_demo_voyage()` raise (its `lifespan` swallows it) still satisfies the probe, then all 6 specs fail with misleading `element(s) not found` and `Cannot read properties of undefined` instead of "the API did not seed". Every e2e test reads the seeded demo voyage. Fix: probe for the seeded voyage (e.g. `curl -fsS …/voyages | grep -q '"voyage_id":"voyage_001"'`). **Prove** the old probe passes with seeding broken and the new one fails.
+
+## Task 5 — MEDIUM: unpinned toolchain
+- `astral-sh/setup-uv@v5` has **no `version`**, so uv itself floats to latest. Verified from the real `action.yml` on the v5 tag: `version` defaults to `""` = the version in `pyproject.toml` or latest, and `apps/api/pyproject.toml` has no `[tool.uv]`.
+- There is **no `actions/setup-python`** at all, so the Python minor version floats too (`requires-python = ">=3.11"`).
+- `ubuntu-latest` is a moving target; `node-version: 22` floats within the major.
+- No `timeout-minutes` on any of the 4 jobs (a hung `next dev` bills to the 6 h default).
+Pin: a uv version, Python 3.11 (or whatever `apps/api/pyproject.toml` requires — read it), an explicit Node patch version, `ubuntu-24.04`, and a per-job `timeout-minutes`. **Verify every version and input you add against the real upstream README/`action.yml` on the exact tag**, not from memory. `pnpm/action-setup@v4` is already pinned to `11.4.0` — leave it and say why it is safe.
+Do **not** SHA-pin the actions; instead note it in your report as a recommended follow-up (it is a large mechanical change and a real deployment decision).
+
+## Task 6 — MEDIUM: `test_agent_graph.py` is green only because the fixture PDFs are missing
+`test_agent_graph.py:53-65` `_broken_fixture` copies the real `fixtures/voyage_001/` into `tmp_path` and its docstring states the design: *"no PDF is present, so neither worker can repair it and the retry budget is always spent."* Drop one real PDF into the fixture dir and the suite goes **20 failed / 170 passed** — 7 extra failures, plus the audit's "no longer fails but is still deselected" error. So the quarantine **blocks the intended fix**: whoever commits the source PDFs gets 7 red tests and a two-commit fix.
+`_recoverable_fixture` at `:67-72` already writes its own stub PDFs — do the same for `_broken_fixture` so it no longer inherits whatever happens to be in `fixtures/`. Then re-run and confirm the suite is at **16 failed, ≥ 282 passed, 1 skipped** and that the graph tests still pass with a real PDF dropped in (i.e. they no longer depend on the absence).
+
+## Task 7 — MEDIUM: `test_first_pass_uses_the_cache_and_does_not_extract` is vacuous
+Proven with an instrumented trace: `_all_extracts_cached(dest)` returns True, but the *deliberately broken* cache returns `vessel: ''`, so validation errors are raised, and the assertion `extract.assert_not_called()` is satisfied by the **absent-PDF bail-out** at `pipeline_agents.py:160-162` — not by the cache short-circuit. With the source PDF present, the extractor *is* called and the test turns red. Its stated subject — the cache — is never exercised under a valid cache.
+Fix: give the test a **valid** cache with no validation errors and assert the parser is not called; keep the existing broken-cache case as a separate test. Do not weaken either.
+
+## Task 8 — MEDIUM: two unmonitored channels
+- `pnpm run lint` has no `--max-warnings`, so any newly-introduced warning is invisible. Pin the current count: `pnpm run lint -- --max-warnings 4`. Verify a 5th warning fails and 4 passes.
+- `playwright.config.ts:14` sets `retries: 2` in CI, and `playwright test` exits **0** on a flaky test. A previous reviewer saw `demo-workflow.spec.ts` fail once in five full runs. Add `--fail-on-flaky-tests` to the CI invocation (verify the flag exists in this Playwright version's `--help` before using it) and state the observed flake rate.
+
+## Task 9 — LOW
+- `ci.yml:42` compiles only `scripts/`; `test-cases/_generate_fixtures.py` and `test-cases/_live_llm_proof.py` are tracked Python no gate parses, so a syntax error there ships green. Add them to `compileall` and verify the glob actually matches.
+- `.gitattributes` is untracked (not gitignored) with content `* text=auto eol=lf`, while the working tree is still mixed (several files CRLF). Committing it produces a whole-file renormalisation diff. **Do not stage or commit.** Report the exact command and the expected diff size, and verify with `git check-attr` that the rule applies as intended.
+- Correct the inaccurate comment at `ci.yml:240-242`: `include-hidden-files: true` was justified as "backs the re-run button", but `playwright-report/index.html` is a self-contained 543 KB file with an embedded `data:application/zip` payload and contains no re-run control — that UI belongs to `npx playwright show-report`, which needs the workspace. The input is valid; the reasoning is wrong. Keep the input, fix the comment.
+- `ci.yml`'s e2e job binds/probes `127.0.0.1:8000` while the browser reaches the API at `127.0.0.1:8000` from origin `http://localhost:3000`. Set `NEXT_PUBLIC_API_URL` explicitly at job level so the value is not implicit, and confirm the CORS origin matches.
+
+## Rules
+- Do not weaken any gate. Every fix must fail on the defect it targets — prove it.
+- Do not stage or commit. Do not modify `apps/api/keel_api/**` or `apps/web/**`.
+- No comments explaining what changed, except where the task explicitly asks for a corrected comment.
+
+## Verification you must run and report (verbatim)
+- Every gate the workflow runs, executed from the workflow file's own step bodies: the JSON step, `compileall`, `uv run pytest -q` with the deselect, the deselect audit, `uv run pytest -m canonical -q`, `pnpm exec tsc --noEmit`, `pnpm run lint -- --max-warnings 4`, `pnpm run build` (in a copy if needed), `pnpm exec playwright test --fail-on-flaky-tests` against a live backend.
+- The **mutation → gate matrix**: plant each of these and record which gate catches it — a canonical-dollar change, a broken graph join edge, a fabricated `clause_text` in `adapters.py`, a `bbox` sentinel left as `[0,0,0,0]`, a half-open weather window reverted to inclusive, a `useSearchParams()` without Suspense, a TypeScript error, an eslint **error**, a 5th lint warning, a broken e2e assertion target, a corrupt JSON fixture, the 17th deselect entry, a missing `fixtures/` root, a broken API seed, a `route.fetch()` bypass of the e2e suite, and — **the two that previously survived every gate** — a fabricated `clause_text` and a `[0,0,0,0]` bbox. The last two are the most important: your Task 10 must catch them.
+- Task 10 (below) proves each new test bites.
+- `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"` parses, and every `uses:` version and input verified against the real upstream README.
+
+## Task 10 — close the 8 uncovered behaviours
+A prior audit found these behaviours have **no test at all** (the mutation survives every gate). Add real assertions. Ownership: put them in `tests/test_reconciliation_contract.py` (new) or in the files you own, whichever is cleaner — and note that `test_api_hardening.py` may already cover some; **check before duplicating.**
+1. `adapters.reconciliation_to_frontend` — the day verdict's `clause_text` is a clause that genuinely appears in `terms.clauses` (not a generated sentence).
+2. `adapters._bbox_or_none` — `(0,0,0,0)` → `None`; a real box → the list; and end-to-end, **no served citation has an all-zero bbox**.
+3. Citation `document` threading — `reconciliation_to_frontend(..., owner_document="sof_owner.pdf", charterer_document="sof_charterer.pdf")` puts those names on the traces, and the unthreaded path yields `null` rather than a guessed name.
+4. The demo-row staleness guard — `main.py`'s `_demo_matches_expected` must return False for a row whose rule id is retired, whose `measurement_basis` is missing, or whose trace rows lack `clause_citation` (a totals-only check passes all three). I just added `_demo_contract_current` for exactly this; test it.
+5. `main.py`'s 409 for an errored voyage and 400 for `?format=pdf` — if `test_api_hardening.py` already covers these, do not duplicate; just say so.
+6. The letter's Jinja autoescaping, if not already covered — a `<script>` / `<img onerror>` / `&` payload in `vessel_name` and `owner_position` must come out escaped, and legitimate markup must survive.
+7. The half-open weather window's effect on the majority denominator — a 12-hour window must yield 12 observations, not 13 (check whether `test_weather.py` already proves it; do not duplicate).
+8. `apps/web`'s `resolution_seconds` removal — the frontend type, mocks and CSV no longer carry a field the API never returned. This is a frontend fact; if you cannot test it from `apps/api/tests`, say so and leave it.
+For each: **prove the assertion bites** by reverting the fix in a scratch copy under `/tmp/opencode/` and showing the test fail. A test that passes with its subject broken is worse than no test.
+
+## Report
+1. The complete list of untracked/deleted paths the user must stage, as a copy-pasteable command, with a count and a note on why each matters
+2. Every CI change, before/after, with the proof it fails on the defect it targets
+3. The full mutation → gate matrix
+4. The 8 coverage items: covered / already covered elsewhere / not doable, with bite proofs
+5. Verification that `pnpm run build`, `pnpm exec tsc --noEmit`, `pnpm run lint -- --max-warnings 4` and `pnpm exec playwright test --fail-on-flaky-tests` all pass, and the observed flake rate
+6. `.gitattributes` handling and the expected renormalisation diff size
+7. Anything you could not fix and why
