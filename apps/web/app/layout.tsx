@@ -6,10 +6,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Keel — Maritime Intelligence Platform",
   description:
-    "Enterprise-grade laytime and demurrage reconciliation for maritime charterparties. Keel analyses owner and charterer statements, applies BIMCO 2013 weather clauses, and produces auditable reconciled totals.",
+    "Laytime and demurrage reconciliation for maritime charterparties. Keel reads owner and charterer statements of facts, applies each charterparty's own weather exception terms, measures excepted periods on the basis the Laytime Definitions supply, and produces an auditable reconciled total. Hackathon demo build: advisory output, not a legal opinion.",
   openGraph: {
     title: "Keel — Maritime Intelligence Platform",
-    description: "Enterprise maritime charterparty reconciliation powered by AI.",
+    description:
+      "Laytime and demurrage reconciliation for maritime charterparties. A deterministic engine applies each charterparty's own weather-exception terms and publishes the arithmetic behind every figure.",
     type: "website",
   },
 };

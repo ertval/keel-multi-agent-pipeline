@@ -5,21 +5,25 @@ import Link from "next/link";
 import { 
   Ship, 
   ArrowRight, 
-  ArrowDown, 
   CheckCircle2, 
   Mail, 
   FileText, 
   LayoutGrid, 
   ShieldCheck, 
   Layers, 
-  ChevronRight, 
   Menu, 
   X, 
-  Play, 
-  Calendar,
-  Sparkles,
-  ArrowUpRight
+  Play,
+  Sparkles
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 // SVG Brand Logo Component representing the official "Keel Operational Intelligence" design
@@ -64,7 +68,6 @@ function KeelLogo({ showTagline = true, className = "" }: { showTagline?: boolea
 export default function CorporateHomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [demoModalOpen, setDemoModalOpen] = useState(false);
-  const [emailInput, setEmailInput] = useState("");
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300 selection:bg-cyan-500/30 selection:text-cyan-800 dark:selection:text-cyan-200 relative overflow-hidden font-sans">
@@ -103,18 +106,20 @@ export default function CorporateHomePage() {
               Client Portal
             </Link>
             <Link 
-              href="/register" 
+              href="/login" 
               className="text-sm font-semibold text-white bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 hover:opacity-95 px-5 py-2.5 rounded-lg shadow-lg shadow-blue-500/10 transition-all duration-200"
             >
-              Request Enterprise Trial
+              Open the Demo
             </Link>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="flex items-center gap-3 md:hidden">
             <ThemeToggle />
-            <button 
+            <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileMenuOpen}
               className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -163,10 +168,10 @@ export default function CorporateHomePage() {
                 Client Portal
               </Link>
               <Link 
-                href="/register"
+                href="/login"
                 className="w-full text-center text-sm font-semibold text-white bg-gradient-to-r from-blue-700 to-cyan-500 py-3 rounded-lg transition-all"
               >
-                Request Enterprise Trial
+                Open the Demo
               </Link>
             </div>
           </div>
@@ -179,7 +184,7 @@ export default function CorporateHomePage() {
         <div className="lg:col-span-6 flex flex-col gap-8">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50/10 dark:bg-blue-950/60 border border-blue-200/50 dark:border-blue-900/50 text-xs font-semibold text-blue-700 dark:text-cyan-400 w-fit transition-colors duration-300">
             <Sparkles size={13} className="text-blue-600 dark:text-cyan-400" />
-            <span>Next-Gen Maritime AI • Phase 1 Alpha Live</span>
+            <span>Hackathon demo build &bull; fixture voyage &bull; needs a live OpenAI key</span>
           </div>
 
           <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-950 dark:text-white leading-tight transition-colors duration-300">
@@ -195,17 +200,17 @@ export default function CorporateHomePage() {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
             <Link 
-              href="/register" 
+              href="/login" 
               className="px-8 py-4 bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 hover:opacity-95 text-white font-semibold rounded-xl text-center shadow-lg shadow-blue-600/20 transition-all duration-300 hover:scale-[1.02]"
             >
-              Request Enterprise Trial
+              Open the Demo
             </Link>
             <button 
               onClick={() => setDemoModalOpen(true)}
               className="flex items-center justify-center gap-2 px-8 py-4 border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--surface-2)] text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-semibold rounded-xl transition-all duration-300"
             >
               <Play size={16} />
-              Watch 90s Demo
+              How the Demo Works
             </button>
           </div>
         </div>
@@ -213,14 +218,17 @@ export default function CorporateHomePage() {
         {/* Right Dashboard Mockup (Visual Highlight Centerpiece) */}
         <div className="lg:col-span-6 w-full animate-slide-up">
           <div className="relative rounded-2xl bg-[var(--card)]/90 dark:bg-slate-900/40 backdrop-blur-xl border border-[var(--border)] p-6 shadow-2xl shadow-slate-950/10 dark:shadow-slate-950/50 group hover:border-slate-400/50 dark:hover:border-slate-700/80 transition-all duration-500">
+            <div className="absolute -top-3 right-6 px-3 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[10px] font-semibold text-slate-500 dark:text-slate-400 z-10">
+              Figures below are the real output of voyage_001
+            </div>
             {/* Header window control buttons */}
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-[var(--border)]">
+            <div className="flex items-center justify-between mb-6 pt-2 pb-4 border-b border-[var(--border)]">
               <div className="flex gap-1.5">
                 <span className="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-800" />
                 <span className="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-800" />
                 <span className="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-800" />
               </div>
-              <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">keel-engine-reconcile-v1</span>
+              <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">/voyage/voyage_001/reconcile</span>
             </div>
 
             {/* Reconciliation Comparison Card */}
@@ -229,39 +237,44 @@ export default function CorporateHomePage() {
               <div className="p-4 rounded-xl bg-[var(--background)] border border-[var(--border)]">
                 <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Shipowner Interpretation</span>
                 <span className="text-xl font-bold text-slate-900 dark:text-slate-200">$187,000.00</span>
-                <span className="text-[11px] text-rose-600 dark:text-rose-500 block mt-1">Laytime: 6d 08h 12m</span>
+                <span className="text-[11px] text-rose-600 dark:text-rose-500 block mt-1">Owner better supported on 2 of 3 disputed days</span>
               </div>
               {/* Charterer interpret */}
               <div className="p-4 rounded-xl bg-[var(--background)] border border-[var(--border)]">
                 <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block mb-1">Charterer Interpretation</span>
                 <span className="text-xl font-bold text-slate-900 dark:text-slate-200">$62,000.00</span>
-                <span className="text-[11px] text-blue-600 dark:text-cyan-400 block mt-1">Laytime: 3d 12h 00m</span>
+                <span className="text-[11px] text-blue-600 dark:text-cyan-400 block mt-1">Charterer better supported on 1 of 3 disputed days</span>
               </div>
             </div>
 
-            {/* Adjudicated Highlight Window */}
+            {/* Disputed-window highlight */}
             <div className="p-4 rounded-xl bg-[var(--background)]/90 border border-[var(--border)] relative overflow-hidden mb-6">
               <div className="absolute top-0 right-0 p-3">
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
                   Disputed Window
                 </span>
               </div>
-              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-300 mb-2">June 16 Weather Exception</h4>
+              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-300 mb-2">16 June 2026 Weather Exception</h4>
               <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed mb-3">
-                Charterer claimed Weather Exception. Keel evaluated historic hourly logs at Piraeus Port:
+                Charterer claimed Weather Exception. Keel evaluated the fixture hourly weather log for Piraeus:
               </p>
               <div className="flex flex-col gap-1.5 text-[11px] font-mono">
                 <div className="flex justify-between text-slate-500">
                   <span>Wind Speed (Beaufort):</span>
-                  <span className="text-amber-600 dark:text-amber-400 font-semibold">Force 7 (Threshold $\ge 6$)</span>
+                  <span className="text-amber-600 dark:text-amber-400 font-semibold">Force 7 (Charterparty &ge; Bft 6)</span>
                 </div>
                 <div className="flex justify-between text-slate-500">
                   <span>Precipitation Rate:</span>
-                  <span className="text-amber-600 dark:text-amber-400 font-semibold">3.2 mm/h (Threshold $\ge 2.0$)</span>
+                  <span className="text-amber-600 dark:text-amber-400 font-semibold">5.6 mm/h (Charterparty &ge; 2.0)</span>
                 </div>
+              <div className="flex justify-between text-slate-400 dark:text-slate-500">
+                <span>Measurement basis for an excepted period:</span>
+                <span>EXCLUDED PERIOD AS AN ACTUAL PERIOD</span>
+              </div>
+
                 <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold border-t border-[var(--border)] pt-1.5 mt-1">
-                  <span>BIMCO 2013 WWD Verdict:</span>
-                  <span>EXCEPTION VALIDATED (Pauses clock)</span>
+                  <span>Charterparty threshold test:</span>
+                  <span>EXCEPTION APPLIES &middot; TIME NOT COUNTED</span>
                 </div>
               </div>
             </div>
@@ -273,12 +286,12 @@ export default function CorporateHomePage() {
                   <ShieldCheck size={18} />
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Audited Reconciled Truth</span>
+                  <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Reconciled Total</span>
                   <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">$112,000.00</span>
                 </div>
               </div>
               <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block px-3 py-1 bg-[var(--card)] border border-[var(--border)] rounded-lg">
-                Saves $75,000
+                Claim reduced by $75,000
               </span>
             </div>
           </div>
@@ -294,30 +307,31 @@ export default function CorporateHomePage() {
               Resolving Dispute Deadlocks in Seconds.
             </h3>
             <p className="text-slate-600 dark:text-slate-400 text-sm md:text-base leading-relaxed">
-              When a shipowner issues a $187,000 demurrage claim and a charterer's calculations reflect $62,000, months of adversarial legal friction and capital lockup follow. Keel Technologies was founded to break this deadlock. We provide single-player, defensible audit trails that bridge the gap between counterparties—equipping maritime pioneers with the intelligence required to resolve disputes in seconds.
+              When a shipowner issues a $187,000 demurrage claim and a charterer&apos;s calculations reflect $62,000, months of adversarial legal friction and capital lockup follow. Keel Technologies was founded to break this deadlock. We provide single-player, defensible audit trails that bridge the gap between counterparties—equipping maritime pioneers with the intelligence required to resolve disputes in seconds.
             </p>
             <div className="pt-2">
-              <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-3">Operating Hubs</p>
-              <div className="flex items-center gap-6 text-sm font-medium text-slate-700 dark:text-slate-300">
-                <span className="flex items-center gap-1.5"><Ship size={14} className="text-blue-500" /> Piraeus</span>
-                <span className="flex items-center gap-1.5"><Ship size={14} className="text-cyan-500" /> London</span>
-                <span className="flex items-center gap-1.5"><Ship size={14} className="text-indigo-500" /> Singapore</span>
-              </div>
+              <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-3">What This Build Actually Does</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                One fixture charterparty and two statements of facts from Piraeus. The
+                pipeline reads them with a live OpenAI key, then a pure-Python state
+                machine produces the laytime arithmetic. There are no other voyages
+                in this build and no customer data.
+              </p>
             </div>
           </div>
 
           <div className="lg:col-span-7 grid grid-cols-3 gap-6 text-center">
             <div className="p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] flex flex-col items-center justify-center gap-2">
-              <span className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">$50M+</span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Disputed Claims Audited</span>
+              <span className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">$187k&rarr;$112k</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Owner claim vs reconciled total</span>
             </div>
             <div className="p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] flex flex-col items-center justify-center gap-2">
-              <span className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-500 to-emerald-500 dark:from-cyan-400 dark:to-emerald-400 bg-clip-text text-transparent">&lt; 10s</span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Audit Execution Time</span>
+              <span className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-500 to-emerald-500 dark:from-cyan-400 dark:to-emerald-400 bg-clip-text text-transparent">&lt; 2s</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Cold pipeline runtime</span>
             </div>
             <div className="p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] flex flex-col items-center justify-center gap-2">
-              <span className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 to-blue-600 dark:from-emerald-400 dark:to-blue-400 bg-clip-text text-transparent">100%</span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Calculation Auditability</span>
+              <span className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 to-blue-600 dark:from-emerald-400 dark:to-blue-400 bg-clip-text text-transparent">3</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Disputed days assessed</span>
             </div>
           </div>
         </div>
@@ -341,7 +355,7 @@ export default function CorporateHomePage() {
           <div className="md:col-span-12 lg:col-span-7 p-8 rounded-2xl bg-[var(--card)] border border-[var(--border)] relative overflow-hidden flex flex-col justify-between min-h-[320px] group hover:border-blue-500/50 dark:hover:border-slate-700/80 transition-all duration-300">
             <div className="absolute top-0 right-0 p-6">
               <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                Phase 1 Alpha Live
+                Works Today
               </span>
             </div>
             <div className="flex flex-col gap-4 max-w-lg">
@@ -354,11 +368,11 @@ export default function CorporateHomePage() {
               </p>
             </div>
             <div className="pt-6">
-              <Link 
-                href="/register" 
+              <Link
+                href="/login"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 dark:text-white group-hover:text-blue-700 dark:group-hover:text-cyan-400 transition-colors"
               >
-                Access Alpha Portal
+                Open the Demo
                 <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
@@ -405,7 +419,7 @@ export default function CorporateHomePage() {
           {/* Card 4: Validation Gates */}
           <div className="md:col-span-6 lg:col-span-4 p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] relative overflow-hidden flex flex-col justify-between min-h-[260px] group hover:border-blue-500/50 dark:hover:border-slate-700/80 transition-all duration-300">
             <div className="absolute top-0 right-0 p-6">
-              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Coming Soon</span>
+              <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 tracking-wider">Gate Live · UI Not Built</span>
             </div>
             <div className="flex flex-col gap-3">
               <div className="p-2.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-cyan-400 w-fit">
@@ -413,16 +427,21 @@ export default function CorporateHomePage() {
               </div>
               <h4 className="text-base font-bold text-slate-950 dark:text-white">Validation Gates &amp; HITL</h4>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Pydantic validation boundaries that verify event timelines and commercial ranges. Stages low-confidence items in a visual Human-in-the-Loop review workspace.
+                The validation gate runs today: a validator node re-checks the
+                extracted terms and coordinates and sends them back to the
+                extraction worker up to three times. The visual Human-in-the-Loop
+                review workspace is not built.
               </p>
             </div>
-            <div className="text-[10px] font-mono text-slate-400 dark:text-slate-600">Roadmap Phase 1.2</div>
+            <div className="text-[10px] font-mono text-slate-400 dark:text-slate-600">HITL workspace: not started</div>
           </div>
 
           {/* Card 5: Multi-agent */}
           <div className="md:col-span-12 lg:col-span-4 p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] relative overflow-hidden flex flex-col justify-between min-h-[260px] group hover:border-blue-500/50 dark:hover:border-slate-700/80 transition-all duration-300">
             <div className="absolute top-0 right-0 p-6">
-              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Coming Soon</span>
+              <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                Runs Today
+              </span>
             </div>
             <div className="flex flex-col gap-3">
               <div className="p-2.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-cyan-400 w-fit">
@@ -430,10 +449,14 @@ export default function CorporateHomePage() {
               </div>
               <h4 className="text-base font-bold text-slate-950 dark:text-white">Multi-Agent Orchestrator</h4>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                An Orchestrator-Worker-Validator agentic model. Includes exponential calling retry policies and model fallback pipelines to control LLM stochasticity.
+                An Orchestrator-Worker-Validator agentic model, as a LangGraph state
+                machine: an orchestrator, separate charterparty and SOF extraction
+                workers, a validator with a bounded retry policy, the laytime
+                engine, and a final step that weighs both parties&apos; positions.
+                Model fallback is not implemented.
               </p>
             </div>
-            <div className="text-[10px] font-mono text-slate-400 dark:text-slate-600">Roadmap Phase 1.3</div>
+            <div className="text-[10px] font-mono text-slate-400 dark:text-slate-600">Model fallback: not started</div>
           </div>
         </div>
       </section>
@@ -447,7 +470,8 @@ export default function CorporateHomePage() {
               Our Operational Mandate.
             </h3>
             <p className="text-slate-600 dark:text-slate-400 text-sm md:text-base">
-              The fundamental guidelines governing our code, security compliance, and product implementations.
+              The guidelines governing how this codebase handles evidence and
+              security.
             </p>
           </div>
 
@@ -479,7 +503,12 @@ export default function CorporateHomePage() {
               </div>
               <h4 className="text-lg font-bold text-slate-950 dark:text-white">Auditable Transparency</h4>
               <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Audits require verification. Every calculated figure in our statements corresponds directly to a source PDF. Analysts can click any row to inspect page numbers, text rows, and highlighted bounding box coordinates instantly.
+                Every calculated figure carries the page of the source document it
+                came from. When a figure cannot be traced to a named document, the
+                row says so rather than pointing at a plausible-looking guess. This
+                build ships no source PDFs, so the on-screen preview and its
+                highlight are unavailable here &mdash; the citations themselves are
+                real.
               </p>
             </div>
           </div>
@@ -494,26 +523,21 @@ export default function CorporateHomePage() {
           
           <div className="flex flex-col gap-4 max-w-xl">
             <h3 className="font-display text-2xl md:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight leading-tight">
-              Secure Your Maritime Assets and Reconcile Claims Today.
+              Run the Fixture Voyage End to End.
             </h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              Initiate your 14-day Enterprise Alpha Trial. Integrate files instantly without onboarding external counterparties or configuring complex systems.
+              There is no trial, no sales process, and no account to create in this
+              build. The demo runs the pipeline over the bundled Piraeus documents
+              and reconciles the two parties&apos; figures against the weather log.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-            <input 
-              type="email" 
-              placeholder="enterprise@shipping.co"
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              className="px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm text-[var(--foreground)] placeholder-slate-400 focus:outline-none focus:border-cyan-500 transition-colors w-full sm:w-[220px]"
-            />
-            <Link 
-              href={`/register?email=${encodeURIComponent(emailInput)}`}
-              className="px-6 py-3 bg-gradient-to-r from-blue-700 to-cyan-500 hover:opacity-95 text-white font-semibold text-sm rounded-lg text-center shadow-lg shadow-blue-500/10 transition-all duration-200"
+            <Link
+              href="/login"
+              className="px-8 py-3.5 bg-gradient-to-r from-blue-700 to-cyan-500 hover:opacity-95 text-white font-semibold text-sm rounded-lg text-center shadow-lg shadow-blue-500/10 transition-all duration-200"
             >
-              Request Onboarding
+              Open the Demo
             </Link>
           </div>
         </div>
@@ -535,63 +559,66 @@ export default function CorporateHomePage() {
           <div className="flex flex-col gap-4">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">Offerings</span>
             <div className="flex flex-col gap-2.5 text-sm">
-              <Link href="/login" className="hover:text-slate-900 dark:hover:text-white transition-colors">Client Portal</Link>
-              <Link href="/register" className="hover:text-slate-900 dark:hover:text-white transition-colors">Enterprise Trial</Link>
-              <span className="text-slate-400 dark:text-slate-600 cursor-not-allowed">Email Plugin (Soon)</span>
+              <Link href="/login" className="hover:text-slate-900 dark:hover:text-white transition-colors">Client Portal (Demo)</Link>
+              <span className="text-slate-400 dark:text-slate-600">Email Plugin (Not Built)</span>
             </div>
           </div>
-          {/* Col 3 Company */}
+          {/* Col 3 Build status */}
           <div className="flex flex-col gap-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">Operational Hubs</span>
-            <div className="flex flex-col gap-2.5 text-sm font-mono text-slate-500 dark:text-slate-400">
-              <span className="flex items-center gap-1.5"><Ship size={12} /> Piraeus, Attica</span>
-              <span className="flex items-center gap-1.5"><Ship size={12} /> London, City of</span>
-              <span className="flex items-center gap-1.5"><Ship size={12} /> Singapore, Port of</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">This Build</span>
+            <div className="flex flex-col gap-2.5 text-sm text-slate-500 dark:text-slate-400">
+              <span>Fixture data, not customer data</span>
+              <span>No API key needed for the demo voyage; a key is needed to extract from your own PDFs</span>
+              <span>No authentication, no accounts</span>
+              <span>No SOC 2, ISO or GDPR certification</span>
             </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 pt-12 mt-12 border-t border-[var(--border)] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <span>&copy; {new Date().getFullYear()} Keel Technologies. All rights reserved.</span>
-          <div className="flex items-center gap-6">
-            <span className="hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">Terms of Service</span>
-            <span className="hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">Privacy Policy</span>
-            <span className="hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer flex items-center gap-1">SOC 2 Compliant <ShieldCheck size={12} /></span>
-          </div>
+          <span className="flex items-center gap-1.5">
+            <ShieldCheck size={12} />
+            Hackathon demo build. Advisory output only &mdash; not audited, not
+            certified, and not legal advice.
+          </span>
         </div>
       </footer>
 
-      {/* Video Demo Modal */}
-      {demoModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-4xl bg-[var(--card)] rounded-2xl border border-[var(--border)] p-4 shadow-2xl animate-scale-in">
-            <button 
-              onClick={() => setDemoModalOpen(false)}
-              className="absolute top-2 right-2 p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors rounded-lg bg-[var(--background)] border border-[var(--border)]"
-            >
-              <X size={20} />
-            </button>
-            <div className="aspect-video w-full rounded-lg bg-[var(--background)] flex flex-col items-center justify-center gap-4 border border-[var(--border)] relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 to-cyan-900/10 pointer-events-none" />
-              <div className="relative z-10 flex flex-col items-center justify-center text-center p-6 gap-3">
-                <div className="p-4 rounded-full bg-blue-500/10 text-blue-600 dark:text-cyan-400 w-fit mx-auto border border-blue-500/20">
-                  <Play size={32} />
-                </div>
-                <h4 className="text-lg font-bold text-slate-900 dark:text-white mt-2">Keel Claims Reconciliation Demo</h4>
-                <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
-                  [Mock Video Player] Demonstrates document ingestion, Pydantic verification parsing, WWD weather checks, and PDF bounding box overlay highlighting.
-                </p>
-                <button 
-                  onClick={() => setDemoModalOpen(false)}
-                  className="px-6 py-2.5 bg-[var(--card)] hover:bg-[var(--surface-2)] text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white font-semibold rounded-lg text-sm mt-3 border border-[var(--border)] transition-colors"
-                >
-                  Close Player
-                </button>
-              </div>
+      {/* Demo Explainer Modal */}
+      <Dialog open={demoModalOpen} onOpenChange={setDemoModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <div className="p-4 rounded-full bg-blue-500/10 text-blue-600 dark:text-cyan-400 w-fit mx-auto border border-blue-500/20">
+              <Play size={32} />
             </div>
+            <DialogTitle>How the Demo Works</DialogTitle>
+            <DialogDescription className="text-center">
+              There is no recorded video for this build. In the portal, open the
+              new-voyage dialog and run the bundled fixture: a charterparty and
+              two statements of facts are parsed, the terms are extracted with
+              an LLM, a deterministic state machine computes laytime, and the
+              weather exception is tested against the charterparty&apos;s own
+              threshold. Every figure is cited back to the page it came from.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
+            <Link
+              href="/login"
+              className="px-6 py-2.5 bg-gradient-to-r from-blue-700 to-cyan-500 hover:opacity-95 text-white font-semibold rounded-lg text-sm shadow-lg shadow-blue-500/10 transition-all duration-200"
+            >
+              Open the Demo
+            </Link>
+            <Button
+              variant="outline"
+              onClick={() => setDemoModalOpen(false)}
+              className="px-6 py-2.5 text-sm"
+            >
+              Close
+            </Button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

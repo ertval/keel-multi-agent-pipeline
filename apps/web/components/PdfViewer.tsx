@@ -2,51 +2,60 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
+import type { OnPageLoadSuccess, PageCallback } from "react-pdf/dist/shared/types.js";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { ChevronLeft, ChevronRight, Loader2, FileWarning } from "lucide-react";
 
-// Configure PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Served from /public so the viewer works on a host with no outbound network.
+// The unpkg CDN copy cannot be reached from an air-gapped demo machine, and the
+// failure mode there is silent: pdf.js falls back to a fake worker, no PDF is
+// ever requested, and the panel looks broken for the wrong reason.
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
-type PdfPageProxy = any;
-type PdfPageViewport = any;
+type PdfViewport = ReturnType<PageCallback["getViewport"]>;
 
 const PAGE_WIDTH = 520;
 
 interface PdfViewerProps {
-  url: string;
-  initialPage?: number;
+  /** Resolved source URL, or null when the citation names no document. */
+  url: string | null;
+  /** `null` when the API could not place the citation on a page. */
+  initialPage?: number | null;
   /** Optional bbox highlight [x0, y0, x1, y1] in PDF points */
   highlightBbox?: [number, number, number, number];
 }
 
 export default function PdfViewer({ url, initialPage = 1, highlightBbox }: PdfViewerProps) {
   const [numPages, setNumPages] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [currentPage, setCurrentPage] = useState(
+    typeof initialPage === "number" ? initialPage : 1
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [pageViewport, setPageViewport] = useState<PdfPageViewport | null>(null);
+  const [pageViewport, setPageViewport] = useState<PdfViewport | null>(null);
+  const unavailable = !url || error;
+  const targetPage = typeof initialPage === "number" ? initialPage : 1;
 
   // Sync when parent changes the page
   const onDocumentLoadSuccess = useCallback(
     ({ numPages }: { numPages: number }) => {
       setNumPages(numPages);
       setLoading(false);
-      setCurrentPage(initialPage);
+      setCurrentPage(targetPage);
     },
-    [initialPage]
+    [targetPage]
   );
 
-  const onPageLoadSuccess = useCallback((page: PdfPageProxy) => {
+  const onPageLoadSuccess = useCallback<OnPageLoadSuccess>((page) => {
     const baseViewport = page.getViewport({ scale: 1 });
     const scale = PAGE_WIDTH / baseViewport.width;
     setPageViewport(page.getViewport({ scale }));
   }, []);
 
   // Update page when initialPage prop changes (from audit-trace row click)
-  if (currentPage !== initialPage && numPages > 0) {
-    const clamped = Math.min(Math.max(initialPage, 1), numPages);
+  if (currentPage !== targetPage && numPages > 0) {
+    const clamped = Math.min(Math.max(targetPage, 1), numPages);
     setCurrentPage(clamped);
   }
 
@@ -54,7 +63,7 @@ export default function PdfViewer({ url, initialPage = 1, highlightBbox }: PdfVi
   const next = () => setCurrentPage((p) => Math.min(p + 1, numPages));
 
   const highlightStyle = useMemo(() => {
-    if (!highlightBbox || !pageViewport || currentPage !== initialPage) return null;
+    if (!highlightBbox || !pageViewport || currentPage !== targetPage) return null;
     const [x0, y0, x1, y1] = highlightBbox;
     if ([x0, y0, x1, y1].every((v) => v === 0)) return null;
 
@@ -70,7 +79,7 @@ export default function PdfViewer({ url, initialPage = 1, highlightBbox }: PdfVi
     const height = Math.abs(vy1 - vy0);
 
     return { left, top, width, height };
-  }, [highlightBbox, pageViewport, currentPage, initialPage]);
+  }, [highlightBbox, pageViewport, currentPage, targetPage]);
 
   return (
     <div
@@ -96,15 +105,15 @@ export default function PdfViewer({ url, initialPage = 1, highlightBbox }: PdfVi
           className="mono"
           style={{ fontSize: "0.8rem", color: "hsl(var(--muted-foreground))" }}
         >
-          {url.split("/").pop()}
+          {url ? url.split("/").pop() : "no source document named"}
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <button
             id="pdf-prev-btn"
             className="btn btn-ghost"
             onClick={prev}
-            disabled={currentPage <= 1}
-            style={{ padding: "0.25rem 0.5rem", opacity: currentPage <= 1 ? 0.4 : 1 }}
+            disabled={unavailable || currentPage <= 1}
+            style={{ padding: "0.25rem 0.5rem", opacity: unavailable || currentPage <= 1 ? 0.4 : 1 }}
             aria-label="Previous page"
           >
             <ChevronLeft size={16} />
@@ -113,14 +122,16 @@ export default function PdfViewer({ url, initialPage = 1, highlightBbox }: PdfVi
             className="mono"
             style={{ fontSize: "0.8rem", minWidth: "5rem", textAlign: "center" }}
           >
-            {numPages > 0 ? `${currentPage} / ${numPages}` : "—"}
+            {numPages > 0
+              ? `${currentPage} / ${numPages}`
+              : `cited ${typeof initialPage === "number" ? `p.${initialPage}` : "page not recorded"}`}
           </span>
           <button
             id="pdf-next-btn"
             className="btn btn-ghost"
             onClick={next}
-            disabled={currentPage >= numPages}
-            style={{ padding: "0.25rem 0.5rem", opacity: currentPage >= numPages ? 0.4 : 1 }}
+            disabled={unavailable || currentPage >= numPages}
+            style={{ padding: "0.25rem 0.5rem", opacity: unavailable || currentPage >= numPages ? 0.4 : 1 }}
             aria-label="Next page"
           >
             <ChevronRight size={16} />
@@ -138,7 +149,7 @@ export default function PdfViewer({ url, initialPage = 1, highlightBbox }: PdfVi
           alignItems: loading ? "center" : "flex-start",
         }}
       >
-        {error ? (
+        {unavailable ? (
           <div
             style={{
               display: "flex",
@@ -147,14 +158,27 @@ export default function PdfViewer({ url, initialPage = 1, highlightBbox }: PdfVi
               gap: "0.75rem",
               color: "hsl(var(--muted-foreground))",
               padding: "3rem",
+              textAlign: "center",
             }}
           >
             <FileWarning size={32} />
-            <p style={{ fontSize: "0.875rem" }}>
-              PDF preview not available for mock documents.
-              <br />
-              Upload real files to enable the viewer.
-            </p>
+            {url ? (
+              <>
+                <p style={{ fontSize: "0.875rem" }}>
+                  This build ships no source PDF, so the preview cannot load. The
+                  citation still names the document and page the engine read.
+                  <br />
+                  The page number and every figure in the audit trace come from the
+                  pipeline and are unaffected.
+                </p>
+              </>
+            ) : (
+              <p style={{ fontSize: "0.875rem" }}>
+                This citation does not name a source document, so there is nothing to preview.
+                <br />
+                The page number and the figures above come from the audit trace and are unaffected.
+              </p>
+            )}
           </div>
         ) : (
           <Document

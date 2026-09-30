@@ -1,50 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<"dark" | "light">("light");
-  const [mounted, setMounted] = useState(false);
+// `public/theme-init.js` runs before hydration and owns the `dark` class on
+// <html>, so the class — not React state — is the source of truth for the theme.
+const THEME_EVENT = "keel:themechange";
 
-  useEffect(() => {
-    // Read the theme on mount
-    const savedTheme = localStorage.getItem("theme") as "dark" | "light" | null;
-    const currentTheme = savedTheme || "light";
-    setTheme(currentTheme);
-    setMounted(true);
-  }, []);
+function subscribe(callback: () => void) {
+  window.addEventListener(THEME_EVENT, callback);
+  return () => window.removeEventListener(THEME_EVENT, callback);
+}
+
+function getSnapshot(): "dark" | "light" {
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+}
+
+function getServerSnapshot(): "dark" | "light" {
+  return "light";
+}
+
+export function ThemeToggle() {
+  const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
     localStorage.setItem("theme", nextTheme);
-    
+
     if (nextTheme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
+    window.dispatchEvent(new Event(THEME_EVENT));
   };
-
-  if (!mounted) {
-    // Render a skeleton button during SSR/hydration to prevent layout shift
-    return (
-      <Button
-        variant="ghost"
-        size="icon"
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: 8,
-          opacity: 0.5,
-        }}
-      >
-        <Sun size={16} />
-      </Button>
-    );
-  }
 
   return (
     <Button

@@ -9,16 +9,18 @@ fixture (see PRD §4) and asserts the exact reconciled outcome:
 
 with three per-day verdicts:
 
-    June 14 → owner    (Force 5, below BIMCO 2013 WWD threshold)
-    June 15 → owner    (Force 4, below BIMCO 2013 WWD threshold)
-    June 16 → charterer (Force 7 + heavy rain, meets WWD threshold)
+    June 14 → owner    (Force 5, below the threshold in the charterparty's clause 3.2)
+    June 15 → owner    (Force 4, below the threshold in the charterparty's clause 3.2)
+    June 16 → charterer (Force 7 + heavy rain, threshold met and operations prevented)
 
-The test is intentionally FAILING at this point — it will go green at
-J-03 once tickets A-03 through A-08 are complete. Until then it surfaces
-a clear NotImplementedError pointing at the next work to do.
+The threshold is this charterparty's own term and the share of hours that must
+meet it is this product's own policy, so every weather verdict's authority is
+`custom`. The reconciliation's authority is the ruleset the charterparty itself
+incorporates, which for voyage_001 is the 2013 Laytime Definitions, named in its
+clause 3.1.
 
-DO NOT XFAIL OR SKIP THIS TEST. Its failure is the hour-by-hour
-progress signal for the whole build. When it passes, J-03 is green.
+This is the end-to-end north-star assertion for voyage_001. It is expected
+to pass once the pipeline, weather rules, and reconciliation are wired.
 """
 
 from __future__ import annotations
@@ -57,8 +59,19 @@ def test_voyage_001_disputed_days_have_expected_verdicts() -> None:
 
 
 @pytest.mark.canonical
-def test_voyage_001_uses_bimco_2013_authority() -> None:
-    reconciliation, _, _, _ = run_voyage_pipeline(FIXTURE_DIR)
+def test_voyage_001_authority_claims_nothing_the_charterparty_does_not_say() -> None:
+    """The reconciliation's authority is what the charterparty incorporates; each
+    weather verdict's is this product's own policy against the clause. No verdict
+    may claim a source document is the authority for the threshold or the share
+    test, because no source supplies either."""
+    reconciliation, terms, _, _ = run_voyage_pipeline(FIXTURE_DIR)
+
     assert reconciliation.rule_authority == "BIMCO_2013"
+    incorporated = [
+        c.text for c in terms.clauses
+        if "in accordance with the BIMCO Laytime Definitions" in c.text
+    ]
+    assert incorporated, "reconciliation names a ruleset no clause incorporates"
+
     for item in reconciliation.disputed_items:
-        assert item.verdict.rule_authority == "BIMCO_2013"
+        assert item.verdict.rule_authority == "custom"

@@ -1,10 +1,20 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { fetchVoyageDetail, formatUsd, API_BASE_URL, USE_MOCK } from "@/lib/api";
+import { fetchVoyageDetail, formatUsd, assessmentLabel, API_BASE_URL, USE_MOCK } from "@/lib/api";
+import { sanitizeLetterHtml } from "@/lib/sanitize-html";
 import type { VoyageDetailResponse } from "@/lib/types";
-import { ArrowLeft, Download, Printer, Anchor, Loader2, Send, X, CheckCircle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Download, Printer, Anchor, Loader2, Send, Info } from "lucide-react";
 
 export default function ClaimLetterPage({
   params,
@@ -16,12 +26,19 @@ export default function ClaimLetterPage({
   const [loading, setLoading] = useState(true);
   const [letterHtml, setLetterHtml] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfNotice, setPdfNotice] = useState<string | null>(null);
+
+  const safeLetterHtml = useMemo(
+    () => (letterHtml ? sanitizeLetterHtml(letterHtml) : null),
+    [letterHtml]
+  );
 
   useEffect(() => {
     fetchVoyageDetail(id)
       .then((d) => {
         setData(d);
-        // Try fetching rendered letter from A-09 endpoint
+        // Try fetching the rendered letter from the API
         if (!USE_MOCK) {
           fetch(`${API_BASE_URL}/voyages/${id}/letter`)
             .then((r) => (r.ok ? r.text() : null))
@@ -34,6 +51,41 @@ export default function ClaimLetterPage({
       })
       .catch(() => setLoading(false));
   }, [id]);
+
+  const handleDownloadPdf = async () => {
+    setPdfBusy(true);
+    setPdfNotice(null);
+    try {
+      const res = await fetch(`${API_BASE_URL}/voyages/${id}/letter?format=pdf`);
+      if (!res.ok) {
+        setPdfNotice(
+          `PDF export was refused by the letter service (HTTP ${res.status}). Use Print → Save as PDF instead.`
+        );
+        return;
+      }
+      const contentType = res.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/pdf")) {
+        setPdfNotice(
+          `The letter service answered with ${contentType || "an unlabelled response"} instead of a PDF, so nothing was downloaded. Use Print → Save as PDF instead.`
+        );
+        return;
+      }
+      const objectUrl = URL.createObjectURL(await res.blob());
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `keel-claim-letter-${id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      setPdfNotice(
+        "The letter service could not be reached, so nothing was downloaded. Use Print → Save as PDF instead."
+      );
+    } finally {
+      setPdfBusy(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -55,6 +107,7 @@ export default function ClaimLetterPage({
           href={`/voyage/${id}/reconcile`}
           className="btn btn-ghost"
           style={{ padding: "0.375rem 0.625rem", minWidth: "auto" }}
+          aria-label="Back to reconciliation"
         >
           <ArrowLeft size={16} />
         </Link>
@@ -72,16 +125,15 @@ export default function ClaimLetterPage({
             <Send size={14} />
             Send to Other Party
           </button>
-          <a
-            href={`${API_BASE_URL}/voyages/${id}/letter?format=pdf`}
+          <button
             className="btn btn-ghost"
             id="download-letter-pdf-btn"
-            target="_blank"
-            rel="noreferrer"
+            onClick={() => void handleDownloadPdf()}
+            disabled={pdfBusy}
           >
             <Download size={14} />
-            PDF
-          </a>
+            {pdfBusy ? "Checking…" : "Download PDF"}
+          </button>
           <button
             id="print-letter-btn"
             className="btn btn-primary"
@@ -93,8 +145,34 @@ export default function ClaimLetterPage({
         </div>
       </header>
 
+      {pdfNotice && (
+        <div
+          id="letter-pdf-notice"
+          role="status"
+          className="animate-fade-in"
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "0.625rem",
+            maxWidth: 1400,
+            margin: "1.25rem auto 0",
+            padding: "0.75rem 1rem",
+            fontSize: "0.8125rem",
+            lineHeight: 1.5,
+            color: "hsl(var(--foreground) / 0.85)",
+            background: "hsl(var(--charterer-bg))",
+            border: "1px solid hsl(var(--charterer) / 0.3)",
+            borderRadius: "var(--radius)",
+          }}
+        >
+          <Info size={15} style={{ color: "hsl(var(--charterer))", flexShrink: 0, marginTop: 2 }} />
+          <span>{pdfNotice}</span>
+        </div>
+      )}
+
       <div className="page-content" style={{ maxWidth: 1400, margin: "2rem auto" }}>
         <div
+          id="letter-document"
           style={{
             background: "hsl(0 0% 100%)",
             color: "#1a1a1a",
@@ -106,10 +184,10 @@ export default function ClaimLetterPage({
             lineHeight: 1.8,
           }}
         >
-          {letterHtml ? (
-            <div dangerouslySetInnerHTML={{ __html: letterHtml }} />
+          {safeLetterHtml ? (
+            <div dangerouslySetInnerHTML={{ __html: safeLetterHtml }} />
           ) : rec ? (
-            /* Fallback: generated from mock data */
+            /* Fallback: assembled from the same reconciliation the API serves */
             <>
               <div style={{ borderBottom: "2px solid #1a1a1a", paddingBottom: "1.5rem", marginBottom: "2rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -146,8 +224,9 @@ export default function ClaimLetterPage({
 
               <p style={{ marginBottom: "1.5rem" }}>
                 We write further to the completed voyage of the above-named vessel and set out below the reconciled
-                laytime and demurrage statement in accordance with the charterparty terms, including the BIMCO 2013
-                weather exception clause.
+                laytime and demurrage statement. Weather exceptions are assessed against the weather terms agreed
+                in this charterparty; the Laytime Definitions supply only the measurement basis for an excepted
+                period.
               </p>
 
               <p style={{ marginBottom: "1.5rem" }}>
@@ -155,7 +234,7 @@ export default function ClaimLetterPage({
                 The Charterer&apos;s total claimed: <strong>{formatUsd(rec.charterer_calculation.total_usd)}</strong>.
               </p>
 
-              <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "1rem", marginTop: "2rem" }}>Per-Day Analysis</h2>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "1rem", marginTop: "2rem" }}>Per-Day Assessment</h2>
 
               {rec.day_verdicts.map((v) => {
                 const dateLabel = new Date(v.date + "T00:00:00Z").toLocaleDateString("en-GB", {
@@ -171,10 +250,18 @@ export default function ClaimLetterPage({
                       <em>Charterer&apos;s position:</em> {v.charterer_position}
                     </p>
                     <p style={{ marginBottom: "0.375rem" }}>
-                      <em>Weather:</em> Beaufort {v.weather.wind_force_beaufort}, {v.weather.precipitation_mm}mm precipitation, {v.weather.adverse_hours}h adverse.
+                      <em>Weather:</em>{" "}
+                      {v.weather.wind_force_beaufort === null
+                        ? "Beaufort force not recorded"
+                        : `Beaufort Force ${v.weather.wind_force_beaufort}`}
+                      ,{" "}
+                      {v.weather.precipitation_mm === null
+                        ? "no precipitation figure recorded"
+                        : `${v.weather.precipitation_mm}mm precipitation`}
+                      , {v.weather.adverse_hours}h adverse.
                     </p>
                     <p>
-                      <strong>Verdict: {v.winner_label}</strong>
+                      <strong>Keel assessment: {assessmentLabel(v.verdict)}</strong>
                       {v.dollars_credited_usd > 0 && ` (+${formatUsd(v.dollars_credited_usd)})`}. {v.justification}
                     </p>
                   </div>
@@ -192,10 +279,21 @@ export default function ClaimLetterPage({
 
               <p style={{ marginTop: "3rem" }}>Yours faithfully,</p>
               <p style={{ marginTop: "2rem", fontWeight: 700 }}>Keel Maritime Reconciliation Engine</p>
+
+              <p style={{ marginTop: "2.5rem", fontSize: "0.8rem", color: "#666", fontStyle: "italic" }}>
+                Generated by Keel &middot;{" "}
+                {rec.day_verdicts[0]?.measurement_basis
+                  ? `excepted periods are measured on the basis given by ${rec.day_verdicts[0].measurement_basis}. That source supplies the measurement basis only: the weather thresholds and the test for invoking the weather exception are the ones stated in the charter party for this voyage.`
+                  : "No measurement basis was recorded for this voyage."}{" "}
+                This notice is advisory negotiation support. It is not a legal
+                opinion, an arbitration award, or a binding determination, and it
+                does not constitute legal advice.
+              </p>
             </>
           ) : (
             <p style={{ color: "#555", textAlign: "center", padding: "4rem" }}>
-              Letter not available. Please ensure A-09 is complete.
+              No letter is available for this voyage. Re-run the analysis from the upload dialog, then open
+              the letter again.
             </p>
           )}
         </div>
@@ -203,6 +301,7 @@ export default function ClaimLetterPage({
 
       {showConfirm && (
         <ConfirmationDialog
+          open={showConfirm}
           onClose={() => setShowConfirm(false)}
           vesselName={rec?.charterparty.vessel_name ?? "—"}
           reconciledTotal={rec ? formatUsd(rec.reconciled_total_usd) : "—"}
@@ -214,104 +313,94 @@ export default function ClaimLetterPage({
 }
 
 interface ConfirmationDialogProps {
+  open: boolean;
   onClose: () => void;
   vesselName: string;
   reconciledTotal: string;
   voyageId: string;
 }
 
-function ConfirmationDialog({ onClose, vesselName, reconciledTotal, voyageId }: ConfirmationDialogProps) {
+function ConfirmationDialog({
+  open,
+  onClose,
+  vesselName,
+  reconciledTotal,
+  voyageId,
+}: ConfirmationDialogProps) {
   return (
-    <>
-      <div className="dialog-overlay" onClick={onClose} />
-      <div className="dialog-content" role="dialog" aria-modal="true" style={{ maxWidth: "480px" }}>
-        <button
-          className="btn btn-ghost"
-          onClick={onClose}
-          style={{
-            position: "absolute",
-            top: "1rem",
-            right: "1rem",
-            padding: "0.375rem",
-            minWidth: "auto",
-            border: "none",
-            background: "transparent",
-            cursor: "pointer"
-          }}
-          aria-label="Close dialog"
-        >
-          <X size={16} />
-        </button>
-
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "1rem 0.5rem 0.25rem" }}>
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent showCloseButton style={{ maxWidth: 480 }}>
+        <DialogHeader>
           <div
             style={{
               width: 56,
               height: 56,
-              background: "oklch(0.65 0.15 160 / 0.15)",
+              background: "hsl(var(--muted-foreground) / 0.12)",
               borderRadius: "50%",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: "1.25rem",
-              color: "hsl(var(--owner))",
+              color: "hsl(var(--muted-foreground))",
             }}
           >
-            <CheckCircle size={28} />
+            <Info size={28} />
           </div>
-          
-          <h2 className="font-display" style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "0.5rem" }}>
-            Claim Letter Sent
-          </h2>
-          
-          <p style={{ fontSize: "0.875rem", color: "var(--muted-foreground)", lineHeight: 1.6, marginBottom: "1.5rem" }}>
-            The demurrage claim letter has been successfully compiled and sent to the other party.
-          </p>
-
-          <div
-            style={{
-              width: "100%",
-              background: "hsl(var(--surface-2))",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius)",
-              padding: "1rem",
-              marginBottom: "1.5rem",
-              textAlign: "left",
-              display: "grid",
-              gap: "0.75rem",
-              fontSize: "0.8125rem",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "var(--muted-foreground)" }}>Vessel</span>
-              <span style={{ fontWeight: 600 }}>{vesselName}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "var(--muted-foreground)" }}>Voyage Ref</span>
-              <span className="mono" style={{ fontWeight: 600 }}>{voyageId.toUpperCase()}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "var(--muted-foreground)" }}>Reconciled Amount</span>
-              <span className="mono" style={{ fontWeight: 600, color: "hsl(var(--owner))" }}>{reconciledTotal}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "var(--muted-foreground)" }}>Status</span>
-              <span style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "hsl(var(--owner))" }} />
-                Dispatched
-              </span>
-            </div>
+          <DialogTitle>Delivery Is Not Available</DialogTitle>
+          <DialogDescription>
+            Keel cannot send this letter. Nothing has been transmitted to the other
+            party and nothing is queued. Print or save the letter, then send it from
+            your own mail client.
+          </DialogDescription>
+        </DialogHeader>
+        <div
+          style={{
+            width: "100%",
+            background: "hsl(var(--surface-2))",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius)",
+            padding: "1rem",
+            textAlign: "left",
+            display: "grid",
+            gap: "0.75rem",
+            fontSize: "0.8125rem",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "var(--muted-foreground)" }}>Vessel</span>
+            <span style={{ fontWeight: 600 }}>{vesselName}</span>
           </div>
-
-          <button
-            className="btn btn-primary"
-            onClick={onClose}
-            style={{ width: "100%", justifyContent: "center" }}
-          >
-            Done
-          </button>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "var(--muted-foreground)" }}>Voyage Ref</span>
+            <span className="mono" style={{ fontWeight: 600 }}>{voyageId.toUpperCase()}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "var(--muted-foreground)" }}>Reconciled Amount</span>
+            <span className="mono" style={{ fontWeight: 600, color: "hsl(var(--owner))" }}>{reconciledTotal}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "var(--muted-foreground)" }}>Delivery</span>
+            <span style={{ fontWeight: 600, color: "hsl(var(--muted-foreground))" }}>
+              Not sent — no delivery service is connected
+            </span>
+          </div>
         </div>
-      </div>
-    </>
+        <DialogFooter>
+          <Button
+            className="btn btn-primary"
+            onClick={() => {
+              onClose();
+              window.print();
+            }}
+            style={{ flex: 1, justifyContent: "center" }}
+          >
+            <Printer size={14} />
+            Print / Save as PDF
+          </Button>
+          <Button variant="ghost" onClick={onClose} style={{ flex: 1, justifyContent: "center" }}>
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

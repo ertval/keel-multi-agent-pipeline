@@ -6,16 +6,19 @@ known answers.
 
 Each case ships **real-format source documents with crafted numbers**: the PDFs
 are modelled on genuine maritime paperwork (GENCON-1994-style charter party with
-BIMCO 2013 WWD wording, standard Statement of Facts event logs, BIMCO-style
-demurrage claims) but the figures are hand-authored so every case ties out to a
-single, checkable result.
+a bespoke weather-exception clause and its own threshold, standard Statement of
+Facts event logs, laytime demurrage claims) but the figures are hand-authored so
+every case ties out to a single, checkable result. No case's charterparty
+incorporates a ruleset: the weather-working threshold is the contract's own term
+and the share of hours that must meet it is this product's own policy, so every
+case's authority is `custom`.
 
 ## Folders
 
 | Case | Scenario | Owner | Charterer | Reconciled |
 |------|----------|------:|----------:|-----------:|
 | `case_01_clean_voyage` | No weather dispute — figures pass through unchanged | 90,000 | 90,000 | **90,000** |
-| `case_02_owner_win_marginal` | Force 5, ops not prevented → below BIMCO 2013 threshold → owner credited | 130,000 | 80,000 | **104,000** |
+| `case_02_owner_win_marginal` | Force 5, ops not prevented → below the threshold in Clause 3.2 → owner credited | 130,000 | 80,000 | **104,000** |
 | `case_03_charterer_win_storm` | Sustained Force 8 + heavy rain, ops prevented → exception upheld | 150,000 | 90,000 | **90,000** |
 | `case_04_split_decision` | Two windows: one owner-win (Force 4), one charterer-win (Force 9) | 175,000 | 100,000 | **125,000** |
 

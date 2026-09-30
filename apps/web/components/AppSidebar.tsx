@@ -28,7 +28,6 @@ import {
   Ship,
   Scale,
   FileBarChart,
-  Settings,
   LogOut,
   ChevronUp,
 } from "lucide-react";
@@ -38,7 +37,6 @@ const NAV_ITEMS = [
   { label: "Voyages", href: "/voyages", icon: Ship, active: true },
   { label: "Reconciliations", href: "/reconciliations", icon: Scale, active: true },
   { label: "Reports", href: "/reports", icon: FileBarChart, active: true },
-  { label: "Settings", href: "#", icon: Settings, active: false },
 ];
 
 export function AppSidebar() {

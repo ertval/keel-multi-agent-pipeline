@@ -49,9 +49,11 @@ import {
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/navigation";
 import { fetchVoyages, formatUsd, pollVoyageStatus, updateVoyageStatus, uploadVoyageFiles, deleteVoyage } from "@/lib/api";
-import type { VoyageStatus, VoyageSummary } from "@/lib/types";
+import type { SettableVoyageStatus, VoyageStatus, VoyageSummary } from "@/lib/types";
 
 const STATUS_FALLBACK: VoyageStatus = "Processing";
+
+const SETTABLE_STATUSES: SettableVoyageStatus[] = ["Reconciled", "In Review", "Pending", "Closed"];
 
 type DashboardStat = {
   label: string;
@@ -79,29 +81,20 @@ function formatDate(value?: string): string {
   return parsed.toISOString().slice(0, 10);
 }
 
-function formatDuration(seconds?: number | null): string {
-  if (seconds == null) return "—";
-  if (seconds < 60) return `${Math.round(seconds)}s`;
-  if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
-  return `${Math.round(seconds / 3600)}h`;
-}
-
 function buildStats(voyages: VoyageSummary[], loading: boolean): DashboardStat[] {
   const totalVoyages = voyages.length;
   const disputedCount = voyages.reduce(
     (total, voyage) => total + (voyage.disputed_count ?? 0),
     0
   );
-  const reconciledValue = voyages.reduce(
+  // A null total is a figure the API never produced. It is excluded from the
+  // sum, and when no voyage returned one the card reads "—" rather than "$0".
+  const measured = voyages.filter((v) => v.reconciled_total_usd !== null);
+  const reconciledValue = measured.reduce(
     (total, voyage) => total + (voyage.reconciled_total_usd ?? 0),
     0
   );
-  const timingValues = voyages
-    .map((voyage) => voyage.resolution_seconds)
-    .filter((value): value is number => typeof value === "number");
-  const avgResolution = timingValues.length
-    ? timingValues.reduce((a, b) => a + b, 0) / timingValues.length
-    : null;
+  const hasReconciled = measured.length > 0;
 
   const latestDate = formatDate(voyages[0]?.created_at);
   const totalLabel = loading
@@ -116,14 +109,11 @@ function buildStats(voyages: VoyageSummary[], loading: boolean): DashboardStat[]
       : "No active disputes";
   const reconciledLabel = loading
     ? "Loading..."
-    : totalVoyages
-      ? `Across ${totalVoyages} voyages`
-      : "No reconciliations yet";
-  const resolutionLabel = loading
-    ? "Loading..."
-    : timingValues.length
-      ? `Across ${timingValues.length} voyages`
-      : "No timing data";
+    : hasReconciled
+      ? `Across ${measured.length} voyage${measured.length === 1 ? "" : "s"}`
+      : totalVoyages
+        ? "No voyage returned a reconciled figure"
+        : "No reconciliations yet";
 
   return [
     {
@@ -142,15 +132,15 @@ function buildStats(voyages: VoyageSummary[], loading: boolean): DashboardStat[]
     },
     {
       label: "Reconciled Value",
-      value: loading ? "—" : formatUsd(reconciledValue),
+      value: loading ? "—" : hasReconciled ? formatUsd(reconciledValue) : "—",
       change: reconciledLabel,
       icon: DollarSign,
       color: "hsl(var(--owner))",
     },
     {
       label: "Avg Resolution",
-      value: loading ? "—" : formatDuration(avgResolution),
-      change: resolutionLabel,
+      value: "Not measured",
+      change: "The API returns no resolution time",
       icon: Clock,
       color: "var(--chart-5)",
     },
@@ -191,6 +181,7 @@ function UploadDialogContent() {
   const [files, setFiles] = useState<File[]>([]);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const [statusMsg, setStatusMsg] = useState("");
+  const [elapsedS, setElapsedS] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
 
   const onDrop = useCallback((accepted: File[]) => {
@@ -217,7 +208,21 @@ function UploadDialogContent() {
     setErrorMsg("");
     try {
       const result = await uploadVoyageFiles(files);
-      await pollVoyageStatus(result.voyage_id, (msg) => setStatusMsg(msg));
+      setStatusMsg("Analysing voyage…");
+      setElapsedS(0);
+      const startedAt = Date.now();
+      // The pipeline overwrites its status row on every graph node and finishes
+      // in well under a second, so the message is whatever the server last said.
+      // A real elapsed clock is the only honest progress signal available here.
+      const ticker = setInterval(
+        () => setElapsedS(Math.floor((Date.now() - startedAt) / 1000)),
+        250
+      );
+      try {
+        await pollVoyageStatus(result.voyage_id, (msg) => setStatusMsg(msg));
+      } finally {
+        clearInterval(ticker);
+      }
       setUploadState("success");
       setStatusMsg("Done!");
       setTimeout(() => {
@@ -265,7 +270,8 @@ function UploadDialogContent() {
           {isDragActive ? "Drop files here…" : "Drop voyage documents here"}
         </p>
         <p style={{ fontSize: "0.8125rem", color: "var(--muted-foreground)" }}>
-          5 PDFs + 1 JSON · or click to browse
+          Nothing is bundled with this build &mdash; supply the five PDFs and the weather
+          JSON listed below, or open the demo voyage
         </p>
       </div>
 
@@ -334,6 +340,7 @@ function UploadDialogContent() {
             <>
               <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
               {statusMsg || "Processing…"}
+              {elapsedS > 0 && ` · ${elapsedS}s`}
             </>
           ) : uploadState === "success" ? (
             <>
@@ -379,7 +386,7 @@ export function DashboardContent({ title, subtitle, showGraphs = true }: Dashboa
   const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
   const [hoveredSliceIndex, setHoveredSliceIndex] = useState<number | null>(null);
 
-  const handleStatusChange = async (voyageId: string, newStatus: VoyageStatus) => {
+  const handleStatusChange = async (voyageId: string, newStatus: SettableVoyageStatus) => {
     // Optimistic update so the badge flips instantly
     setVoyageSummaries((prev) =>
       prev.map((v) => v.voyage_id === voyageId ? { ...v, status: newStatus } : v)
@@ -448,7 +455,16 @@ export function DashboardContent({ title, subtitle, showGraphs = true }: Dashboa
   }, []);
 
   const barChartData = useMemo(() => {
-    const candidates = voyageSummaries.slice(0, 5);
+    // A voyage whose totals are all null is not charted: the API measured no
+    // figures for it, and an empty bar sitting on the $0 baseline would draw a
+    // claim the pipeline never made.
+    const candidates = voyageSummaries
+      .filter((v) =>
+        [v.owner_total_usd, v.charterer_total_usd, v.reconciled_total_usd].some(
+          (value) => typeof value === "number"
+        )
+      )
+      .slice(0, 5);
     if (candidates.length === 0) return null;
 
     const allValues = candidates.flatMap((v) => [
@@ -897,7 +913,7 @@ export function DashboardContent({ title, subtitle, showGraphs = true }: Dashboa
                 </div>
               ) : (
                 <div style={{ height: 140, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted-foreground)" }}>
-                  No voyage data available.
+                  No voyage returned a claim figure, so there is nothing to chart.
                 </div>
               )}
             </CardContent>
@@ -1135,7 +1151,7 @@ export function DashboardContent({ title, subtitle, showGraphs = true }: Dashboa
                               </Badge>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start" side="bottom">
-                              {(["Reconciled", "In Review", "Pending", "Closed"] as VoyageStatus[]).map((s) => (
+                              {SETTABLE_STATUSES.map((s) => (
                                 <DropdownMenuItem
                                   key={s}
                                   onClick={() => handleStatusChange(voyage.id, s)}
@@ -1173,17 +1189,29 @@ export function DashboardContent({ title, subtitle, showGraphs = true }: Dashboa
                       <TableCell>
                         <div style={{ display: "flex", gap: "0.25rem", alignItems: "center" }}>
                           {canOpen ? (
-                            <Button render={<Link href={`/voyage/${voyage.id}`} />} nativeButton={false} variant="ghost" size="sm">
+                            <Button
+                              render={<Link href={`/voyage/${voyage.id}`} />}
+                              nativeButton={false}
+                              variant="ghost"
+                              size="sm"
+                              aria-label={`Open voyage ${voyage.id}`}
+                            >
                               <ArrowRight size={14} />
                             </Button>
                           ) : (
-                            <Button variant="ghost" size="sm" disabled>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled
+                              aria-label={`Voyage ${voyage.id} is ${voyage.status.toLowerCase()} and cannot be opened yet`}
+                            >
                               <ArrowRight size={14} />
                             </Button>
                           )}
                           <Button
                             variant="ghost"
                             size="sm"
+                            aria-label={`Delete voyage ${voyage.id}`}
                             disabled={deletingId === voyage.id}
                             onClick={() => setDeleteConfirm({ open: true, target: voyage })}
                             style={{

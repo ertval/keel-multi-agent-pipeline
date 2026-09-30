@@ -120,7 +120,7 @@ export default function ReconciliationsPage() {
             Reconciliations
           </h1>
           <p style={{ fontSize: "0.875rem", color: "var(--muted-foreground)" }}>
-            All reconciled voyages and dispute resolutions
+            Every voyage the engine has finished assessing, in the state it was last left in
           </p>
         </div>
       </div>
@@ -187,8 +187,8 @@ export default function ReconciliationsPage() {
                         {entry.voyage_id}
                       </span>
                     </TableCell>
-                    <TableCell style={{ fontWeight: 500 }}>{entry.vessel_name}</TableCell>
-                    <TableCell style={{ fontSize: "0.8125rem" }}>{entry.owner_name}</TableCell>
+                    <TableCell style={{ fontWeight: 500 }}>{entry.vessel_name ?? "—"}</TableCell>
+                    <TableCell style={{ fontSize: "0.8125rem" }}>{entry.owner_name ?? "—"}</TableCell>
                     <TableCell style={{ fontSize: "0.8125rem" }}>
                       {entry.charterer_name || "—"}
                     </TableCell>
@@ -243,12 +243,14 @@ export default function ReconciliationsPage() {
                           nativeButton={false}
                           variant="ghost"
                           size="sm"
+                          aria-label={`Open reconciliation for voyage ${entry.voyage_id}`}
                         >
                           <ArrowRight size={14} />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
+                          aria-label={`Delete reconciliation for voyage ${entry.voyage_id}`}
                           disabled={deletingId === entry.voyage_id}
                           onClick={() => setDeleteConfirm({ open: true, target: entry })}
                           style={{

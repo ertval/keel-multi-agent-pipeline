@@ -10,24 +10,448 @@ concurrency:
   group: ci-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
-  validate:
-    name: Validate Fixtures
-    runs-on: ubuntu-latest
+  repo:
+    name: Repo hygiene
+    # ubuntu-24.04, not ubuntu-latest: the image label resolves to whatever
+    # GitHub currently offers, so a runner bump changes the Python and Node
+    # builds underneath a green run.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      # 20 tracked TS/TSX files import @/lib/* (a 21st hit, apps/web/components.json,
+      # is not a .ts/.tsx), and keel_api.parsing imports
+      # keel_api.parsing.limits, so an untracked module here is a clean checkout
+      # that cannot typecheck, cannot build and cannot import. `git ls-files
+      # --error-unmatch` is the primitive that can see this: it reads the index,
+      # so it fails for a file that is present in the working tree and absent
+      # from HEAD. `git diff --exit-code` and `git add -A --dry-run` report
+      # nothing at all for an untracked file.
+      - name: Build-critical paths are tracked
+        run: |
+          set -uo pipefail
+          set -f
+          critical="
+          apps/api/keel_api/parsing/limits.py
+          apps/api/keel_api/parsing/sandbox.py
+          apps/api/tests/conftest.py
+          apps/api/tests/test_adapters.py
+          apps/api/tests/test_agent_graph.py
+          apps/api/tests/test_api_hardening.py
+          apps/api/tests/test_extractor_feedback.py
+          apps/api/tests/test_parsing_sandbox.py
+          apps/api/tests/test_pdf_geometry.py
+          apps/api/tests/test_reconciliation_contract.py
+          apps/api/tests/test_validation.py
+          apps/web/app/(dashboard)/error.tsx
+          apps/web/components/VoyageUnavailable.tsx
+          apps/web/lib/api.ts
+          apps/web/lib/sanitize-html.ts
+          apps/web/lib/types.ts
+          apps/web/lib/utils.ts
+          apps/web/proxy.ts
+          apps/web/public/pdf.worker.min.mjs
+          apps/web/tests/e2e/fabricated-data.spec.ts
+          apps/web/tests/e2e/modals.spec.ts
+          apps/web/tests/e2e/null-data.spec.ts
+          apps/web/tests/e2e/proxy.spec.ts
+          docs/continuation-plan.md
+          .gitattributes
+          "
+          # The count is asserted, not just floored: adding a path means editing
+          # two places on purpose, so a truncated or duplicated list cannot
+          # quietly shrink the set of files this gate stands behind.
+          expected=25
+          listed=$(printf '%s\n' $critical | grep -c .)
+          if [ "$listed" -ne "$expected" ]; then
+            echo "::error::the tracked-path list holds $listed paths, expected $expected"
+            echo "  Add or remove the path in the list and change 'expected' in the"
+            echo "  same edit, so a typo in one cannot be absorbed by the other."
+            exit 1
+          fi
+          missing=0
+          for path in $critical; do
+            if ! git ls-files --error-unmatch -- "$path" > /dev/null 2>&1; then
+              echo "::error file=$path::required by the build or the suite but not tracked by git"
+              echo "  Nothing else in CI can name this: tsc, next build and pytest all"
+              echo "  fail on a clean checkout for want of it, and none of them can say"
+              echo "  that the file was simply never committed. Run:"
+              echo "      git add -- '$path'"
+              missing=$((missing + 1))
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::$missing build-critical path(s) are untracked; this checkout cannot build"
+            exit 1
+          fi
+          echo "All $listed build-critical paths are tracked"
       - name: Validate JSON fixtures
         run: |
-          find fixtures/ test-cases/ -name '*.json' -exec python3 -m json.tool {} \; > /dev/null
-          echo "✅ All JSON fixtures valid"
-      - name: Validate Python scripts syntax
+          set -uo pipefail
+          # `find -exec` cannot propagate a failing command's exit code, so a
+          # malformed fixture used to print "All JSON fixtures valid" anyway.
+          # Collect every verdict first, then fail once at the end.
+          #
+          # The glob itself is checked too. `< <(find ...)` discards find's
+          # status, so renaming a root validated zero files and still printed
+          # "All JSON fixtures valid": a gate that cannot report that it ran
+          # nothing is not a gate. find writes to a file whose status is
+          # asserted, and a floor rejects a tree that has quietly shrunk.
+          roots=(fixtures/ test-cases/)
+          for root in "${roots[@]}"; do
+            if [ ! -d "$root" ]; then
+              echo "::error::$root is not a directory; the JSON glob would validate nothing"
+              exit 1
+            fi
+          done
+          list=$(mktemp)
+          if ! find "${roots[@]}" -name '*.json' -print0 > "$list"; then
+            echo "::error::the JSON fixture glob failed; no fixture was validated"
+            rm -f "$list"
+            exit 1
+          fi
+          invalid=0
+          count=0
+          while IFS= read -r -d '' file; do
+            count=$((count + 1))
+            if ! reason=$(python3 -m json.tool "$file" 2>&1 >/dev/null); then
+              echo "::error file=$file::invalid JSON: $(head -1 <<< "$reason")"
+              invalid=1
+            fi
+          done < "$list"
+          rm -f "$list"
+          if [ "$count" -lt 20 ]; then
+            echo "::error::only $count JSON fixtures under ${roots[*]}, expected at least 20"
+            exit 1
+          fi
+          if [ "$invalid" -ne 0 ]; then
+            echo "::error::One or more JSON fixtures are malformed"
+            exit 1
+          fi
+          echo "All $count JSON fixtures valid"
+      # Glob, not a hardcoded list of five files, so a new script is covered too.
+      # test-cases/ ships two tracked generators that no other gate parses, so a
+      # syntax error in either used to ship green.
+      - name: Compile Python scripts
         run: |
-          python3 -m py_compile scripts/extract_charterparty.py
-          python3 -m py_compile scripts/extract_sof_owner.py
-          python3 -m py_compile scripts/extract_sof_charterer.py
-          python3 -m py_compile scripts/generate_fixtures.py
-          python3 -m py_compile scripts/seed_voyages.py
-          echo "✅ All Python scripts compile"
+          set -uo pipefail
+          python3 -m compileall -q scripts/ test-cases/ || exit 1
+          echo "All Python scripts compile"
+
+  backend:
+    name: Backend (pytest)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: apps/api
+    env:
+      # 16 pre-existing failures in this sanitized public copy of the repo. The
+      # source PDFs in fixtures/voyage_001/ are not committed, so the tests that
+      # open them cannot pass here: test_extraction (3), test_fixtures (5),
+      # test_parsers (8). Deselected BY NODE ID, never by error text, so a new
+      # failure of any kind anywhere else in the suite still fails the job.
+      KNOWN_MISSING_PDF_TESTS: |-
+        tests/test_extraction.py::test_extract_charterparty_terms_returns_correct_type
+        tests/test_extraction.py::test_extract_sof_events_returns_list_of_sof_events
+        tests/test_extraction.py::test_extract_sof_events_timestamps_are_datetimes
+        tests/test_fixtures.py::test_fixture_file_exists[charterparty.pdf]
+        tests/test_fixtures.py::test_fixture_file_exists[sof_owner.pdf]
+        tests/test_fixtures.py::test_fixture_file_exists[sof_charterer.pdf]
+        tests/test_fixtures.py::test_fixture_file_exists[claim_owner.pdf]
+        tests/test_fixtures.py::test_fixture_file_exists[claim_charterer.pdf]
+        tests/test_parsers.py::test_parse_returns_nonempty_pages[charterparty.pdf]
+        tests/test_parsers.py::test_parse_returns_nonempty_pages[sof_owner.pdf]
+        tests/test_parsers.py::test_parse_returns_nonempty_pages[sof_charterer.pdf]
+        tests/test_parsers.py::test_parse_returns_nonempty_pages[claim_owner.pdf]
+        tests/test_parsers.py::test_parse_returns_nonempty_pages[claim_charterer.pdf]
+        tests/test_parsers.py::test_charterparty_has_text_content
+        tests/test_parsers.py::test_sof_owner_has_table_rows
+        tests/test_parsers.py::test_sof_charterer_has_table_rows
+    steps:
+      - uses: actions/checkout@v4
+      # `version` defaults to "" on this tag, which means "whatever pyproject.toml
+      # says, or latest" — and apps/api/pyproject.toml has no [tool.uv], so uv
+      # itself was floating. `python-version` sets UV_PYTHON, which is what
+      # `uv sync` builds the venv from; it is what keeps requires-python's
+      # ">=3.11" from resolving to whatever the runner image happens to ship.
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.11.16
+          python-version: "3.11"
+          enable-cache: true
+          ignore-empty-workdir: true
+          cache-dependency-glob: apps/api/uv.lock
+      # --locked (not --frozen) also fails if pyproject.toml and uv.lock disagree.
+      - name: Install dependencies
+        run: uv sync --locked
+      - name: Run test suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          IFS=$'\n' read -rd '' -a KNOWN <<< "$KNOWN_MISSING_PDF_TESTS" || true
+
+          # The allowlist is the one thing in this job that can turn a red suite
+          # green, so it is pinned in three ways before a single test runs. A
+          # per-test verdict alone does not stop the list from being edited: an
+          # extra entry for a test that fails with FileNotFoundError naming an
+          # absent fixture satisfied every check below and still bought a green
+          # job, because the classifier asks the failure what type it is, not
+          # which test it came from.
+          if [ "${#KNOWN[@]}" -ne 16 ]; then
+            echo "::error::KNOWN_MISSING_PDF_TESTS holds ${#KNOWN[@]} entries; this tree has exactly 16"
+            echo "  quarantined tests. 3 in test_extraction, 5 test_fixture_file_exists"
+            echo "  parameters, 8 in test_parsers. An entry added here silences a test"
+            echo "  this job would otherwise run, so the count is the budget."
+            exit 1
+          fi
+          for t in "${KNOWN[@]}"; do
+            case "$t" in
+              tests/test_extraction.py::*|tests/test_fixtures.py::test_fixture_file_exists*|tests/test_parsers.py::*)
+                ;;
+              *)
+                echo "::error::$t is not one of the three quarantined test functions"
+                echo "  Allowed: tests/test_extraction.py::*, tests/test_fixtures.py::"
+                echo "  test_fixture_file_exists*, tests/test_parsers.py::*"
+                exit 1
+                ;;
+            esac
+          done
+
+          deselect=()
+          for t in "${KNOWN[@]}"; do deselect+=(--deselect "$t"); done
+
+          echo "::group::pytest (${#KNOWN[@]} known-missing-PDF tests deselected)"
+          summary=$(mktemp)
+          uv run pytest -q "${deselect[@]}" 2>&1 | tee "$summary"
+          echo "::endgroup::"
+          # pytest silently ignores a --deselect that matches nothing, so an
+          # allowlist entry naming a renamed test would deselect nothing and
+          # pass every check above. The summary line is the only place the
+          # number of tests actually removed is reported.
+          deselected=$(sed -n 's/.*[^0-9]\([0-9]\+\) deselected.*/\1/p' "$summary" | tail -1)
+          rm -f "$summary"
+          if [ "${deselected:-0}" -ne "${#KNOWN[@]}" ]; then
+            echo "::error::pytest deselected ${deselected:-0} tests, not ${#KNOWN[@]}"
+            echo "  An entry names a node id that no longer exists, so the quarantined"
+            echo "  work is not being skipped at all. Compare against a collected run:"
+            echo "      uv run pytest -q --collect-only | grep -F '<node id>'"
+            exit 1
+          fi
+
+          # A deselect list rots silently: a test can be renamed, can start
+          # passing, or can start failing for an unrelated reason while still
+          # being skipped. Re-run each one on its own and require that it still
+          # fails AND that the failure is still a missing fixture PDF. One test
+          # per run, so each verdict maps to exactly one node ID instead of
+          # guessing at pytest's summary formatting.
+          #
+          # The verdict is read from the JUnit report's <failure message>
+          # attribute, never from stdout. Grepping stdout for
+          # "fixtures/voyage_001/*.pdf" proved nothing: any failure whose
+          # message merely *mentions* a fixture path satisfied it, so a real
+          # regression could hide behind the deselect while CI stayed green.
+          # Instead: the exception type must be one the missing PDFs actually
+          # produce, AND it must name a fixture PDF that is still absent on disk.
+          # FileNotFoundError/pymupdf.FileNotFoundError is accepted anywhere,
+          # because that means the code under test really did try to open a
+          # missing file. AssertionError is accepted only for
+          # test_fixture_file_exists, whose whole job is to assert a fixture is
+          # present; anywhere else it is evidence of a planted regression.
+          echo "::group::known-failure audit (${#KNOWN[@]} tests, one run each)"
+          repo_root="${GITHUB_WORKSPACE:-$PWD/../..}"
+          workflow="$repo_root/.github/workflows/ci.yml"
+          for t in "${KNOWN[@]}"; do
+            xml=$(mktemp -t known-failure-XXXXXX.xml)
+            if uv run pytest -q --tb=line --junitxml="$xml" "$t" > /dev/null 2>&1; then
+              echo "::error::$t now passes, but is still deselected above."
+              echo "  The quarantine is stale. Delete this one line from the"
+              echo "  KNOWN_MISSING_PDF_TESTS block in .github/workflows/ci.yml:"
+              echo
+              echo "      $t"
+              echo
+              echo "  It is at line $(grep -nF "$t" "$workflow" | cut -d: -f1)"
+              echo "  of that file. Deleting it drops the expected count from 16 to"
+              echo "  $(( ${#KNOWN[@]} - 1 )); update the two literal 16s above in the"
+              echo "  same commit. If the PDFs were committed instead, delete all"
+              echo "  ${#KNOWN[@]} entries and the audit loop with them."
+              exit 1
+            fi
+            verdict=$(python3 -c '
+          import os, re, sys, xml.etree.ElementTree as ET
+          node_id, xml_path, root = sys.argv[1], sys.argv[2], sys.argv[3]
+          message = ""
+          for case in ET.parse(xml_path).getroot().iter("testcase"):
+              for child in case:
+                  if child.tag in ("failure", "error"):
+                      message = child.get("message") or ""
+          kind = message.split(":", 1)[0].strip() if message else "NO-FAILURE-ELEMENT"
+          named = [p.strip("\"\x27`,;()") for p in re.findall(r"(\S+\.pdf)\b", message) if "fixtures/" in p]
+          if not named:
+              print("NO-FAILURE-ELEMENT" if kind == "NO-FAILURE-ELEMENT" else "NO-FIXTURE-PDF-NAMED")
+          elif any(os.path.exists(p) or os.path.exists(os.path.join(root, p)) for p in named):
+              print("FIXTURE-NOW-PRESENT: " + ", ".join(named))
+          elif kind in ("FileNotFoundError", "pymupdf.FileNotFoundError"):
+              print("OK")
+          elif kind == "AssertionError" and "test_fixture_file_exists" in node_id:
+              print("OK")
+          else:
+              print("WRONG-EXCEPTION-TYPE: " + kind)
+          ' "$t" "$xml" "$repo_root")
+            if [ "$verdict" != "OK" ]; then
+              echo "::error::$t still fails, but not because of a missing fixture"
+              echo "  PDF: $verdict. A real regression is hiding behind the deselect."
+              exit 1
+            fi
+            echo "  known (missing fixture PDF): $t"
+          done
+          echo "::endgroup::"
+      # docs/continuation-plan.md calls this the sprint gate, so give it its own
+      # named check: voyage_001 must reconcile to $112,000, plus the 12
+      # per-case assertions in test_reconciliation_cases.py.
+      - name: Canonical end-to-end assertions
+        run: uv run pytest -m canonical -q
+
+  frontend:
+    name: Frontend (tsc, eslint, next build)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      # No `packageManager` field in package.json, so pin the version here.
+      # run_install defaults to 'null' on this tag, so the action installs no
+      # packages: the dependency graph is fixed by pnpm-lock.yaml plus
+      # --frozen-lockfile below, and the pnpm version only decides which binary
+      # interprets them. `cache` defaults to false, so the only cache is
+      # setup-node's.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.4.0
+      # A patch, not the 22 major: pnpm 11.4.0 declares engines.node >= 22.13,
+      # so a bare 22 could resolve to 22.11 and pnpm would refuse to run at all.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.23.3
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit
+      # eslint exits 0 on warnings, so the count is a budget and has to be
+      # asserted: --max-warnings 4 is the four warnings this tree ships today
+      # (three next/no-img-element, one no-unused-vars), so a fifth fails the
+      # job instead of being lost in the log. Not `-- --max-warnings`: pnpm 11
+      # forwards the literal `--` to eslint, which then exits 2 on "no files
+      # matching the pattern --".
+      - name: Lint
+        run: pnpm run lint --max-warnings 4
+      # tsc and eslint both pass on code that next build rejects (e.g. a
+      # useSearchParams() outside a Suspense boundary), so the production
+      # build has to run or nothing in CI would ever catch it.
+      - name: Production build
+        run: pnpm run build
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      # Stated here so the value the browser fetches is the job's, not whatever
+      # next.config.ts's `env` block falls back to. next.config.ts already
+      # defaults to this value, so the two agree; the point is that the API the
+      # specs read is named in the job that depends on it.
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:8000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.11.16
+          python-version: "3.11"
+          enable-cache: true
+          ignore-empty-workdir: true
+          cache-dependency-glob: apps/api/uv.lock
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.4.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.23.3
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - name: Install API dependencies
+        working-directory: apps/api
+        run: uv sync --locked
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: pnpm install --frozen-lockfile
+      # The specs only drive chromium (playwright.config.ts defines a single
+      # `chromium` project), so skip the firefox/webkit downloads.
+      - name: Install Playwright browsers
+        working-directory: apps/web
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Start API
+        working-directory: apps/api
+        run: |
+          nohup uv run uvicorn keel_api.main:app --host 127.0.0.1 --port 8000 \
+            > /tmp/keel-api.log 2>&1 &
+          # /healthz returns a literal, so it is satisfied the instant uvicorn's
+          # socket is open — including by an API whose lifespan seeding raised
+          # and was swallowed. Every spec then reads the seeded demo voyage, so
+          # that failure surfaced as six specs reporting "element not found" and
+          # "Cannot read properties of undefined". Wait for the voyage instead:
+          # /voyages is what the specs read, and a row for voyage_001 in it is
+          # the only evidence the demo is usable.
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/healthz > /dev/null 2>&1; then
+              if curl -fsS http://127.0.0.1:8000/voyages 2>/dev/null \
+                  | grep -q '"voyage_id":"voyage_001"'; then
+                echo "API healthy and voyage_001 seeded after ${i}s"; exit 0
+              fi
+              echo "API is up but has not seeded voyage_001 (${i}s)"
+            fi
+            sleep 1
+          done
+          echo "::error::the API never served a seeded voyage_001 on :8000"
+          echo "  Every spec reads the demo voyage, so the suite cannot pass without it."
+          cat /tmp/keel-api.log
+          exit 1
+      # Playwright's own webServer block starts `next dev` for us. CI sets CI=true,
+      # which makes playwright.config.ts use `reuseExistingServer: false`, so
+      # starting a second dev server here would be a guaranteed EADDRINUSE.
+      # playwright.config.ts sets retries: 2 under CI, which makes a test that
+      # passes on a retry exit 0 — a flaky suite reads green. --fail-on-flaky-
+      # tests (present in this Playwright's --help) fails the job on that same
+      # outcome instead.
+      - name: Run Playwright specs
+        working-directory: apps/web
+        run: pnpm exec playwright test --fail-on-flaky-tests
+      # `if: always()` so the report survives the very failure it explains.
+      # if-no-files-found is optional in v4 (default `warn`); `ignore` is chosen
+      # deliberately because a green run can leave nothing to upload and that must
+      # not turn into a second, misleading failure.
+      # v4 skips hidden files unless include-hidden-files is set, and this tree
+      # does have one: test-results/.last-run.json, the state the HTML report
+      # reads to mark the last run's outcome. The report is a self-contained
+      # file with an embedded data: payload — it has no re-run control, because
+      # that UI belongs to `npx playwright show-report`, which needs the
+      # workspace this artifact does not carry. Nothing sensitive lives under
+      # either path.
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+          include-hidden-files: true

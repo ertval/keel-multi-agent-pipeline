@@ -2,40 +2,41 @@
 
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
-import { fetchVoyageDetail, formatUsd } from "@/lib/api";
-import type { VoyageDetailResponse, ClauseCitation, AuditTraceEntry } from "@/lib/types";
+import { fetchVoyageDetail, formatUsd, API_BASE_URL } from "@/lib/api";
+import type { VoyageDetailResponse, ClauseCitation, AuditTraceEntry, SourceCitation } from "@/lib/types";
+import { VoyageUnavailable } from "@/components/VoyageUnavailable";
 import dynamic from "next/dynamic";
 
 const PdfViewer = dynamic(() => import("@/components/PdfViewer"), { ssr: false });
 import {
-  Anchor, ArrowLeft, FileText, X,
-  ArrowRight, Loader2
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Anchor, ArrowLeft, FileText, X, ArrowRight, Loader2 } from "lucide-react";
 
 interface CitationDialogProps {
   clause: ClauseCitation;
+  open: boolean;
   onClose: () => void;
 }
 
-function CitationDialog({ clause, onClose }: CitationDialogProps) {
+function CitationDialog({ clause, open, onClose }: CitationDialogProps) {
   return (
-    <>
-      <div className="dialog-overlay" onClick={onClose} />
-      <div className="dialog-content" role="dialog" aria-modal="true">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem" }}>
-          <div>
-            <span className="badge badge-primary" style={{ marginBottom: "0.5rem" }}>{clause.clause_id}</span>
-            <h2 style={{ fontSize: "1rem", fontWeight: 600, margin: 0 }}>Clause Citation</h2>
-          </div>
-          <button
-            className="btn btn-ghost"
-            onClick={onClose}
-            style={{ padding: "0.375rem", minWidth: "auto" }}
-            aria-label="Close dialog"
-          >
-            <X size={16} />
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent showCloseButton style={{ maxWidth: 520 }}>
+        <DialogHeader>
+          <span className="badge badge-primary" style={{ width: "fit-content" }}>
+            {clause.clause_id}
+          </span>
+          <DialogTitle>Clause Citation</DialogTitle>
+          <DialogDescription>
+            As the pipeline recorded it. Where it names no source document or page,
+            the quotation below is all there is.
+          </DialogDescription>
+        </DialogHeader>
         <blockquote
           style={{
             borderLeft: "3px solid hsl(var(--primary))",
@@ -43,22 +44,22 @@ function CitationDialog({ clause, onClose }: CitationDialogProps) {
             color: "hsl(var(--foreground))",
             fontStyle: "italic",
             lineHeight: 1.7,
-            marginBottom: "1rem",
+            margin: 0,
           }}
         >
-          {clause.clause_text}
+          {clause.clause_text ?? "No clause text was extracted for this clause."}
         </blockquote>
         <div style={{ display: "flex", gap: "1rem", fontSize: "0.8125rem", color: "hsl(var(--muted-foreground))" }}>
           <span className="weather-pill">
             <FileText size={12} />
-            {clause.source_document}
+            {clause.source_document ?? "source document not named"}
           </span>
           <span className="weather-pill">
-            Page {clause.page_number}
+            {clause.page_number === null ? "Page not recorded" : `Page ${clause.page_number}`}
           </span>
         </div>
-      </div>
-    </>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -100,7 +101,7 @@ function AuditTraceTable({ entries, selectedStep, onSelectStep }: AuditTraceTabl
                       title={entry.citation.excerpt}
                     >
                       <FileText size={10} />
-                      p.{entry.citation.page_number}
+                      {pageLabel(entry.citation.page_number)}
                     </span>
                   )}
                 </td>
@@ -123,6 +124,17 @@ function AuditTraceTable({ entries, selectedStep, onSelectStep }: AuditTraceTabl
   );
 }
 
+function resolvePdfUrl(relativePath: string | undefined): string | null {
+  if (!relativePath) return null;
+  if (/^https?:\/\//i.test(relativePath)) return relativePath;
+  return `${API_BASE_URL}${relativePath.startsWith("/") ? "" : "/"}${relativePath}`;
+}
+
+/** The API emits `null` for a page it could not place; never print `p.null`. */
+function pageLabel(page: number | null | undefined): string {
+  return typeof page === "number" ? `p.${page}` : "page not recorded";
+}
+
 export default function VoyageDetailPage({
   params,
 }: {
@@ -133,8 +145,13 @@ export default function VoyageDetailPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeCitation, setActiveCitation] = useState<ClauseCitation | null>(null);
-  const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
-  const [selectedPage, setSelectedPage] = useState(1);
+  const [selectedCitation, setSelectedCitation] = useState<{
+    document: string | null;
+    url: string | null;
+    page: number | null;
+    label: string;
+    clause: SourceCitation | null;
+  } | null>(null);
   const [selectedBbox, setSelectedBbox] = useState<[number, number, number, number] | null>(null);
   const [ownerSelectedStep, setOwnerSelectedStep] = useState<number | null>(null);
   const [chartererSelectedStep, setChartererSelectedStep] = useState<number | null>(null);
@@ -146,34 +163,45 @@ export default function VoyageDetailPage({
       .finally(() => setLoading(false));
   }, [id]);
 
-  const normalizeBbox = (bbox?: [number, number, number, number]) => {
+  const normalizeBbox = (bbox?: [number, number, number, number] | null) => {
     if (!bbox) return null;
     if (bbox.every((value) => value === 0)) return null;
     return bbox;
   };
 
-  const handleOwnerStep = (step: number) => {
-    const entry = data?.reconciliation.owner_calculation.audit_trace.find((e) => e.step === step);
-    if (entry?.citation) {
-      setSelectedPdf(data?.pdf_urls[entry.citation.document] ?? null);
-      setSelectedPage(entry.citation.page_number);
-      setSelectedBbox(normalizeBbox(entry.citation.bbox));
-    } else {
+  const openCitation = (
+    entries: AuditTraceEntry[],
+    party: "Owner" | "Charterer",
+    step: number | null
+  ) => {
+    const entry = step === null ? null : entries.find((e) => e.step === step);
+    const citation = entry?.citation;
+    if (!citation) {
       setSelectedBbox(null);
+      return;
     }
+    // `citation.document` is null when the pipeline could not name the source
+    // file, so there is no key to look up and nothing to preview. The page
+    // number and every figure in the row are still real.
+    const document = citation.document;
+    setSelectedCitation({
+      document,
+      url: document ? resolvePdfUrl(data?.pdf_urls?.[document]) : null,
+      page: citation.page_number,
+      label: `${party} calculation · step ${entry!.step}`,
+      clause: entry!.clause_citation ?? null,
+    });
+    setSelectedBbox(normalizeBbox(citation.bbox));
+  };
+
+  const handleOwnerStep = (step: number) => {
+    openCitation(data?.reconciliation.owner_calculation.audit_trace ?? [], "Owner", step);
     setOwnerSelectedStep(step);
     setChartererSelectedStep(null);
   };
 
   const handleChartererStep = (step: number) => {
-    const entry = data?.reconciliation.charterer_calculation.audit_trace.find((e) => e.step === step);
-    if (entry?.citation) {
-      setSelectedPdf(data?.pdf_urls[entry.citation.document] ?? null);
-      setSelectedPage(entry.citation.page_number);
-      setSelectedBbox(normalizeBbox(entry.citation.bbox));
-    } else {
-      setSelectedBbox(null);
-    }
+    openCitation(data?.reconciliation.charterer_calculation.audit_trace ?? [], "Charterer", step);
     setChartererSelectedStep(step);
     setOwnerSelectedStep(null);
   };
@@ -188,15 +216,17 @@ export default function VoyageDetailPage({
     );
   }
 
-  if (error) {
-    return (
+  if (error || !data?.reconciliation) {
+    return error ? (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "hsl(var(--charterer))" }}>
         Error: {error}
       </div>
+    ) : (
+      <VoyageUnavailable voyageId={id} />
     );
   }
 
-  const { reconciliation } = data!;
+  const { reconciliation } = data;
   const cp = reconciliation.charterparty;
 
   return (
@@ -248,14 +278,25 @@ export default function VoyageDetailPage({
             <div style={{ display: "grid", gap: "1rem" }}>
               {[
                 { label: "Vessel", value: cp.vessel_name },
-                { label: "Hire Rate", value: formatUsd(cp.hire_rate_per_day_usd) + "/day" },
+                {
+                  label: "Hire Rate",
+                  value: cp.hire_rate_per_day_usd === null
+                    ? null
+                    : formatUsd(cp.hire_rate_per_day_usd) + "/day",
+                },
                 { label: "Laytime Allowed", value: `${cp.laytime_allowed_hours}h` },
                 { label: "Demurrage Rate", value: formatUsd(cp.demurrage_rate_per_day_usd) + "/day" },
                 { label: "Despatch Rate", value: formatUsd(cp.despatch_rate_per_day_usd) + "/day" },
               ].map(({ label, value }) => (
                 <div key={label}>
                   <p style={{ fontSize: "0.75rem", color: "hsl(var(--muted-foreground))", marginBottom: "0.25rem" }}>{label}</p>
-                  <p className="mono" style={{ fontSize: "0.9375rem", fontWeight: 600 }}>{value}</p>
+                  {value === null ? (
+                    <p style={{ fontSize: "0.8125rem", color: "hsl(var(--muted-foreground))" }}>
+                      Not extracted
+                    </p>
+                  ) : (
+                    <p className="mono" style={{ fontSize: "0.9375rem", fontWeight: 600 }}>{value}</p>
+                  )}
                 </div>
               ))}
 
@@ -278,7 +319,7 @@ export default function VoyageDetailPage({
                         className="btn btn-ghost"
                         onClick={() => setActiveCitation(clause)}
                         style={{ flex: "1 1 calc(50% - 0.375rem)", justifyContent: "flex-start", padding: "0.25rem 0.5rem", fontSize: "0.75rem", minWidth: 0 }}
-                        title={clause.clause_text}
+                        title={clause.clause_text ?? "No clause text was extracted for this clause."}
                       >
                         <FileText size={12} style={{ color: "hsl(var(--primary))", flexShrink: 0 }} />
                         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{clause.clause_id}</span>
@@ -358,35 +399,87 @@ export default function VoyageDetailPage({
         </div>
 
         {/* PDF Viewer row */}
-        {selectedPdf && (
-          <div className="card animate-fade-in" style={{ marginTop: "1.5rem" }}>
+        {selectedCitation && (
+          <div id="document-viewer" className="card animate-fade-in" style={{ marginTop: "1.5rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-              <h2 style={{ fontSize: "0.8125rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "hsl(var(--muted-foreground))" }}>
-                Document Viewer
-              </h2>
+              <div>
+                <h2 style={{ fontSize: "0.8125rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "hsl(var(--muted-foreground))", marginBottom: "0.25rem" }}>
+                  Document Viewer
+                </h2>
+                <p style={{ fontSize: "0.75rem", color: "hsl(var(--muted-foreground))", margin: 0 }}>
+                  {selectedCitation.label} &middot;{" "}
+                  {selectedCitation.document
+                    ? `${selectedCitation.document} · ${pageLabel(selectedCitation.page)}`
+                    : `source document not named · ${pageLabel(selectedCitation.page)}`}
+                </p>
+              </div>
               <button
                 className="btn btn-ghost"
                 onClick={() => {
-                  setSelectedPdf(null);
+                  setSelectedCitation(null);
                   setSelectedBbox(null);
                 }}
                 style={{ padding: "0.375rem", minWidth: "auto" }}
+                aria-label="Close document viewer"
               >
                 <X size={14} />
               </button>
             </div>
             <PdfViewer
-              url={selectedPdf}
-              initialPage={selectedPage}
+              url={selectedCitation.url}
+              initialPage={selectedCitation.page ?? 1}
               highlightBbox={selectedBbox ?? undefined}
             />
+            <div
+              style={{
+                marginTop: "1rem",
+                paddingTop: "1rem",
+                borderTop: "1px solid var(--border)",
+              }}
+            >
+              <p style={{ fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.07em", color: "hsl(var(--muted-foreground))", fontWeight: 600, marginBottom: "0.375rem" }}>
+                Charterparty clause this step was measured against
+              </p>
+              {selectedCitation.clause ? (
+                <>
+                  <blockquote
+                    style={{
+                      borderLeft: "3px solid hsl(var(--primary))",
+                      paddingLeft: "1rem",
+                      fontStyle: "italic",
+                      lineHeight: 1.7,
+                      color: "hsl(var(--foreground) / 0.85)",
+                    }}
+                  >
+                    {selectedCitation.clause.excerpt}
+                  </blockquote>
+                  <p style={{ fontSize: "0.75rem", color: "hsl(var(--muted-foreground))", marginTop: "0.5rem" }}>
+                    <FileText size={11} style={{ display: "inline", marginRight: "0.25rem" }} />
+                    {selectedCitation.clause.document
+                      ? `${selectedCitation.clause.document} · ${pageLabel(selectedCitation.clause.page_number)}`
+                      : "source document not named · page not recorded"}
+                  </p>
+                </>
+              ) : (
+                <p style={{ fontSize: "0.75rem", lineHeight: 1.6, color: "hsl(var(--muted-foreground))" }}>
+                  The API cited no charterparty clause for this step, so there is no
+                  clause text to quote. The figures above still rest on the SOF row
+                  they were read from.
+                </p>
+              )}
+            </div>
           </div>
         )}
+
       </div>
 
       {/* Citation dialog */}
       {activeCitation && (
-        <CitationDialog clause={activeCitation} onClose={() => setActiveCitation(null)} />
+        <CitationDialog
+          clause={activeCitation}
+          open
+          onClose={() => setActiveCitation(null)}
+        />
       )}
     </div>
   );

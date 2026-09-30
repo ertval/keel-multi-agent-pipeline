@@ -10,7 +10,8 @@ const nextConfig: NextConfig = {
     },
   },
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
+    // The backend binds 127.0.0.1; `localhost` resolves to ::1 on some hosts.
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000",
   },
 };
 

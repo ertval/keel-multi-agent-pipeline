@@ -11,7 +11,9 @@
   "nor_turn_time_hours": 6.0,
   "laytime_exception": "SHEX",
   "weather_clause": "WWD",
-  "rule_authority": "BIMCO_2013",
+  "weather_beaufort_threshold": 6,
+  "weather_precipitation_threshold_mm": 2.0,
+  "rule_authority": "custom",
   "clauses": [
     {
       "page": 2,
@@ -51,7 +53,7 @@
         0.0,
         0.0
       ],
-      "text": "The threshold for invocation of the weather exception under Clause 3.1 shall be conditions of Beaufort Force 6 or above sustained for the period claimed, assessed per BIMCO Laytime Definitions 2013."
+      "text": "The threshold for invocation of the weather exception under Clause 3.1 shall be conditions of Beaufort Force 6 or above, or precipitation of 2.0 mm/h or above, recorded for a majority of the hours of the period claimed, together with actual prevention of loading operations."
     },
     {
       "page": 6,
@@ -61,7 +63,7 @@
         0.0,
         0.0
       ],
-      "text": "Once on demurrage the Vessel shall remain on demurrage continuously until completion of loading, save only where the weather exception under Clause 3.1 is validly invoked per BIMCO 2013."
+      "text": "Once on demurrage the Vessel shall remain on demurrage continuously until completion of loading, save only where the weather exception under Clause 3.1 is validly invoked in accordance with the threshold in Clause 3.2."
     },
     {
       "page": 7,

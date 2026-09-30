@@ -4,7 +4,8 @@ Produces five text-based PDFs (via WeasyPrint CLI) and one weather JSON
 under fixtures/voyage_001/. Re-run to regenerate; existing files are
 overwritten. Idempotent.
 
-Document content is hand-tuned so the engine + BIMCO 2013 rule library
+Document content is hand-tuned so the engine + Laytime Definitions
+rule library
 will naturally output: owner $187,000, charterer $62,000, reconciled
 $112,000. See PRD §4 and docs/tickets/README.md J-01 for the design.
 
@@ -110,15 +111,16 @@ Statement of Facts is not sufficient.</p>
 
 <p class="clause"><span class="clause-num">Clause 3.2.</span>
 The threshold for invocation of the weather exception under Clause 3.1
-shall be conditions of Beaufort Force 6 or above sustained for the
-period claimed, or precipitation of sufficient intensity to halt cargo
-operations under prevailing port practice.</p>
+shall be conditions of Beaufort Force 6 or above, or precipitation of
+2.0 mm/h or above, recorded for a majority of the hours of the period
+claimed, together with actual prevention of loading operations.</p>
 
 <h2>4. Once on Demurrage, Always on Demurrage</h2>
 <p class="clause"><span class="clause-num">Clause 4.1.</span>
 Once on demurrage, the vessel shall remain on demurrage continuously
 until completion of loading, save only where the weather exception under
-Clause 3.1 is validly invoked in accordance with BIMCO 2013 thresholds.
+Clause 3.1 is validly invoked in accordance with the threshold in
+Clause 3.2.
 For the avoidance of doubt, Sundays, Holidays, and shifting time shall
 not interrupt the accrual of demurrage.</p>
 
@@ -171,7 +173,8 @@ SOF_HTML_OWNER = """
 <p class="footer-note">Owner's note: Per Clause 4.1, vessel was on
 demurrage from 13 June 20:00. Weather conditions on 14&ndash;15 June
 were of insufficient severity to halt operations (Beaufort Force 5 and
-below) and do not interrupt demurrage under BIMCO 2013.</p>
+below) and do not interrupt demurrage, the threshold for invocation of
+the weather exception not being met.</p>
 """
 
 
@@ -242,7 +245,8 @@ CLAIM_OWNER_HTML = """
 <table class="kv">
 <tr><td>Claimant</td><td>Aegean Shipping Co. (Owner)</td></tr>
 <tr><td>Respondent</td><td>Mediterranean Grains Ltd. (Charterer)</td></tr>
-<tr><td>Rule Authority</td><td>BIMCO Laytime Definitions 2013</td></tr>
+<tr><td>Basis of Claim</td><td>Charterparty Clauses 3.1 and 3.2, and Clause 4.1
+    (once on demurrage)</td></tr>
 <tr><td>Demurrage Rate</td><td>USD 50,000 / day</td></tr>
 </table>
 
@@ -261,13 +265,13 @@ CLAIM_OWNER_HTML = """
 <p class="clause">Per Clause 4.1 of the charterparty, the vessel was on
 demurrage continuously from 14 June 2026 at 00:00 until completion of
 loading. The Owner contends that the weather conditions noted on 14 and
-15 June 2026 were of Beaufort Force 5 and below and accordingly fall
-below the threshold established in Clause 3.2 for the invocation of the
-Weather Working Day exception under BIMCO 2013. Only the heavy weather
-period of 16&ndash;17 June 2026 (Force 7, sustained, with heavy rain)
-qualifies, and that period has been accounted for in the calculation
-above by deducting zero hours from the laytime allowance (laytime having
-already expired).</p>
+15 June 2026 were of Beaufort Force 5 and below and accordingly do not
+meet the threshold established in Clause 3.2 for the invocation of the
+Weather Working Day exception. Only the heavy weather
+period of 16&ndash;17 June 2026 (Force 7 with heavy rain recorded
+throughout) qualifies, and that period has been accounted for in the
+calculation above by deducting zero hours from the laytime allowance
+(laytime having already expired).</p>
 
 <p class="clause">Accordingly, the Charterer is liable for the full
 period during which the vessel remained on demurrage. The amount claimed
@@ -288,7 +292,8 @@ CLAIM_CHARTERER_HTML = """
 <table class="kv">
 <tr><td>Claimant</td><td>Mediterranean Grains Ltd. (Charterer)</td></tr>
 <tr><td>Respondent</td><td>Aegean Shipping Co. (Owner)</td></tr>
-<tr><td>Rule Authority</td><td>BIMCO Laytime Definitions 2013</td></tr>
+<tr><td>Basis of Claim</td><td>Charterparty Clauses 3.1 and 3.2 (weather
+    exception and its threshold)</td></tr>
 <tr><td>Demurrage Rate</td><td>USD 50,000 / day</td></tr>
 </table>
 
@@ -311,10 +316,10 @@ CLAIM_CHARTERER_HTML = """
 <h2>Position</h2>
 <p class="clause">The Charterer contends that all three weather periods
 recorded on the Statement of Facts (14, 15 and 16&ndash;17 June 2026)
-constitute valid Weather Working Day exceptions under Clause 3.1 of the
-charterparty and BIMCO Laytime Definitions 2013. On each occasion the
-prevailing weather prevented or substantially hampered loading
-operations, as recorded by the port agent.</p>
+constitute valid exceptions under Clause 3.1 of the charterparty read with
+the threshold in Clause 3.2. On each occasion the prevailing weather
+prevented or substantially hampered loading operations, as recorded by the
+port agent.</p>
 
 <p class="clause">Accordingly, the demurrage owed is reduced to
 <strong>USD 62,000.00</strong>.</p>
@@ -331,7 +336,7 @@ operations, as recorded by the port agent.</p>
 def build_weather_records() -> list[dict]:
     """Generate hourly observations from 14 Jun 00:00 → 17 Jun 23:00 UTC.
 
-    Designed so the BIMCO 2013 threshold evaluator naturally produces:
+    Designed so the weather-threshold evaluator naturally produces:
       - 14 Jun weather window (10:00-22:00, Force 5)   → owner wins
       - 15 Jun weather window (06:00-18:00, Force 4)   → owner wins
       - 16 Jun → 17 Jun 12:00 (36h, Force 7 + rain)    → charterer wins
