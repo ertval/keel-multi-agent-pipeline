@@ -1,0 +1,66 @@
+You are closing the remaining frontend↔backend contract gap after two parallel changes landed. Repo: /home/ertval/code/project-modules/keel-multi-agent-pipeline. Frontend root: `apps/web`. **You own everything under `apps/web/`. Off-limits: `apps/api/**`, `fixtures/**`, `test-cases/**`, `scripts/**`, `.github/**`, `docs/**`.**
+
+## The backend changes you must consume
+The backend was just corrected and now sends two fields the frontend does not yet know about. Both were verified live.
+
+1. **`DayVerdict.measurement_basis: string` (new, always present).** The rule id was renamed because it was a fabricated citation, and the measurement basis moved into its own field:
+   - `bimco_clause.clause_id` is now `"CP_WEATHER.MAJORITY_OF_HOURS"` (it names the test, not a source document, and carries no definition number)
+   - `bimco_clause` is now effectively "the rule applied", and it quotes the **charterparty** clause in `clause_text`
+   - the new `measurement_basis` is e.g. `"Laytime Definitions for Charter Parties 2013, definition 16"`
+   - the weather verdict's authority is now `"custom"` (previously the false `"BIMCO_2013"`)
+2. **`AuditTraceEntry.clause_citation` (new, present as explicit `null` on every row, non-null on the weather rows).** Same shape as the existing `citation` (`{document, page_number, excerpt, bbox}`). You already render it via `citation.clause_citation ?? null` at `app/(dashboard)/voyage/[id]/page.tsx:192` and declared it optional in `lib/types.ts:58` — that part is done. **Verify** the non-null case renders a real charterparty clause and the null case says so honestly, using the live API.
+
+Also: the letter's footer wording changed, and the backend now emits `null` for more fields. **Read the live API and diff it against the frontend's types and mocks yourself — do not trust this summary.**
+
+## Environment
+- A backend is running on `http://127.0.0.1:8000`; it may be restarted by another session. Verify with `curl -s http://127.0.0.1:8000/voyages/voyage_001`. If a request fails with a connection error, wait and retry.
+- The backend's CORS default is `KEEL_CORS_ORIGINS=["http://localhost:3000"]`, so a browser page served from `http://127.0.0.1:3000` gets **no** `Access-Control-Allow-Origin` and every data-backed assertion sees an empty page. Navigate by the name `http://localhost:3000` (as `playwright.config.ts` now does) — **do not "fix" that back to the IP**, and read the comment in `playwright.config.ts` explaining why. Bind and readiness-probe on `127.0.0.1`.
+- **Next.js 16 allows ONE dev server per `apps/web`.** Check `ps aux | grep -i next` first. If you need one, write a script under `/tmp/opencode/` and `setsid` it (a bare `nohup … &` gets killed here).
+- **Do not run `pnpm run build` in the repo while anything holds `.next`.** Build in a copy under `/tmp/opencode/` (copy without `node_modules`, hard-link `node_modules`, run `./node_modules/.bin/next build`) and say where you built it.
+- Read framework behaviour from `apps/web/node_modules/next/dist/docs/`.
+- `apps/api/keel.db` may contain junk rows from a security audit. Use `page.route` interception for anything data-dependent, and do not treat live list contents as product behaviour.
+
+## Baseline you must not break
+`cd apps/api && uv run pytest -m canonical -q` → 15 passed. Canonical dollars **$187,000 / $62,000 / $112,000**; days 14 / 15 / 16 June 2026; winners owner / owner / charterer. `cd apps/web && pnpm exec tsc --noEmit` → 0; `pnpm run lint` → 0 errors / **4** pre-existing warnings (do not add warnings; cleaning them is out of scope); `pnpm run build` → 0; `pnpm exec playwright test` → **31 passed** (do not reduce the count).
+
+## Task 1 — add `measurement_basis` to the frontend contract
+- `lib/types.ts`: add `measurement_basis: string` to `DayVerdict` (required — the backend always sends it), and correct the `RuleAuthority` doc-comments, which still describe the old meaning: the value on a **verdict** is now `custom`; the value on a **reconciliation** means "the ruleset the charterparty expressly incorporates".
+- `app/(dashboard)/voyage/[id]/reconcile/page.tsx`: the day card renders the rule id as a collapsible heading above the charterparty quotation. Render `measurement_basis` beside it, clearly separated from the charterparty quote, so a reader can tell three different things apart: **the test the engine applied** (`clause_id`), **the charterparty clause it was read from** (`clause_text` + source), and **the framework that supplies the measurement basis** (`measurement_basis`). The existing disclaimer ("the rule id above is the engine's label for the test it applied, not a quotation from the charterparty") must keep showing on every expansion.
+- Do not hard-code the rule id or the basis string anywhere.
+
+## Task 2 — re-record the mocks from the live API
+`lib/api.ts`'s `MOCK_RECONCILIATION` (`:293`, `:315`, `:337`) still carries the **old fabricated rule id** `"LAYTIME_DEFS_2013.WWD.16.threshold"` in three places, lacks `measurement_basis`, lacks `clause_citation`, and its `justification` text still quotes the pre-correction wording. It is a recorded API capture behind `USE_MOCK = false`, so it is dead in the demo — but a mock that contradicts the API is exactly the defect class you have been fixing.
+**Re-record it mechanically from the live response**, field by field, so it is byte-identical to what the API returns. Also check the list mocks (`MOCK_VOYAGES`, `MOCK_RECONCILIATIONS`) for the same drift: a previous round removed the invented `resolution_seconds` field, but verify every remaining field against the live `GET /voyages` and `GET /reconciliations` responses and report any divergence. Note `created_at` differs on every run — decide honestly whether a recorded timestamp is acceptable in a mock and say what you did.
+
+## Task 3 — verify the new trace citation end-to-end
+With the live API, confirm the charterer's audit trace has rows carrying a real `clause_citation` (e.g. `charterparty.pdf`, page 3, the Clause 3 weather text) and that clicking one shows a genuine quotation with a working source label, and that rows with `clause_citation: null` are honest. Add an e2e assertion for the non-null case — the previous reviewer noted this field had no coverage. Prove the new assertion bites by breaking the panel in a scratch copy.
+
+## Task 4 — check the frontend for anything the backend change invalidated
+- Any `BIMCO 2013` string in the frontend that was justified by the old rule id or the old `BIMCO_2013` authority — the rule id no longer names BIMCO, so any copy that leaned on it needs a look.
+- `app/layout.tsx`, `app/(auth)/login/page.tsx`, `app/page.tsx`, `app/(dashboard)/reports/page.tsx` were flagged as still containing BIMCO-framed marketing copy. Read each one and decide, with reasoning, whether the claim is now accurate.
+- `tests/e2e/demo-workflow.spec.ts:59` was flagged as asserting the string `"BIMCO 2013"` is visible. Check whether that assertion is now guarding something real or nothing.
+- The letter footer wording changed server-side; confirm the letter page does not contradict it.
+
+## Rules
+- Match existing shadcn/ui conventions and the repo's design language. Do not make the UI look worse.
+- No comments explaining what changed. No new dependencies.
+- Do not weaken any e2e assertion; do not reduce the 31-test count.
+- Do not hard-code a backend string.
+
+## Verification you must run and report (verbatim)
+- `pnpm exec tsc --noEmit` → 0
+- `pnpm run lint` → 0 errors, warning count ≤ 4
+- `pnpm run build` → 0 (state where you built it)
+- `pnpm exec playwright test` → **all pass, and ≥ 31 tests**
+- `/voyage/voyage_001/reconcile` still renders `$187,000`, `$62,000`, `$112,000`, `14/15/16 June 2026`, and the three day labels
+- A `MOCK_RECONCILIATION` vs live-response diff report (identical, or an itemised list of every remaining divergence with your reasoning)
+- Grep the served output of every route for `LAYTIME_DEFS_2013`, `BIMCO_2013` outside a quoted charterparty clause, `Split / Conceded`, `SOC 2`, `Enterprise Alpha`, and raw `null`/`undefined`/`NaN`/`p.null`
+
+## Report
+- Every file changed, one line each
+- Before/after for each task, with the exact rendered text for the three-part day card
+- The mock diff table
+- Proof the new e2e assertion bites
+- Your reasoning on the BIMCO marketing copy and on `demo-workflow.spec.ts:59`
+- Anything you could not fix, and anything the backend must change (with file:line)
+- Verbatim tsc / lint / build / Playwright output
