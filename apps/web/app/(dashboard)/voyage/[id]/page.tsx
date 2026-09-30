@@ -3,6 +3,13 @@
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import { fetchVoyageDetail, formatUsd } from "@/lib/api";
+import {
+  getSettlement,
+  saveSettlement,
+  clearSettlement,
+  type Settlement,
+  type SettlementParty,
+} from "@/lib/settlements";
 import type { VoyageDetailResponse, ClauseCitation, AuditTraceEntry } from "@/lib/types";
 import dynamic from "next/dynamic";
 
@@ -138,6 +145,11 @@ export default function VoyageDetailPage({
   const [selectedBbox, setSelectedBbox] = useState<[number, number, number, number] | null>(null);
   const [ownerSelectedStep, setOwnerSelectedStep] = useState<number | null>(null);
   const [chartererSelectedStep, setChartererSelectedStep] = useState<number | null>(null);
+  const [settlement, setSettlement] = useState<Settlement | null>(null);
+  const [settlementAmount, setSettlementAmount] = useState("");
+  const [settlementParty, setSettlementParty] = useState<SettlementParty>("");
+  const [settlementDate, setSettlementDate] = useState("");
+  const [settlementNote, setSettlementNote] = useState("");
 
   useEffect(() => {
     fetchVoyageDetail(id)
@@ -145,6 +157,61 @@ export default function VoyageDetailPage({
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    const existing = getSettlement(id);
+    setSettlement(existing);
+    if (existing) {
+      setSettlementAmount(
+        existing.amountUsd !== null && existing.amountUsd !== undefined
+          ? String(existing.amountUsd)
+          : ""
+      );
+      setSettlementParty(existing.party);
+      setSettlementDate(existing.settledOn);
+      setSettlementNote(existing.note);
+    } else {
+      setSettlementAmount("");
+      setSettlementParty("");
+      setSettlementDate("");
+      setSettlementNote("");
+    }
+  }, [id]);
+
+  const handleSaveSettlement = () => {
+    const trimmed = settlementAmount.trim();
+    const parsed =
+      trimmed === "" ? null : Number(trimmed.replace(/,/g, ""));
+    const amountUsd =
+      parsed !== null && Number.isFinite(parsed) ? parsed : null;
+    if (
+      amountUsd === null &&
+      !settlementParty &&
+      !settlementDate &&
+      !settlementNote.trim()
+    ) {
+      handleClearSettlement();
+      return;
+    }
+    const next: Settlement = {
+      voyageId: id,
+      amountUsd,
+      party: settlementParty,
+      settledOn: settlementDate,
+      note: settlementNote,
+    };
+    saveSettlement(next);
+    setSettlement(next);
+  };
+
+  const handleClearSettlement = () => {
+    clearSettlement(id);
+    setSettlement(null);
+    setSettlementAmount("");
+    setSettlementParty("");
+    setSettlementDate("");
+    setSettlementNote("");
+  };
 
   const normalizeBbox = (bbox?: [number, number, number, number]) => {
     if (!bbox) return null;
@@ -232,6 +299,125 @@ export default function VoyageDetailPage({
       </header>
 
       <div className="page-content">
+        {/* Settlement */}
+        <div className="card animate-fade-in" style={{ marginBottom: "1.5rem", maxWidth: 640 }}>
+          <h2 style={{ fontSize: "0.8125rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "hsl(var(--muted-foreground))", marginBottom: "0.75rem" }}>
+            Settlement
+          </h2>
+          {!settlement ? (
+            <p style={{ fontSize: "0.875rem", color: "hsl(var(--muted-foreground))", marginBottom: "1rem" }}>
+              Settlement unset
+            </p>
+          ) : (
+            <p style={{ fontSize: "0.875rem", marginBottom: "1rem" }}>
+              {settlement.amountUsd !== null ? (
+                <span className="mono" style={{ fontWeight: 600 }}>{formatUsd(settlement.amountUsd)}</span>
+              ) : (
+                <span style={{ color: "hsl(var(--muted-foreground))" }}>Amount unset</span>
+              )}
+              {settlement.party ? (
+                <span className={`badge ${settlement.party === "owner" ? "badge-owner" : settlement.party === "charterer" ? "badge-charterer" : "badge-primary"}`} style={{ marginLeft: "0.5rem" }}>
+                  {settlement.party === "split" ? "Split" : settlement.party === "owner" ? "Owner conceded" : settlement.party === "charterer" ? "Charterer conceded" : settlement.party}
+                </span>
+              ) : null}
+            </p>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "0.75rem" }}>
+            <div>
+              <label style={{ display: "block", fontSize: "0.75rem", color: "hsl(var(--muted-foreground))", marginBottom: "0.25rem" }}>
+                Amount (USD)
+              </label>
+              <input
+                className="mono"
+                type="number"
+                inputMode="decimal"
+                placeholder="—"
+                value={settlementAmount}
+                onChange={(e) => setSettlementAmount(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "0.375rem 0.5rem",
+                  fontSize: "0.875rem",
+                  borderRadius: "var(--radius)",
+                  border: "1px solid hsl(var(--border))",
+                  background: "hsl(var(--surface-2))",
+                  color: "hsl(var(--foreground))",
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: "0.75rem", color: "hsl(var(--muted-foreground))", marginBottom: "0.25rem" }}>
+                Party (who conceded)
+              </label>
+              <select
+                value={settlementParty}
+                onChange={(e) => setSettlementParty(e.target.value as SettlementParty)}
+                style={{
+                  width: "100%",
+                  padding: "0.375rem 0.5rem",
+                  fontSize: "0.875rem",
+                  borderRadius: "var(--radius)",
+                  border: "1px solid hsl(var(--border))",
+                  background: "hsl(var(--surface-2))",
+                  color: "hsl(var(--foreground))",
+                }}
+              >
+                <option value="">—</option>
+                <option value="owner">Owner</option>
+                <option value="charterer">Charterer</option>
+                <option value="split">Split</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: "0.75rem", color: "hsl(var(--muted-foreground))", marginBottom: "0.25rem" }}>
+                Settled on
+              </label>
+              <input
+                type="date"
+                value={settlementDate}
+                onChange={(e) => setSettlementDate(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "0.375rem 0.5rem",
+                  fontSize: "0.875rem",
+                  borderRadius: "var(--radius)",
+                  border: "1px solid hsl(var(--border))",
+                  background: "hsl(var(--surface-2))",
+                  color: "hsl(var(--foreground))",
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: "0.75rem", color: "hsl(var(--muted-foreground))", marginBottom: "0.25rem" }}>
+                Note
+              </label>
+              <input
+                type="text"
+                value={settlementNote}
+                onChange={(e) => setSettlementNote(e.target.value)}
+                placeholder="Optional"
+                style={{
+                  width: "100%",
+                  padding: "0.375rem 0.5rem",
+                  fontSize: "0.875rem",
+                  borderRadius: "var(--radius)",
+                  border: "1px solid hsl(var(--border))",
+                  background: "hsl(var(--surface-2))",
+                  color: "hsl(var(--foreground))",
+                }}
+              />
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button type="button" className="btn btn-primary" onClick={handleSaveSettlement} style={{ fontSize: "0.8125rem" }}>
+              Save
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={handleClearSettlement} style={{ fontSize: "0.8125rem" }}>
+              Clear
+            </button>
+          </div>
+        </div>
+
         <div
           style={{
             display: "grid",

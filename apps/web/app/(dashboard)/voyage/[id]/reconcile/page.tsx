@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { fetchVoyageDetail, formatUsd } from "@/lib/api";
 import type { VoyageDetailResponse, DayVerdict } from "@/lib/types";
 import {
@@ -9,6 +10,8 @@ import {
   ChevronDown, ChevronUp, Trophy, Loader2, FileText,
   TrendingUp, Scale
 } from "lucide-react";
+
+const PdfViewer = dynamic(() => import("@/components/PdfViewer"), { ssr: false });
 
 const BEAUFORT_LABELS: Record<number, string> = {
   0: "Calm", 1: "Light air", 2: "Light breeze", 3: "Gentle breeze",
@@ -24,12 +27,20 @@ function beaufortColor(force: number) {
   return "hsl(var(--charterer))";
 }
 
+function normalizeBbox(bbox?: [number, number, number, number]) {
+  if (!bbox) return null;
+  if (bbox.every((value) => value === 0)) return null;
+  return bbox;
+}
+
 interface DayCardProps {
   verdict: DayVerdict;
   index: number;
+  selected: boolean;
+  onSelect: () => void;
 }
 
-function DayCard({ verdict, index }: DayCardProps) {
+function DayCard({ verdict, index, selected, onSelect }: DayCardProps) {
   const [clauseOpen, setClauseOpen] = useState(false);
   const isOwner = verdict.verdict === "owner";
   const dateObj = new Date(verdict.date + "T00:00:00Z");
@@ -41,8 +52,25 @@ function DayCard({ verdict, index }: DayCardProps) {
   return (
     <div
       id={`day-card-${verdict.date}`}
+      role="button"
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
       className={`card animate-slide-up ${isOwner ? "verdict-card-owner" : "verdict-card-charterer"}`}
-      style={{ animationDelay: `${index * 0.12}s`, display: "flex", flexDirection: "column", gap: "1.25rem" }}
+      style={{
+        animationDelay: `${index * 0.12}s`,
+        display: "flex",
+        flexDirection: "column",
+        gap: "1.25rem",
+        cursor: "pointer",
+        outline: selected ? "2px solid hsl(var(--primary))" : undefined,
+        outlineOffset: selected ? 2 : undefined,
+      }}
     >
       {/* Date header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -91,7 +119,7 @@ function DayCard({ verdict, index }: DayCardProps) {
         <p
           style={{ fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.07em", color: "hsl(var(--muted-foreground))", fontWeight: 600, marginBottom: "0.625rem" }}
         >
-          Weather Record
+          Observations in the file
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
           <span className="weather-pill">
@@ -122,7 +150,10 @@ function DayCard({ verdict, index }: DayCardProps) {
         <button
           id={`clause-toggle-${verdict.date}`}
           className="btn btn-ghost"
-          onClick={() => setClauseOpen((o) => !o)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setClauseOpen((o) => !o);
+          }}
           style={{ padding: "0.375rem 0.625rem", fontSize: "0.8125rem", width: "100%", justifyContent: "space-between" }}
         >
           <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
@@ -201,6 +232,7 @@ export default function ReconciliationPage({
   const [data, setData] = useState<VoyageDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
     fetchVoyageDetail(id)
@@ -227,7 +259,16 @@ export default function ReconciliationPage({
     );
   }
 
-  const { reconciliation } = data!;
+  const { reconciliation, pdf_urls } = data!;
+  const selectedVerdict =
+    reconciliation.day_verdicts.find((v) => v.date === selectedDate) ?? null;
+  const selectedPdfUrl = selectedVerdict
+    ? pdf_urls[selectedVerdict.bimco_clause.source_document] ?? null
+    : null;
+  const selectedBbox = selectedVerdict
+    ? normalizeBbox(selectedVerdict.bimco_clause.bbox)
+    : null;
+  const selectedPage = selectedVerdict?.bimco_clause.page_number || 1;
 
   return (
     <div>
@@ -327,10 +368,36 @@ export default function ReconciliationPage({
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.25rem" }}>
             {reconciliation.day_verdicts.map((verdict, i) => (
-              <DayCard key={verdict.date} verdict={verdict} index={i} />
+              <DayCard
+                key={verdict.date}
+                verdict={verdict}
+                index={i}
+                selected={selectedDate === verdict.date}
+                onSelect={() => setSelectedDate(verdict.date)}
+              />
             ))}
           </div>
         </div>
+
+        {/* Citation PDF viewer */}
+        {selectedVerdict && (
+          <div className="card animate-fade-in" style={{ marginBottom: "2rem" }}>
+            <h2 style={{ fontSize: "0.8125rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "hsl(var(--muted-foreground))", marginBottom: "1rem" }}>
+              Source citation — {selectedVerdict.bimco_clause.clause_id} · {selectedVerdict.date}
+            </h2>
+            {selectedPdfUrl ? (
+              <PdfViewer
+                url={selectedPdfUrl}
+                initialPage={selectedPage}
+                highlightBbox={selectedBbox ?? undefined}
+              />
+            ) : (
+              <p style={{ fontSize: "0.875rem", color: "hsl(var(--muted-foreground))", padding: "2rem 0", textAlign: "center" }}>
+                No source PDF is bundled for this citation.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* ── B-06: Reconciled total band ── */}
         <div

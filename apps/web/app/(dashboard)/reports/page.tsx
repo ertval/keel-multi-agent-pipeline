@@ -45,6 +45,7 @@ import {
   Info,
 } from "lucide-react";
 import { fetchReconciliations, formatUsd, MOCK_RECONCILIATIONS } from "@/lib/api";
+import { getSettlement } from "@/lib/settlements";
 import type { ReconciliationSummary } from "@/lib/types";
 
 // Predefined mock reports in archive
@@ -103,6 +104,7 @@ export default function ReportsPage() {
   const [generationSuccess, setGenerationSuccess] = useState(false);
   const [savedReports, setSavedReports] = useState<SavedReport[]>(INITIAL_REPORTS);
   const [downloadingReportId, setDownloadingReportId] = useState<string | null>(null);
+  const [settlementTick, setSettlementTick] = useState(0);
 
   // Load Reconciliations data
   useEffect(() => {
@@ -207,6 +209,37 @@ export default function ReportsPage() {
       recoveryRate,
     };
   }, [filteredData]);
+
+  // Settlement readout for filtered voyages (localStorage; empty until human saves)
+  const settlementSummary = useMemo(() => {
+    void settlementTick;
+    let settled = 0;
+    let unset = 0;
+    let amountSum = 0;
+    let hasNumericAmount = false;
+    for (const r of filteredData) {
+      const s = getSettlement(r.voyage_id);
+      if (!s) {
+        unset += 1;
+        continue;
+      }
+      settled += 1;
+      if (typeof s.amountUsd === "number" && Number.isFinite(s.amountUsd)) {
+        amountSum += s.amountUsd;
+        hasNumericAmount = true;
+      }
+    }
+    return { settled, unset, amountSum, hasNumericAmount };
+  }, [filteredData, settlementTick]);
+
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "keel.settlements.v1") setSettlementTick((t) => t + 1);
+    };
+    window.addEventListener("storage", onStorage);
+    setSettlementTick((t) => t + 1);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   // Chronological data for line chart
   const chronologicalData = useMemo(() => {
@@ -446,7 +479,7 @@ export default function ReportsPage() {
 
     const steps = [
       { max: 20, text: "Ingesting Statements of Facts and Charterparties..." },
-      { max: 45, text: "Querying historical weather logs for load & discharge ports..." },
+      { max: 45, text: "Reading weather observations stored with the voyage..." },
       { max: 70, text: "Applying BIMCO Laytime Definitions 2013 exception rules..." },
       { max: 90, text: "Calculating demurrage adjustments and compiling audit trails..." },
       { max: 99, text: "Assembling claims package and generating report files..." },
@@ -666,17 +699,17 @@ export default function ReportsPage() {
             color: "hsl(var(--owner))",
           },
           {
-            label: "Claims Saved (Charterer)",
+            label: "Owner claim minus reconciled total",
             value: formatUsd(stats.claimsSavedTotal),
-            change: `Total owner claim write-downs`,
+            change: `Gap on the listed voyages — not a typical saving`,
             icon: TrendingUp,
             color: "hsl(var(--owner))",
             highlight: true,
           },
           {
-            label: "Demurrage Write-Down %",
+            label: "Gap as % of owner claim",
             value: stats.ownerClaimTotal > 0 ? `${((stats.claimsSavedTotal / stats.ownerClaimTotal) * 100).toFixed(1)}%` : "0%",
-            change: `${formatUsd(stats.ownerClaimTotal - stats.reconciledTotal)} saved in total disputes`,
+            change: `${formatUsd(stats.ownerClaimTotal - stats.reconciledTotal)} write-down across listed disputes`,
             icon: Award,
             color: "var(--chart-4)",
           },
@@ -732,6 +765,36 @@ export default function ReportsPage() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Settlement readout */}
+      <div
+        className="animate-fade-in"
+        style={{
+          background: "var(--card)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius)",
+          padding: "1rem 1.25rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "1rem",
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          <p style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--muted-foreground)", marginBottom: "0.25rem" }}>
+            Settlements
+          </p>
+          <p style={{ fontSize: "0.9375rem", fontWeight: 600, margin: 0 }}>
+            Settled {settlementSummary.settled} · Unset {settlementSummary.unset}
+          </p>
+        </div>
+        {settlementSummary.hasNumericAmount ? (
+          <p className="mono" style={{ fontSize: "1.125rem", fontWeight: 700, margin: 0 }}>
+            {formatUsd(settlementSummary.amountSum)}
+          </p>
+        ) : null}
       </div>
 
       {/* Analytics Graphs Section */}
@@ -954,7 +1017,7 @@ export default function ReportsPage() {
                         </span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span style={{ color: "var(--muted-foreground)" }}>Savings:</span>
+                        <span style={{ color: "var(--muted-foreground)" }}>Owner − reconciled:</span>
                         <span className="mono" style={{ color: "hsl(var(--owner))", fontWeight: 500 }}>
                           {formatUsd(
                             chronologicalData[hoveredLineIndex].owner_total_usd -
@@ -1088,14 +1151,14 @@ export default function ReportsPage() {
                   count: verdictSummary.ownerWins,
                   percentage: (verdictSummary.ownerWins / verdictSummary.total) * 100,
                   color: "hsl(var(--owner))",
-                  desc: "Exception claims denied; weather did not exceed force thresholds or operations continued.",
+                  desc: "Threshold test on the observations in the file did not meet the rule, or operations continued.",
                 },
                 {
                   label: "Charterer Upheld (Time Excepted)",
                   count: verdictSummary.chartererWins,
                   percentage: (verdictSummary.chartererWins / verdictSummary.total) * 100,
                   color: "hsl(var(--charterer))",
-                  desc: "Exceptions substantiated; weather logs confirm operations were fully prevented.",
+                  desc: "Threshold test on the observations in the file met the BIMCO 2013 WWD rule.",
                 },
                 {
                   label: "Split / Conceded Verdicts",

@@ -37,7 +37,7 @@ export default function DashboardLayout({
               fontWeight: 500,
             }}
           >
-            Maritime Intelligence Platform
+            Charterer-side demurrage audit
           </span>
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
             <ThemeToggle />

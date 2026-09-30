@@ -4,12 +4,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Keel — Maritime Intelligence Platform",
+  title: "Keel — Charterer-side demurrage audit",
   description:
-    "Enterprise-grade laytime and demurrage reconciliation for maritime charterparties. Keel analyses owner and charterer statements, applies BIMCO 2013 weather clauses, and produces auditable reconciled totals.",
+    "Charterer-side laytime and demurrage reconciliation. Applies BIMCO 2013 weather-working-day thresholds and produces a cited reconciled total. Output is advisory.",
   openGraph: {
-    title: "Keel — Maritime Intelligence Platform",
-    description: "Enterprise maritime charterparty reconciliation powered by AI.",
+    title: "Keel — Charterer-side demurrage audit",
+    description:
+      "Charterer-side laytime and demurrage reconciliation. Applies BIMCO 2013 weather-working-day thresholds and produces a cited reconciled total. Output is advisory.",
     type: "website",
   },
 };
