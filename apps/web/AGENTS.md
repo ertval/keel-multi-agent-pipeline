@@ -97,7 +97,7 @@ serves `/voyages`.
 
 | Route | File | Rendering |
 |---|---|---|
-| `/` | `app/page.tsx` | `"use client"` — public landing page with an "Open the Demo" link and a demo-explainer modal |
+| `/` | `app/page.tsx` | **server component** — public landing page: a ruled reconciliation ledger carrying the real `voyage_001` figures, a "Client Portal" link, and a demo-explainer modal. `DialogTrigger` reaches the client through the RSC boundary, so there is no `"use client"` |
 | `/login` | `app/(auth)/login/page.tsx` | `"use client"` — sets the demo cookie, no credential check |
 | `/dashboard` | `app/(dashboard)/dashboard/page.tsx` | `"use client"` — stats, recent voyages, upload dialog |
 | `/voyages` | `app/(dashboard)/voyages/page.tsx` | `"use client"` — list |
