@@ -93,7 +93,7 @@ pre-16 `reset` (`01-app/01-getting-started/10-error-handling.md:218-234`).
 `(auth)` and `(dashboard)` are organisational only. `app/(dashboard)/voyages/page.tsx`
 serves `/voyages`.
 
-## The nine routes
+## The twelve routes
 
 | Route | File | Rendering |
 |---|---|---|
@@ -106,9 +106,21 @@ serves `/voyages`.
 | `/voyage/[id]` | `app/(dashboard)/voyage/[id]/page.tsx` | `"use client"` — terms, both calculations, audit trace |
 | `/voyage/[id]/reconcile` | `app/(dashboard)/voyage/[id]/reconcile/page.tsx` | `"use client"` — per-day verdicts, math breakdown |
 | `/voyage/[id]/letter` | `app/(dashboard)/voyage/[id]/letter/page.tsx` | `"use client"` — letter preview, sanitised before injection |
+| `/modules/speed` | `app/(dashboard)/modules/speed/page.tsx` | **server component** — charterer-side speed/consumption claim. A `ModuleLedger` **scaffold**: columns and intended inputs are laid out, every figure is `—`, and the action is a `DisabledActionButton`. No computation is wired |
+| `/modules/bunkers` | `app/(dashboard)/modules/bunkers/page.tsx` | as above — bunkers claim, same scaffold state |
+| `/modules/disbursements` | `app/(dashboard)/modules/disbursements/page.tsx` | as above — two `EmptyColumn`s (tariff line, invoice line) |
+
+The three `/modules/*` screens are **scaffolds, not features**: `ModuleLedger`
+(`components/ModuleLedger.tsx`) renders the intended columns while every value is
+an em dash, and `lib/settlements.ts` holds a `Settlement` type that nothing consumes.
+Do not describe them as working. They are reached from the sidebar's second
+group, "Modules" — see `NAV_GROUPS` in `components/AppSidebar.tsx`, where adding a
+destination is one array entry. `isActiveRoute` matches `href` exactly or as a
+prefix on a `/` boundary, so `/voyages` does not light up on `/voyage/[id]`;
+`smoke.spec.ts` asserts both halves of that.
 
 `app/layout.tsx` and `app/(dashboard)/layout.tsx` are server components.
-`/register` and `/page1` were deleted. The build emits 9 routes plus
+`/register` and `/page1` were deleted. The build emits 12 routes plus
 `/_not-found`.
 
 The audit-trace tables and the day-verdict cards are **inline in the page
@@ -236,9 +248,12 @@ mandatory** and `voyage_001` must actually be seeded.
    (`:59-83`).
 8. **The reports page exports CSV only** (`app/(dashboard)/reports/page.tsx:466-473`). There is
    no XLSX and no PDF export path.
-9. **There is no settings page and no dead link to one.** `NAV_ITEMS`
-   (`components/AppSidebar.tsx:35-40`) has four entries: Dashboard, Voyages,
-   Reconciliations, Reports. A `Settings` row with `href: "#"` was removed.
+9. **There is no settings page and no dead link to one.** `NAV_GROUPS`
+   (`components/AppSidebar.tsx`) has seven entries in two groups — "Navigation":
+   Dashboard, Voyages, Reconciliations, Reports; "Modules": Speed & consumption,
+   Bunkers, Disbursements. A `Settings` row with `href: "#"` was removed. Adding a
+   destination is one array entry: `active: false` renders a non-navigable "Coming
+   soon" tooltip, and `isActiveRoute` derives the highlight from `href`.
 10. **Never introduce a fallback that invents a figure.** `fabricated-data.spec.ts`
     exists specifically to fail if one appears. A `null` prints as an em dash
     (`formatUsd`, `api.ts:777-785`), never as `$0`.

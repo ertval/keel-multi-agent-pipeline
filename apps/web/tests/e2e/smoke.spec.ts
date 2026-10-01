@@ -55,6 +55,50 @@ test("sidebar voyages link navigates to the voyages list", async ({ page }) => {
   await expect(page.getByText("Recent Voyages")).toBeVisible();
 });
 
+test("the sidebar exposes every module and highlights the current route", async ({
+  page,
+}) => {
+  await page.goto("/login");
+  await page.getByRole("button", { name: /Enter Demo Mode/i }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+
+  // The modules arrived with their routes and no navigation, so they were only
+  // reachable by typing the URL. This asserts each one is linked and lands.
+  const sidebar = page.locator('[data-slot="sidebar"]');
+  for (const [label, path] of [
+    ["Speed & consumption", "/modules/speed"],
+    ["Bunkers", "/modules/bunkers"],
+    ["Disbursements", "/modules/disbursements"],
+  ] as const) {
+    const link = sidebar.getByRole("link", { name: label, exact: true });
+    await expect(link, `${label} must be linked from the sidebar`).toBeVisible();
+    await link.click();
+    await expect(page).toHaveURL(new RegExp(`${path}$`));
+    // The active row is what tells a reader where they are, so it is asserted
+    // rather than assumed: `data-active=""` marks the current route.
+    await expect(
+      sidebar.locator(`a[href="${path}"][data-active]`),
+      `${label} must highlight on its own route`
+    ).toHaveCount(1);
+  }
+});
+
+test("a detail route under /voyage does not light up the /voyages row", async ({
+  page,
+}) => {
+  await page.goto("/login");
+  await page.getByRole("button", { name: /Enter Demo Mode/i }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+
+  await page.goto("/voyage/voyage_001");
+  await expect(page).toHaveURL(/\/voyage\/voyage_001$/);
+  // Guards the prefix matcher in `isActiveRoute`: `/voyages` must not match
+  // `/voyage/...`, or the wrong row is highlighted on every detail page.
+  await expect(
+    page.locator('[data-slot="sidebar"] a[href="/voyages"][data-active]')
+  ).toHaveCount(0);
+});
+
 test("the dashboard is the only list that draws the analytics panels", async ({ page }) => {
   await page.goto("/login");
   await page.getByRole("button", { name: /Enter Demo Mode/i }).click();

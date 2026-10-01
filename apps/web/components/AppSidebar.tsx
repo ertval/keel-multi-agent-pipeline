@@ -30,14 +30,59 @@ import {
   FileBarChart,
   LogOut,
   ChevronUp,
+  Gauge,
+  Fuel,
+  Receipt,
+  type LucideIcon,
 } from "lucide-react";
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, active: true },
-  { label: "Voyages", href: "/voyages", icon: Ship, active: true },
-  { label: "Reconciliations", href: "/reconciliations", icon: Scale, active: true },
-  { label: "Reports", href: "/reports", icon: FileBarChart, active: true },
+interface NavItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  /**
+   * `false` renders the row as a non-navigable "Coming soon" tooltip instead of
+   * a link. Every entry currently ships as a real route, so this is the
+   * extension point for a screen whose route exists but is not ready to enter.
+   */
+  active?: boolean;
+}
+
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+/**
+ * Adding a destination is one entry here and nothing else — the active state is
+ * derived from `href`, so no per-item branch has to be written.
+ *
+ * `href` is matched exactly, or as a path prefix on a `/` boundary, which is
+ * what keeps `/voyages` from lighting up on `/voyage/voyage_001`.
+ */
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: "Navigation",
+    items: [
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, active: true },
+      { label: "Voyages", href: "/voyages", icon: Ship, active: true },
+      { label: "Reconciliations", href: "/reconciliations", icon: Scale, active: true },
+      { label: "Reports", href: "/reports", icon: FileBarChart, active: true },
+    ],
+  },
+  {
+    label: "Modules",
+    items: [
+      { label: "Speed & consumption", href: "/modules/speed", icon: Gauge, active: true },
+      { label: "Bunkers", href: "/modules/bunkers", icon: Fuel, active: true },
+      { label: "Disbursements", href: "/modules/disbursements", icon: Receipt, active: true },
+    ],
+  },
 ];
+
+function isActiveRoute(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -95,23 +140,15 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+        {NAV_GROUPS.map((group) => (
+        <SidebarGroup key={group.label}>
+          <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {NAV_ITEMS.map((item) => {
-                const isActive =
-                  item.label === "Dashboard"
-                    ? pathname === "/dashboard"
-                    : item.label === "Voyages"
-                      ? pathname.startsWith("/voyages")
-                      : item.label === "Reconciliations"
-                        ? pathname === "/reconciliations"
-                        : item.label === "Reports"
-                          ? pathname === "/reports"
-                          : false;
+              {group.items.map((item) => {
+                const isActive = isActiveRoute(pathname, item.href);
 
-                if (!item.active) {
+                if (item.active === false) {
                   return (
                     <SidebarMenuItem key={item.label}>
                       <Tooltip>
@@ -139,6 +176,7 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter>

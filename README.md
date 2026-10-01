@@ -420,7 +420,7 @@ $ uv run pytest -q --deselect <the 16 node ids from KNOWN_MISSING_PDF_TESTS>
 cd apps/web
 pnpm exec tsc --noEmit          # exit 0, no output
 pnpm run lint                   # ✖ 4 problems (0 errors, 4 warnings)
-pnpm run build                  # exit 0, 9 routes
+pnpm run build                  # exit 0, 12 routes
 ```
 
 The 4 lint warnings are the budget CI enforces with `--max-warnings 4`: three
@@ -475,7 +475,7 @@ cd apps/web && pnpm exec playwright test
 ```console
 $ pnpm exec playwright test
   ...
-  38 passed
+  40 passed
 ```
 
 The 38 is the claim; the duration is not one. This run reuses an
@@ -834,7 +834,7 @@ keel-multi-agent-pipeline/
 │   │   └── tests/                  # 355 tests, 16 quarantined here
 │   │       └── conftest.py          # points KEEL_DB away from apps/api/keel.db
 │   └── web/                        # Next.js 16 App Router, pnpm
-│       ├── app/                    # 9 routes + _not-found; no /register, no /page1
+│       ├── app/                    # 12 routes + _not-found; no /register, no /page1
 │       │   ├── page.tsx            # 38 lines: resolves ?v= server-side, renders one design
 │       │   └── landing/            # 11 designs + registry.ts, content.ts, VariantSwitcher.tsx
 │       ├── components/             # AppSidebar, PdfViewer, ThemeToggle, ui/*

@@ -22,7 +22,7 @@ Every number below was produced by running the command, on this tree.
 | Build | `cd apps/web && pnpm exec next build` | **exit 0**, 9 routes + `/_not-found` |
 | Backend suite | `cd apps/api && uv run pytest -q` | **16 failed, 338 passed, 1 skipped** |
 | Canonical | `cd apps/api && uv run pytest -m canonical -q` | **15 passed, 340 deselected** |
-| e2e | `cd apps/web && pnpm exec playwright test` | **38 passed** (7 spec files) |
+| e2e | `cd apps/web && pnpm exec playwright test` | **40 passed** (7 spec files) |
 | Layout sweep | 11 variants × 8 widths | **0 horizontal overflow, 0 content occluded** |
 
 The 16 backend failures are the **absent source PDFs** — 3 in `test_extraction.py`,
@@ -155,7 +155,40 @@ and each is a fact the tree currently computes and then does nothing useful with
 
 ---
 
-## 4. Carried-forward decisions — do not silently "fix" these
+## 4. The module routes and how they are reached
+
+Three charterer-side claim modules arrived with this work and are **now linked from
+the workspace sidebar**, under a second group called **Modules**:
+
+| Route | Sidebar label | State |
+|---|---|---|
+| `/modules/speed` | Speed & consumption | Ledger shell, rows all `—`, "Compare warranty" disabled |
+| `/modules/bunkers` | Bunkers | Ledger shell, rows all `—`, action disabled |
+| `/modules/disbursements` | Disbursements | Two empty columns: tariff line, invoice line |
+
+They are **scaffolds, not features**. Each renders `ModuleLedger` with the intended
+columns and inputs, but no computation is wired and every figure is an em dash. Do not
+describe them as working; `lib/settlements.ts` currently holds a `Settlement` type and
+nothing consumes it.
+
+**The nav is data-driven so adding a fourth is one array entry** —
+`NAV_GROUPS` in `apps/web/components/AppSidebar.tsx`. Each entry is
+`{ label, href, icon, active }`:
+
+- `active: false` renders the row as a non-navigable "Coming soon" tooltip instead of
+  a link. That affordance existed before and is preserved; it is the extension point
+  for a route that exists but is not ready to enter.
+- `href` is matched exactly, or as a prefix on a `/` boundary. That boundary is
+  load-bearing: `/voyages` must not light up on `/voyage/voyage_001`, and
+  `smoke.spec.ts` asserts it.
+
+**The landing page does not link to them.** That is deliberate, not an oversight:
+`/` is a public marketing surface and these are workspace screens behind the demo
+cookie. If you want them discoverable before login, that is a marketing decision, and
+the place to make it is a section in `app/landing/content.ts` so all eleven variants
+pick it up at once rather than eleven separate edits.
+
+## 5. Carried-forward decisions — do not silently "fix" these
 
 A deliberate editorial decision was made to **remove "demo" and "hackathon" framing**
 from the frontend to reposition the product as post-MVP. That is settled. Four files
@@ -181,7 +214,7 @@ the shared module all eleven variants render.
 
 ---
 
-## 5. Fragilities worth knowing before you touch the toolchain
+## 6. Fragilities worth knowing before you touch the toolchain
 
 | Thing | Why it matters |
 |---|---|
@@ -194,17 +227,19 @@ the shared module all eleven variants render.
 
 ---
 
-## 6. Start here
+## 7. Start here
 
 1. Read [`docs/continuation-plan.md`](continuation-plan.md) §1–§3 for the ordering
    and the three facts that force it.
 2. Run the gate table in §1 above. Anything other than the stated numbers means the
    tree moved under you.
-3. **Step 2 is the cheapest and unblocks the most** (16 red tests → green, and the
+3. Read §4 if you are extending the modules — the nav is one array entry, and the
+   three screens are scaffolds with no figures wired.
+4. **Step 2 is the cheapest and unblocks the most** (16 red tests → green, and the
    checkout becomes able to parse at all). Do it first even though the plan orders
    step 1 first — step 1 is riskier to get wrong, not riskier to leave undone, and
    step 2 costs nothing.
-4. Then step 1, then step 3.
+5. Then step 1, then step 3.
 
 **Do not** reintroduce a CSS `@import` for fonts, pair `outline-none` with
 `outline-2`, hardcode port 3000, or inline a claim string in a variant instead of
