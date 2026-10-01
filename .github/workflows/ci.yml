@@ -48,24 +48,46 @@ jobs:
           apps/api/tests/test_reconciliation_contract.py
           apps/api/tests/test_validation.py
           apps/web/app/(dashboard)/error.tsx
+          apps/web/app/globals.css
+          apps/web/app/landing/VariantSwitcher.tsx
+          apps/web/app/landing/content.ts
+          apps/web/app/landing/registry.ts
+          apps/web/app/landing/v1-statement.tsx
+          apps/web/app/landing/v2-telemetry.tsx
+          apps/web/app/landing/v3-gazette.tsx
+          apps/web/app/landing/v4-blueprint.tsx
+          apps/web/app/landing/v5-swiss.tsx
+          apps/web/app/landing/v6-stateflow.tsx
+          apps/web/app/landing/v7-carbon.tsx
+          apps/web/app/landing/v8-dusk.tsx
+          apps/web/app/landing/v9-pleading.tsx
+          apps/web/app/landing/v10-radar.tsx
+          apps/web/app/landing/v11-manifest.tsx
+          apps/web/app/layout.tsx
+          apps/web/app/page.tsx
+          apps/web/components/AppSidebar.tsx
           apps/web/components/VoyageUnavailable.tsx
           apps/web/lib/api.ts
           apps/web/lib/sanitize-html.ts
           apps/web/lib/types.ts
           apps/web/lib/utils.ts
+          apps/web/playwright.config.ts
           apps/web/proxy.ts
           apps/web/public/pdf.worker.min.mjs
+          apps/web/tests/e2e/demo-workflow.spec.ts
           apps/web/tests/e2e/fabricated-data.spec.ts
           apps/web/tests/e2e/modals.spec.ts
           apps/web/tests/e2e/null-data.spec.ts
           apps/web/tests/e2e/proxy.spec.ts
+          apps/web/tests/e2e/smoke.spec.ts
+          apps/web/tests/e2e/variants.spec.ts
           docs/continuation-plan.md
           .gitattributes
           "
           # The count is asserted, not just floored: adding a path means editing
           # two places on purpose, so a truncated or duplicated list cannot
           # quietly shrink the set of files this gate stands behind.
-          expected=25
+          expected=47
           listed=$(printf '%s\n' $critical | grep -c .)
           if [ "$listed" -ne "$expected" ]; then
             echo "::error::the tracked-path list holds $listed paths, expected $expected"
@@ -88,7 +110,25 @@ jobs:
             echo "::error::$missing build-critical path(s) are untracked; this checkout cannot build"
             exit 1
           fi
+          # The count assertion catches a typo; it cannot catch a design that was
+          # added without a gate entry, because the entry is what is missing. So
+          # the tracked set of landing variants and this list's set of them are
+          # compared as sorted sets: a twelfth variant, a rename, or a deleted
+          # one all fail here rather than shipping behind a green gate. Both
+          # sides are flattened to one line so no process substitution or herestring
+          # is needed; the glob is git's, not the shell's, so `set -f` is fine.
+          landing_tracked=$(git ls-files 'apps/web/app/landing/*.tsx' | sort | tr '\n' ' ')
+          landing_listed=$(printf '%s\n' $critical | grep '^apps/web/app/landing/[^ ]*\.tsx$' | sort | tr '\n' ' ')
+          if [ "$landing_tracked" != "$landing_listed" ]; then
+            echo "::error::apps/web/app/landing/*.tsx is tracked and listed as two different sets"
+            echo "  tracked by git: $landing_tracked"
+            echo "  listed here:    $landing_listed"
+            echo "  Add or remove the path in the list and change 'expected' in the same"
+            echo "  edit. Sorted sets, so reordering the list is not itself a failure."
+            exit 1
+          fi
           echo "All $listed build-critical paths are tracked"
+          echo "Landing variant set matches the list: $landing_listed"
       - name: Validate JSON fixtures
         run: |
           set -uo pipefail
