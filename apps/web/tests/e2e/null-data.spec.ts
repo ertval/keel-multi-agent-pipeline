@@ -153,7 +153,10 @@ test("a citation with no page number never prints p.null", async ({ page }) => {
 
 test("the PDF viewer fetches its worker from this origin, and names the real reason the preview is empty", async ({
   page,
+  baseURL,
 }) => {
+  const appOrigin = baseURL;
+  if (!appOrigin) throw new Error("playwright.config.ts must set use.baseURL");
   const workerRequests: string[] = [];
   const foreignRequests: string[] = [];
   page.on("request", (req) => {
@@ -175,7 +178,7 @@ test("the PDF viewer fetches its worker from this origin, and names the real rea
   await expect
     .poll(() => workerRequests.length, { timeout: 15_000 })
     .toBeGreaterThan(0);
-  expect(workerRequests.every((u) => u.startsWith("http://localhost:3000/"))).toBe(true);
+  expect(workerRequests.every((u) => u.startsWith(`${new URL(appOrigin).origin}/`))).toBe(true);
   expect(foreignRequests.filter((u) => u.includes("pdf.worker"))).toEqual([]);
 
   // The repo ships no source PDFs, so the preview cannot load. The copy must

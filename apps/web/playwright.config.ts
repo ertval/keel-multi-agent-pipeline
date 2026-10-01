@@ -22,9 +22,13 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [["github"], ["html"]] : "list",
   // `next dev` compiles each route on first request, so the default 30s
-  // per-test budget is not enough for the multi-page demo workflow.
-  timeout: 60_000,
-  expect: { timeout: 10_000 },
+  // per-test budget is not enough for the multi-page demo workflow. `/` also
+  // renders one of eleven landing designs and resolves `?v=` on the server, so
+  // it is no longer a static prerender and every landing visit costs more than
+  // the other routes; under full parallelism that pushed demo-workflow to
+  // ~47s against the old 60s ceiling, and CI runs `--fail-on-flaky-tests`.
+  timeout: 90_000,
+  expect: { timeout: 15_000 },
   use: {
     baseURL: ORIGIN_URL,
     screenshot: "only-on-failure",

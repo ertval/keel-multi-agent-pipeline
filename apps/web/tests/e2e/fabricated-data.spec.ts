@@ -119,7 +119,12 @@ test("a 500 HTML body from a list endpoint is not rendered as data", async ({ pa
   await expectNoLeakedSentinels(page);
 });
 
-test("a row missing vessel_name and every total renders dashes, never a crash", async ({ page }) => {
+test("a row missing vessel_name and every total renders dashes, never a crash", async ({
+  page,
+  baseURL,
+}) => {
+  const appBase = baseURL;
+  if (!appBase) throw new Error("playwright.config.ts must set use.baseURL");
   await fulfilJson(page, LIST, {
     items: [
       {
@@ -166,10 +171,15 @@ test("a row missing vessel_name and every total renders dashes, never a crash", 
   await expectNoLeakedSentinels(page);
 
   // The dashboard's bar chart must not draw an empty bar on the $0 baseline
-  // for a voyage the API returned no figures for. The matcher excludes the
-  // app's own port, or the glob would swallow the /voyages page navigation.
+  // for a voyage the API returned no figures for. The matcher excludes the app's
+  // own port, or the glob would swallow the /voyages page navigation. The port
+  // comes from the config's `use.baseURL` rather than from a literal: hardcoding
+  // "3000" makes the exclusion false on any other port, the matcher then claims
+  // the app's own page request, and it renders as raw JSON — so the assertions
+  // below would fail for a reason that has nothing to do with a $0 baseline.
+  const appPort = new URL(appBase).port;
   await page.route(
-    (url) => url.pathname === "/voyages" && url.port !== "3000",
+    (url) => url.pathname === "/voyages" && url.port !== appPort,
     (route) =>
       route.fulfill({
         status: 200,

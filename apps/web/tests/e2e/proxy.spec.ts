@@ -50,10 +50,15 @@ test("/ and /login stay public", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("a stale demo cookie does not grant access and is cleared", async ({ page }) => {
-  // Same origin literal the config's `use.baseURL` uses; a cookie set on
-  // 127.0.0.1 is a different cookie as far as the browser is concerned.
-  const origin = "http://localhost:3000";
+test("a stale demo cookie does not grant access and is cleared", async ({ page, baseURL }) => {
+  // The origin the config's `use.baseURL` navigates by; a cookie set on
+  // 127.0.0.1 is a different cookie as far as the browser is concerned. Read it
+  // off the fixture instead of restating the literal, so a port change in
+  // playwright.config.ts cannot leave this cookie aimed at an origin the app is
+  // not served on. Cookies are not port-scoped today, so that would pass
+  // silently rather than fail loudly.
+  const origin = baseURL;
+  if (!origin) throw new Error("playwright.config.ts must set use.baseURL");
   await page.context().addCookies([
     {
       name: "keel_demo_session",
