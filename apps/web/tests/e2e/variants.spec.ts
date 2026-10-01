@@ -162,7 +162,12 @@ test.describe("Variant switcher", () => {
       await switcher
         .getByRole("button", { name: new RegExp(variant, "i") })
         .click();
-      await expect(page).toHaveURL(new RegExp(`\\?v=${variant}`));
+      // Each key renders on demand, and under `next dev` the first request for
+      // a variant compiles it. This walk touches all eleven, so the per-
+      // assertion budget has to cover a cold render rather than a warm one.
+      await expect(page).toHaveURL(new RegExp(`\\?v=${variant}`), {
+        timeout: 30_000,
+      });
       await expect(
         switcher.locator('button[aria-pressed="true"]')
       ).toHaveCount(1);
@@ -171,7 +176,10 @@ test.describe("Variant switcher", () => {
     // Clicking the active design must not navigate.
     const active = switcher.locator('button[aria-pressed="true"]');
     await active.click();
-    await expect(page).toHaveURL(new RegExp(`\\?v=${VARIANTS.at(-1)}`));
+    await expect(page).toHaveURL(
+      new RegExp(`\\?v=${VARIANTS.at(-1)}`),
+      { timeout: 30_000 }
+    );
   });
 
   test("is operable from the keyboard", async ({ page }) => {
@@ -183,7 +191,7 @@ test.describe("Variant switcher", () => {
     await target.focus();
     await expect(target).toBeFocused();
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/\?v=carbon/);
+    await expect(page).toHaveURL(/\?v=carbon/, { timeout: 30_000 });
   });
 
   test("the skip link moves focus into the main landmark", async ({ page }) => {
