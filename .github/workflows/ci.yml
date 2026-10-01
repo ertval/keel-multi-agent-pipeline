@@ -66,6 +66,8 @@ jobs:
           apps/web/app/layout.tsx
           apps/web/app/page.tsx
           apps/web/components/AppSidebar.tsx
+          apps/web/components/ModuleLedger.tsx
+          apps/web/lib/settlements.ts
           apps/web/components/VoyageUnavailable.tsx
           apps/web/lib/api.ts
           apps/web/lib/sanitize-html.ts
@@ -87,7 +89,7 @@ jobs:
           # The count is asserted, not just floored: adding a path means editing
           # two places on purpose, so a truncated or duplicated list cannot
           # quietly shrink the set of files this gate stands behind.
-          expected=47
+          expected=49
           listed=$(printf '%s\n' $critical | grep -c .)
           if [ "$listed" -ne "$expected" ]; then
             echo "::error::the tracked-path list holds $listed paths, expected $expected"
