@@ -166,15 +166,15 @@ export function AppSidebar() {
                         color: "oklch(0.75 0.15 250)",
                       }}
                     >
-                      DA
+                      OA
                     </AvatarFallback>
                   </Avatar>
                   <div style={{ flex: 1, textAlign: "left" }}>
                     <p style={{ fontSize: "0.8125rem", fontWeight: 500, lineHeight: 1.2 }}>
-                      Demo Analyst
+                      Operations Analyst
                     </p>
                     <p style={{ fontSize: "0.6875rem", color: "var(--sidebar-foreground)", opacity: 0.6 }}>
-                      demo@keel.io
+                      analyst@keel.io
                     </p>
                   </div>
                   <ChevronUp size={14} style={{ opacity: 0.5 }} />

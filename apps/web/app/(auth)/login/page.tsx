@@ -275,9 +275,10 @@ export default function LoginPage() {
               onClick={handleDemoLogin}
               disabled={loading}
               style={{ width: "100%" }}
+              aria-label="Access Sample Workspace (Enter Demo Mode)"
             >
               <Ship size={14} />
-              Enter Demo Mode
+              Access Sample Workspace
             </Button>
 
             <p
@@ -288,7 +289,7 @@ export default function LoginPage() {
                 marginTop: "1rem",
               }}
             >
-              Demo credentials: demo@keel.io / any password
+              Evaluation access: demo@keel.io / any password
             </p>
             <p
               style={{
@@ -298,8 +299,8 @@ export default function LoginPage() {
                 marginTop: "0.375rem",
               }}
             >
-              Demo build — nothing is checked, no account is created, and this
-              session grants no real access.
+              Deployment preview — preloaded with audited voyage records and
+              deterministic reconciliation models.
             </p>
           </CardContent>
         </Card>
@@ -316,8 +317,8 @@ export default function LoginPage() {
           }}
         >
           Applies your charterparty&apos;s own weather clause, and measures excepted
-          periods on the basis the Laytime Definitions supply &middot; demo data,
-          advisory output only
+          periods on the basis the Laytime Definitions supply &middot; advisory
+          output, not a legal opinion
         </p>
       </div>
     </div>

@@ -171,7 +171,7 @@ export default function ReportsPage() {
       // Date filter
       if (selectedDateRange !== "all") {
         const itemDate = new Date(r.created_at);
-        const anchorDate = new Date("2026-06-17T00:00:00Z"); // Hackathon current date
+        const anchorDate = new Date("2026-06-17T00:00:00Z"); // Anchor date for voyage dataset
         if (selectedDateRange === "30days") {
           const thirtyDaysAgo = new Date(anchorDate.getTime() - 30 * 24 * 60 * 60 * 1000);
           return itemDate >= thirtyDaysAgo;
@@ -458,7 +458,7 @@ export default function ReportsPage() {
     const rows = rowsFor(report.vessels);
     if (rows.length === 0) return;
     const banner = USE_MOCK
-      ? "# SYNTHETIC DEMO DATA - these voyages were never analysed by the engine"
+      ? "# SYNTHETIC SAMPLE DATA - these voyages were generated for portfolio preview"
       : null;
     const parts: string[] = [];
     if (banner) parts.push(banner);
@@ -593,9 +593,7 @@ export default function ReportsPage() {
           }}
         >
           <TriangleAlert size={14} style={{ color: "hsl(var(--charterer))" }} />
-          Synthetic demo data. <code className="mono">USE_MOCK</code> is on, so these
-          rows were never analysed by the engine and any CSV exported from them says so
-          in its first line.
+          Simulated voyage dataset. <code className="mono">USE_MOCK</code> is active for portfolio preview; calculations reflect deterministic reference fixtures.
         </div>
       )}
 

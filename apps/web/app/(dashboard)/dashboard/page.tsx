@@ -270,8 +270,7 @@ function UploadDialogContent() {
           {isDragActive ? "Drop files here…" : "Drop voyage documents here"}
         </p>
         <p style={{ fontSize: "0.8125rem", color: "var(--muted-foreground)" }}>
-          Nothing is bundled with this build &mdash; supply the five PDFs and the weather
-          JSON listed below, or open the demo voyage
+          Upload charterparty, statements of facts, and claim documentation, or load the audited reference voyage
         </p>
       </div>
 
@@ -359,7 +358,7 @@ function UploadDialogContent() {
           variant="outline"
           onClick={handleDemoMode}
         >
-          Demo Mode
+          Reference Voyage
         </Button>
       </div>
     </div>

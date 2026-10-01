@@ -76,7 +76,7 @@ test("the claim letter's delivery dialog is a real modal", async ({ page }) => {
 
 test("the landing page's demo explainer is a real modal", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: /How the Demo Works/i }).click();
+  await page.getByRole("button", { name: /How Keel Works/i }).click();
   await expect(page.locator('[data-slot="dialog-content"]')).toBeVisible();
   await page.waitForTimeout(400);
 

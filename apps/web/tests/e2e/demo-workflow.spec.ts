@@ -5,7 +5,7 @@ test("hackathon demo workflow is recordable end to end", async ({ page }) => {
 
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: "Keel" })).toBeVisible();
-  await expect(page.getByText("Demo credentials: demo@keel.io / any password")).toBeVisible();
+  await expect(page.getByText("Evaluation access: demo@keel.io / any password")).toBeVisible();
 
   await page.getByRole("button", { name: /Enter Demo Mode/i }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
