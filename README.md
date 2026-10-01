@@ -45,13 +45,24 @@ support, and several of them appear in older versions of these docs.
   `DialogFooter` at `:387`), not on the page. The reports page exports **CSV
   only** (`apps/web/app/(dashboard)/reports/page.tsx:466-473`).
 - **No trial, no sign-up, no account, no sales process.** `/register` was deleted
-  as a fabrication. `app/page.tsx:529-531` states this in the product copy.
+  as a fabrication, and every landing design states it in the product copy:
+  *"Accounts and sign-in. The entry page sets a flag in your browser; nothing is
+  checked and no account exists."*
+  (`apps/web/app/landing/content.ts:164`, `DOES_NOT_RUN[0]`, which all eleven
+  variants render under *Not in this build*).
 - **No settings page, and no dead navigation to one.** The sidebar has exactly
   four items — Dashboard, Voyages, Reconciliations, Reports
   (`apps/web/components/AppSidebar.tsx:35-40`). A `Settings` link pointing at `href="#"`
   was removed rather than shipped.
 - **No certification.** No SOC 2, no ISO, no GDPR certification, no
-  "enterprise-grade" claim. `app/page.tsx:573` says so on the page.
+  "enterprise-grade" claim. Nothing asserts one any more: the line that used to
+  say so on the landing page is gone, and all eleven designs render their claims
+  from `apps/web/app/landing/content.ts`. A case-insensitive search of
+  `apps/web/app/landing/` for `soc|iso|gdpr|certif` returns only variable names
+  (`isOwner`, `isolate`) and the word *certification* in that file's own module
+  docstring (`:6`), which is a warning to a variant not to invent one.
+  `apps/web/app/page.tsx` is a 38-line router over the designs and holds no copy
+  at all.
 - **No customer data, no logos, no testimonials, no throughput numbers.** The
   only voyage is the Piraeus fixture `voyage_001`. Rows `voyage_002` …
   `voyage_007` in `apps/web/lib/api.ts` are unreachable fallback rows that exist
@@ -77,7 +88,7 @@ support, and several of them appear in older versions of these docs.
 | Document parsing | Works, but **cannot be exercised here** — no PDFs ship | `apps/api/keel_api/parsing/` |
 | LLM extraction | Written; **not exercisable without a key or the JSON cache** | `apps/api/keel_api/extraction/extractor.py` |
 | Upload path | Works and is hardened | `main.py:775-872` |
-| Frontend | Next.js 16, typechecks, lints, builds, 31 e2e green | `apps/web/` |
+| Frontend | Next.js 16, typechecks, lints, builds, 38 e2e green | `apps/web/` |
 | Human-in-the-loop review of extracted terms | **Not built** | — |
 | Live weather provider | **Not implemented** (fixture provider only) | `apps/api/keel_api/weather/fixture_provider.py` |
 | PDF export of the letter | **Not implemented** (HTML only) | `main.py:757` |
@@ -180,10 +191,11 @@ requires all five `extracted_*.json` files in the fixture directory, and
 extraction still needs `OPENAI_API_KEY`, plus optionally `OPENAI_BASE_URL` and
 `OPENAI_MODEL` (`extractor.py:52-67`; see `.env.example`).
 
-The landing page states the same thing in its *This Build* panel: *"No API key
-needed for the demo voyage; a key is needed to extract from your own PDFs"*
-(`apps/web/app/page.tsx:571`). An earlier version of that line read "Live
-OpenAI key required", which was false for the demo path.
+Every landing design states the same thing in its **footer**: *"The bundled
+voyage runs without a key. Extracting from your own documents needs an OpenAI
+key."* (`apps/web/app/landing/content.ts:189`, in `FOOTER.notes`, rendered by all
+eleven variants). An earlier version of that line read "Live OpenAI key
+required", which was false for the demo path.
 
 ### Uploads are bounded
 
@@ -422,7 +434,7 @@ on code `next build` rejects. Its route table:
 
 ```console
 Route (app)
-┌ ○ /
+┌ ƒ /
 ├ ○ /_not-found
 ├ ○ /dashboard
 ├ ○ /login
@@ -435,6 +447,19 @@ Route (app)
 
 ƒ Proxy (Middleware)
 ```
+
+`/` is `ƒ` because it resolves a variant key from `searchParams` on the server,
+which opts the route out of prerendering. The landing page is a **variant
+system**: `?v=<key>` selects one of **eleven** designs from
+`apps/web/app/landing/`, and a bare URL renders the default. The keys and labels
+are `VARIANT_OPTIONS` in `apps/web/app/landing/registry.ts:30-42` — `statement`
+(default), `telemetry`, `gazette`, `blueprint`, `swiss`, `stateflow`, `carbon`,
+`dusk`, `pleading`, `radar`, `manifest` — in files `v1-statement.tsx` …
+`v11-manifest.tsx`. An unrecognised key renders the default rather than 404ing.
+`app/page.tsx` itself is a 38-line router over them and holds no copy:
+`apps/web/app/landing/content.ts` is the single source of truth for every claim
+any design makes, and a design may arrange that copy but never restate it. Fonts
+are self-hosted through `next/font/google` in `apps/web/app/layout.tsx:33-43`.
 
 ### End-to-end
 
@@ -450,10 +475,10 @@ cd apps/web && pnpm exec playwright test
 ```console
 $ pnpm exec playwright test
   ...
-  31 passed (1.6m)
+  38 passed
 ```
 
-The 31 is the claim; the duration is not a benchmark. That run reused an
+The 38 is the claim; the duration is not one. This run reuses an
 already-running `next dev` on a loaded machine, and the suite is deliberately
 built around real page loads rather than mocks.
 
@@ -469,7 +494,7 @@ single `chromium` project.
 
 | Job | Gates |
 |---|---|
-| `repo` | 25 build-critical paths are tracked (`git ls-files --error-unmatch`); every JSON under `fixtures/` and `test-cases/` parses, with a floor of 20; `python3 -m compileall -q scripts/ test-cases/` |
+| `repo` | 47 build-critical paths are tracked (`git ls-files --error-unmatch`), and the tracked `app/landing/*.tsx` set is the one that list names; every JSON under `fixtures/` and `test-cases/` parses, with a floor of 20; `python3 -m compileall -q scripts/ test-cases/` |
 | `backend` | `uv sync --locked`; `pytest -q` with the 16-entry deselect list; an audit that reads exception **types** from JUnit XML; `pytest -m canonical -q` |
 | `frontend` | `pnpm install --frozen-lockfile`; `tsc --noEmit`; `pnpm run lint --max-warnings 4`; `pnpm run build` |
 | `e2e` | start the API and wait for a seeded `voyage_001`; `playwright test --fail-on-flaky-tests`; upload the Playwright report (`if: always()`) |
@@ -478,30 +503,22 @@ single `chromium` project.
 > locally. Every gate above was verified in this checkout; none of it has a
 > GitHub Actions run behind it.
 
-The tracked-path gate fails today on this working tree, and it should: **25**
-build-critical files are present but untracked, and all 25 are paths the gate
-checks. The list lives at `ci.yml:38-64` and its length is asserted at
-`ci.yml:68`, so adding or removing a path means editing two places on purpose.
+The tracked-path gate **passes** on this tree: nothing is untracked, and all 47
+entries in the list resolve in the index. The list lives at `ci.yml:38-86` and
+its length is asserted at `ci.yml:90` (`expected=47`), so adding or removing a
+path means editing two places on purpose. A second assertion in the same step
+(`ci.yml:113-129`) compares the tracked set of `apps/web/app/landing/*.tsx`
+against the list's set of them, because a length check cannot see a file that was
+never written down.
 
 ```console
 $ git ls-files --others --exclude-standard | wc -l
-25
-$ git add -- apps/api/keel_api/parsing/limits.py apps/api/keel_api/parsing/sandbox.py \
-    apps/api/tests/conftest.py apps/api/tests/test_adapters.py \
-    apps/api/tests/test_agent_graph.py apps/api/tests/test_api_hardening.py \
-    apps/api/tests/test_extractor_feedback.py apps/api/tests/test_parsing_sandbox.py \
-    apps/api/tests/test_pdf_geometry.py apps/api/tests/test_reconciliation_contract.py \
-    apps/api/tests/test_validation.py 'apps/web/app/(dashboard)/error.tsx' \
-    apps/web/components/VoyageUnavailable.tsx apps/web/lib/api.ts \
-    apps/web/lib/sanitize-html.ts apps/web/lib/types.ts apps/web/lib/utils.ts \
-    apps/web/proxy.ts apps/web/public/pdf.worker.min.mjs \
-    apps/web/tests/e2e/fabricated-data.spec.ts apps/web/tests/e2e/modals.spec.ts \
-    apps/web/tests/e2e/null-data.spec.ts apps/web/tests/e2e/proxy.spec.ts \
-    docs/continuation-plan.md .gitattributes
+0
 ```
 
-**Two of those 25 were missing from the gate's list until this pass**, and both
-were the same defect the gate exists to catch:
+**Eight build-critical files were missing from that list** across two passes, and
+each was the same defect the gate exists to catch — a path the build needs that no
+other gate can name:
 
 - `apps/api/tests/conftest.py` — a clean checkout without it runs the suite
   against `apps/api/keel.db` and writes test voyages into the demo database the
@@ -510,27 +527,35 @@ were the same defect the gate exists to catch:
   `DEFAULT_ADDRESS_SPACE_BYTES`, `DEFAULT_PARSE_TIMEOUT_SECONDS` and
   `MAX_EXTRACTED_CHARS`. A clean checkout without it silently loses every test
   that pins the parser ceilings.
+- `apps/web/app/layout.tsx`, `apps/web/app/globals.css`,
+  `apps/web/components/AppSidebar.tsx`, `apps/web/tests/e2e/smoke.spec.ts`,
+  `apps/web/tests/e2e/demo-workflow.spec.ts`, `apps/web/playwright.config.ts` —
+  the root layout, its stylesheet, the sidebar, two specs and the Playwright
+  config.
 
-With both omitted the gate printed `All 23 build-critical paths are tracked` and
-exited 0 on a tree where both files were untracked, which is exactly the
-false-green this gate is for. Proven by exporting `HEAD` read-only into a
-scratch directory, committing the other 24 there and running the gate's own body
-(extracted from this workflow's YAML, not retyped): with `conftest.py` still
-untracked it exits 1 naming that file, and with all 25 committed it prints
-`All 25 build-critical paths are tracked` and exits 0.
+With the two backend files omitted, the gate printed `All 23 build-critical paths
+are tracked` and exited 0 on a tree where both were untracked. With
+`apps/web/app/layout.tsx` untracked it printed `All 41 build-critical paths are
+tracked` and exited 0 as well, and `next build` then failed. Both are recorded
+findings rather than runs reproduced here, but the failure mode is the point:
+`git diff --exit-code` and `git add -A --dry-run` report nothing at all for a
+file that was simply never committed, so a length assertion alone can only catch
+the mistake of writing the wrong number, not the mistake of omitting a path.
 
-Without those files, a clean checkout cannot typecheck, cannot build, and cannot
-import the parsing package. `apps/web/lib/` in particular is **entirely
-untracked** and **20** tracked `.ts`/`.tsx` files import from it:
+Without any of them, a clean checkout cannot typecheck, cannot build, and cannot
+import the parsing package. `apps/web/lib/` in particular was **entirely
+untracked** while **20** tracked `.ts`/`.tsx` files imported from it:
 
 ```bash
 $ git ls-files apps/web | grep -E '\.tsx?$' | xargs grep -l '@/lib' | wc -l
 20
 ```
 
-A 21st hit shows up if you drop the extension filter — `apps/web/components.json`
-carries `@/lib/utils` and `@/lib` in its alias config. It is neither `.ts` nor
-`.tsx`, so it is not one of the 20.
+All four of its files are tracked now — `git ls-files apps/web/lib/` lists
+exactly `api.ts`, `sanitize-html.ts`, `types.ts` and `utils.ts`. A 21st hit shows
+up if you drop the extension filter — `apps/web/components.json` carries
+`@/lib/utils` and `@/lib` in its alias config. It is neither `.ts` nor `.tsx`, so
+it is not one of the 20.
 
 ---
 
@@ -725,7 +750,9 @@ These are recorded in the code's own docstrings. They are not hidden here.
     retry loop. (`pipeline_agents.py:283-285`, `:608-624`; `pipeline.py:61-62`;
     `main.py:451-455`, `485-491`)
 14. **No human sign-off gate.** Extracted terms and SOF events go straight to the
-    engine. `app/page.tsx:430-433` states the visual HITL workspace is not built.
+    engine, and every landing design says so under *Not in this build*: *"A human
+    review step between the calculation and the reconciled figure."*
+    (`apps/web/app/landing/content.ts:167`).
 15. **The prompt is truncated.** Charterparty text is capped at 12,000 characters
     and 60 annotated lines per page. (`extractor.py:35-38`, `:86-123`)
 16. **Parsing is text-only and filename-routed.** `charterparty.pdf` goes to
@@ -808,11 +835,13 @@ keel-multi-agent-pipeline/
 │   │       └── conftest.py          # points KEEL_DB away from apps/api/keel.db
 │   └── web/                        # Next.js 16 App Router, pnpm
 │       ├── app/                    # 9 routes + _not-found; no /register, no /page1
+│       │   ├── page.tsx            # 38 lines: resolves ?v= server-side, renders one design
+│       │   └── landing/            # 11 designs + registry.ts, content.ts, VariantSwitcher.tsx
 │       ├── components/             # AppSidebar, PdfViewer, ThemeToggle, ui/*
 │       ├── lib/                    # api.ts, types.ts, sanitize-html.ts, utils.ts
 │       ├── proxy.ts                # DEMO STUB route guard — not authentication
 │       ├── pnpm-workspace.yaml     # allowBuilds: sharp, unrs-resolver (lint depends on it)
-│       └── tests/e2e/              # 6 Playwright spec files, 31 tests
+│       └── tests/e2e/              # 7 Playwright spec files, 38 tests
 ├── fixtures/voyage_001/            # 8 JSON files, no PDFs
 ├── test-cases/                     # 4 reconciliation cases + generators
 ├── scripts/                        # fixture generation and standalone extractors

@@ -97,7 +97,7 @@ serves `/voyages`.
 
 | Route | File | Rendering |
 |---|---|---|
-| `/` | `app/page.tsx` | **server component** — public landing page: a ruled reconciliation ledger carrying the real `voyage_001` figures, a "Client Portal" link, and a demo-explainer modal. `DialogTrigger` reaches the client through the RSC boundary, so there is no `"use client"` |
+| `/` | `app/page.tsx` → `app/landing/` | **server component** — public landing page. It renders one of **eleven** designs selected by `?v=<key>` (bare URL = `statement`) from a fixed set of keys, and resolves the key **on the server** from `searchParams`, so it must not use `useSearchParams()` — that would oblige the route to sit inside a Suspense boundary. An unrecognised key renders the default. `app/landing/VariantSwitcher.tsx` is the only `"use client"` file in the directory. The default variant also carries a "How Keel Works" modal whose `DialogTrigger` reaches the client through the RSC boundary, so `app/page.tsx` itself has no `"use client"` |
 | `/login` | `app/(auth)/login/page.tsx` | `"use client"` — sets the demo cookie, no credential check |
 | `/dashboard` | `app/(dashboard)/dashboard/page.tsx` | `"use client"` — stats, recent voyages, upload dialog |
 | `/voyages` | `app/(dashboard)/voyages/page.tsx` | `"use client"` — list |
@@ -174,9 +174,9 @@ build". `tsc` and `eslint` both pass on code `next build` rejects — a
 `useSearchParams()` outside a Suspense boundary is the classic example. Run the
 build before you call a change done.
 
-## Tests: 31 e2e, one project
+## Tests: 38 e2e, one project
 
-`apps/web/tests/e2e/`, six spec files, `chromium` only,
+`apps/web/tests/e2e/`, seven spec files, `chromium` only,
 `playwright.config.ts` starts `next dev` itself:
 
 | Spec | Covers |
@@ -186,7 +186,8 @@ build before you call a change done.
 | `demo-workflow.spec.ts` | the whole hackathon demo path at 1280×800 |
 | `fabricated-data.spec.ts` | **negatives**: an empty list renders an empty state, a failed request surfaces the error, a 500 HTML body is not rendered as data, missing fields render dashes, a hung request stays loading, a detail with no `reconciliation` says so, and injected markup in the letter does not execute |
 | `null-data.spec.ts` | null weather readings render an explicit not-recorded state; a citation with no document keeps the honest no-preview state; no page number never prints `p.null`; the PDF viewer fetches its worker from this origin and names the real reason the preview is empty |
-| `modals.spec.ts` | the letter delivery dialog, the landing demo explainer, and the clause-citation dialog each trap focus and close on Escape |
+| `modals.spec.ts` | the letter delivery dialog, the landing "How Keel Works" explainer, and the clause-citation dialog each trap focus and close on Escape |
+| `variants.spec.ts` | all eleven landing designs render the canonical figures, the bounded-build disclosure, `#ledger`/`#method`/`#build` and exactly one `h1`; no variant overflows at 375px or logs a console error; an unknown or hostile `?v=` falls back to the default; the switcher marks one design active, is keyboard-operable, and the skip link moves focus into `<main>` |
 
 Every spec reads the seeded demo voyage, so **a backend on `127.0.0.1:8000` is
 mandatory** and `voyage_001` must actually be seeded.
@@ -197,13 +198,26 @@ mandatory** and `voyage_001` must actually be seeded.
 
 1. **No `middleware.ts`.** The convention is `proxy.ts`. Writing a
    `middleware.ts` adds a file Next 16 will not use.
-2. **`apps/web/lib/` is entirely untracked.** `git ls-files apps/web/lib/`
-   returns nothing while **20** tracked `.ts`/`.tsx` files import from it. A clean
-   checkout cannot typecheck or build. `git add` it. `lib/` is one of 25
-   untracked build-critical paths, and all 25 are now in `ci.yml`'s tracked-path
-   gate (`ci.yml:38-64`, `expected=25` at `:68`). A 21st hit appears if you drop
-   the extension filter: `apps/web/components.json` carries `@/lib/utils` and
-   `@/lib` in its alias config, and it is neither `.ts` nor `.tsx`.
+2. **Do not untrack a build-critical path.** `apps/web/lib/` used to be entirely
+   untracked while **20** tracked `.ts`/`.tsx` files import from it, which is a
+   clean checkout that cannot typecheck or build. All four files —
+   `api.ts`, `sanitize-html.ts`, `types.ts`, `utils.ts` — **are** tracked now
+   (`git ls-files apps/web/lib/` lists exactly those four), and so is every other
+   path the build needs. The trap is the next untracked import, not the current
+   state: CI's tracked-path gate is the only thing that can see it, because
+   `git diff --exit-code` and `git add -A --dry-run` report nothing for a file
+   that was simply never committed. The list is `ci.yml:38-86` and its length is
+   asserted at `:90` as `expected=47`. Six load-bearing tracked inputs were
+   missing from it until the last pass: `app/layout.tsx`, `app/globals.css`,
+   `components/AppSidebar.tsx`, `tests/e2e/smoke.spec.ts`,
+   `tests/e2e/demo-workflow.spec.ts` and `playwright.config.ts`.
+   `git rm --cached apps/web/app/layout.tsx` still left the gate printing
+   `All 41 build-critical paths are tracked` and exiting 0, and `next build` then
+   failed. The step now also compares the tracked set of `app/landing/*.tsx`
+   against its list (`ci.yml:113-129`), so a twelfth variant cannot land without
+   a gate entry. A 21st hit appears if you drop the extension filter:
+   `apps/web/components.json` carries `@/lib/utils` and `@/lib` in its alias
+   config, and it is neither `.ts` nor `.tsx`.
 3. **pnpm, not npm.** `apps/web/package-lock.json` was deleted; the root
    `pnpm-lock.yaml` has an empty importer. Install in `apps/web/`.
 4. **`next build` is a gate.** `tsc` and `eslint` passing is not evidence.
