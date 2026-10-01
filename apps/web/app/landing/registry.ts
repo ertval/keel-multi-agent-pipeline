@@ -14,13 +14,13 @@ import type { VariantOption } from "./VariantSwitcher";
 /**
  * The eleven landing page designs:
  * - Statement  (printed instrument of account, serif, sparse)
- * - Telemetry  (bridge console at night, HUD readouts)
- * - Gazette    (admiralty broadsheet, newsprint columns)
+ * - Telemetry  (engine-room telegraph and bell book)
+ * - Gazette    (notice to mariners, correction patch)
  * - Blueprint  (naval architecture schematic, cyanotype grid)
- * - Swiss      (international typographic brutalism)
- * - Stateflow  (agent graph / DAG topology)
+ * - Swiss      (container bay plan; the key stays swiss)
+ * - Stateflow  (harbour-master whiteboard)
  * - Carbon     (carbon-paper duplicate receipt, perforated, stencilled mono)
- * - Dusk       (gradient-mesh atmosphere, glass panels, soft light)
+ * - Dusk       (tide almanac, three.js water plane)
  * - Pleading   (filed court document, numbered gutter, red margin rule)
  * - Radar      (plan-position indicator, polar range rings and contacts)
  * - Manifest   (port cargo manifest and container yard, high-vis signage)
@@ -29,13 +29,13 @@ export const DEFAULT_VARIANT = "statement";
 
 export const VARIANT_OPTIONS: ReadonlyArray<VariantOption> = [
   { key: "statement", label: "Statement", hint: "Printed instrument of account — serif, hairline rules, sparse" },
-  { key: "telemetry", label: "Telemetry", hint: "Bridge console at night — HUD readouts, monospace" },
-  { key: "gazette", label: "Gazette", hint: "Admiralty broadsheet — newsprint columns, heavy rules" },
+  { key: "telemetry", label: "Telemetry", hint: "Engine-room telegraph — brass plates, bell-book lines" },
+  { key: "gazette", label: "Gazette", hint: "Notice to mariners — chart stock, correction patch" },
   { key: "blueprint", label: "Blueprint", hint: "Naval architecture schematic — cyanotype grid, dimensions" },
-  { key: "swiss", label: "Swiss", hint: "International typographic style — monumental scale, stark" },
-  { key: "stateflow", label: "Stateflow", hint: "Agent graph topology — nodes, edges, weather timeline" },
+  { key: "swiss", label: "Swiss", hint: "Container bay plan — slot grid, one safety orange" },
+  { key: "stateflow", label: "Stateflow", hint: "Harbour whiteboard — marker diagram of the five steps" },
   { key: "carbon", label: "Carbon", hint: "Carbon-paper duplicate receipt — perforated, stencilled mono" },
-  { key: "dusk", label: "Dusk", hint: "Gradient-mesh atmosphere — glass panels, soft light" },
+  { key: "dusk", label: "Dusk", hint: "Tide almanac — water plane and three disputed days" },
   { key: "pleading", label: "Pleading", hint: "Filed court document — numbered gutter, red margin rule" },
   { key: "radar", label: "Radar", hint: "Plan-position indicator — polar rings and plotted contacts" },
   { key: "manifest", label: "Manifest", hint: "Port cargo manifest — slot grid, high-vis signage" },

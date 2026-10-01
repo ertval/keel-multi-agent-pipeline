@@ -1,445 +1,209 @@
-import Image from "next/image";
 import Link from "next/link";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { Explainer } from "./parts/Explainer";
 import {
   BRAND,
   BUILD,
+  CHARTERER,
   CLOSING,
   DISPUTED_DAYS,
   DOES_NOT_RUN,
-  EXPLAINER,
+  FIXTURE_FACTS,
   FOOTER,
   HERO,
   LEDGER,
   METHOD,
   OWNER,
-  CHARTERER,
   RECONCILED,
   RUNS,
   STEPS,
 } from "./content";
 
 /**
- * Variant 6 — Stateflow Autonomous Agent Pipeline.
+ * Variant 6 — harbour-master whiteboard.
  *
- * Modern developer-tool & agentic workflow canvas: visual DAG node topology,
- * interactive-feeling timeline scrubber across the 3 disputed weather windows,
- * glassmorphic node cards, and transparent verification that an LLM extracts text
- * while pure-Python state machine computes every dollar.
+ * Marker ink on a cool board. The five steps are the diagram. No violet glass,
+ * no agent-product skin.
  */
 
-/**
- * `focus-visible:outline-solid` is load-bearing, not decoration. A Tailwind
- * outline reset sets `--tw-outline-style: none` on the element and
- * `focus-visible:outline-2` only reads that variable back, so without the
- * explicit `solid` the two cancel and nothing is painted. It is also what
- * makes the ring survive on the shadcn `Button`, whose base class carries such
- * a reset of its own.
- */
 const FOCUS =
-  "focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-violet-400";
+  "focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-[#C23B3B]";
 const PRESS =
-  "transition-all duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none";
-
-function PipelineWordmark() {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="relative flex size-9 items-center justify-center rounded-lg border border-violet-500/40 bg-violet-950/40 shadow-[0_0_15px_rgba(139,92,246,0.25)]">
-        <Image
-          src="/logo.png"
-          alt=""
-          width={24}
-          height={24}
-          unoptimized
-          className="size-6"
-        />
-        <div className="absolute -bottom-1 -right-1 size-2.5 rounded-full bg-emerald-400 border-2 border-[#0B0F19]" />
-      </div>
-      <div className="flex flex-col font-sans leading-none">
-        <span className="font-extrabold text-sm tracking-tight text-white flex items-center gap-1.5">
-          {BRAND.name}
-          <span className="text-[0.625rem] font-mono px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-300 font-normal">
-            GRAPH
-          </span>
-        </span>
-        <span className="text-[0.625rem] text-slate-400 font-mono mt-0.5">
-          DETERMINISTIC DAG
-        </span>
-      </div>
-    </div>
-  );
-}
+  "transition-transform duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none";
 
 export default function StateflowVariant() {
   return (
-    <div className="min-h-dvh bg-[#0B0F19] text-slate-200 font-sans selection:bg-violet-500/30 selection:text-violet-100 antialiased relative">
+    <div
+      className="min-h-dvh overflow-x-clip bg-[#F3F5F4] text-[#1E2A32] antialiased"
+      style={{
+        backgroundImage:
+          "linear-gradient(90deg, rgba(31,58,95,0.05) 1px, transparent 1px), linear-gradient(rgba(31,58,95,0.05) 1px, transparent 1px)",
+        backgroundSize: "28px 28px",
+      }}
+    >
       <a
         href="#main-stateflow"
-        className={`sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:border focus:border-violet-500 focus:bg-[#151C2C] focus:px-4 focus:py-2 focus:text-xs font-mono text-violet-300 ${FOCUS}`}
+        className={`sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-[#F3F5F4] focus:px-3 focus:py-2 ${FOCUS}`}
       >
-        Skip to pipeline
+        Skip to content
       </a>
-
-      {/* Glow gradient ambient effects */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-gradient-to-b from-violet-600/10 via-sky-600/5 to-transparent blur-3xl pointer-events-none -z-10" />
-
-      {/* Navigation */}
-      <header className="sticky top-0 z-30 border-b border-slate-800/80 bg-[#0B0F19]/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" className={`inline-flex items-center ${FOCUS}`}>
-            <PipelineWordmark />
-          </Link>
-
-          <nav aria-label="Pipeline Stages" className="hidden lg:flex items-center gap-6 text-xs font-mono text-slate-400">
-            {FOOTER.sectionLinks.map(([label, href]) => (
-              <a
-                key={href}
-                href={href}
-                className={`hover:text-white transition-colors ${FOCUS}`}
-              >
-                {label}
-              </a>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Link
-              href="/login"
-              className={`hidden sm:inline-flex items-center h-9 px-3.5 rounded-lg border border-slate-700 bg-slate-900/60 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white ${FOCUS} ${PRESS}`}
-            >
-              {CLOSING.portal}
-            </Link>
-            <Link
-              href="/login"
-              className={`inline-flex items-center h-9 px-4 rounded-lg bg-violet-600 text-xs font-bold text-white hover:bg-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.35)] ${FOCUS} ${PRESS}`}
-            >
-              {CLOSING.cta} &rarr;
-            </Link>
-          </div>
-        </div>
+      <div className="flex items-center justify-between bg-[#1F3A5F] px-4 py-2 text-[#F3F5F4] sm:px-6">
+        <p className="font-bricolage text-sm font-semibold">Harbour board · {BRAND.port}</p>
+        <p className="font-plex-mono text-[0.625rem] tracking-[0.14em]">{BRAND.fixture}</p>
+      </div>
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+        <Link href="/" className={`font-bricolage text-xl font-semibold ${FOCUS}`}>
+          {BRAND.name}
+        </Link>
+        <nav aria-label="Sections" className="flex flex-wrap justify-end gap-3 font-plex-mono text-[0.6875rem] text-[#2B6CB0]">
+          {FOOTER.sectionLinks.map(([label, href]) => (
+            <a key={href} href={href} className={FOCUS}>
+              {label}
+            </a>
+          ))}
+        </nav>
       </header>
 
-      <main id="main-stateflow" tabIndex={-1} className="mx-auto max-w-7xl px-4 sm:px-6 py-12 relative z-10">
-        {/* Hero Section */}
-        <section className="py-12 sm:py-20 border-b border-slate-800">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            <div className="lg:col-span-7">
-              <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-950/40 px-3 py-1 text-xs font-mono text-violet-300 mb-6">
-                <span className="size-2 rounded-full bg-emerald-400 animate-pulse motion-reduce:animate-none" />
-                <span>
-                  {BRAND.fixture} &middot; {RECONCILED.label}
-                </span>
-              </div>
-
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.05]">
-                {HERO.heading}
-              </h1>
-
-              <p className="mt-6 text-base text-slate-300 leading-relaxed max-w-2xl">
-                {HERO.lede}
-              </p>
-
-              <div className="mt-8 flex flex-wrap items-center gap-4">
-                <Link
-                  href="/login"
-                  className={`inline-flex items-center justify-center h-12 px-7 rounded-lg bg-violet-600 font-bold text-xs uppercase tracking-wider text-white hover:bg-violet-500 shadow-[0_0_25px_rgba(139,92,246,0.35)] ${FOCUS} ${PRESS}`}
-                >
-                  {CLOSING.cta}
-                </Link>
-
-                <Dialog>
-                  <DialogTrigger
-                    render={
-                      <Button
-                        variant="outline"
-                        className={`h-12 px-5 rounded-lg border border-slate-700 bg-slate-900/60 text-xs font-mono text-slate-300 hover:bg-slate-800 hover:text-white ${FOCUS} ${PRESS}`}
-                      />
-                    }
-                  >
-                    {CLOSING.explainer}
-                  </DialogTrigger>
-                  <DialogContent className="border border-violet-500/30 bg-[#0F1422] text-slate-200 max-w-lg font-sans">
-                    <DialogHeader>
-                      <DialogTitle className="text-violet-300 font-bold text-lg flex items-center gap-2">
-                        <span className="size-2 rounded-full bg-violet-400" />
-                        {CLOSING.explainer}
-                      </DialogTitle>
-                      <DialogDescription className="text-xs text-slate-400">
-                        Multi-Agent LangGraph Architecture
-                      </DialogDescription>
-                    </DialogHeader>
-                    <p className="text-xs leading-relaxed text-slate-300 mt-4 font-mono">
-                      {EXPLAINER}
-                    </p>
-                    <div className="mt-6 flex justify-end">
-                      <DialogClose
-                        render={
-                          <Button className={`h-8 rounded bg-violet-600 text-white text-xs font-mono hover:bg-violet-500 ${FOCUS}`} />
-                        }
-                      >
-                        PROCEED
-                      </DialogClose>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </div>
-
-            {/* Pipeline Glassmorphism Summary Card */}
-            <div className="lg:col-span-5">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl shadow-2xl relative overflow-hidden">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3 text-xs font-mono">
-                  <span className="text-violet-400 font-bold">STATEFLOW RECONCILIATION</span>
-                  <span className="text-slate-400">{BRAND.fixture}</span>
-                </div>
-
-                <div className="mt-5 space-y-4">
-                  <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 p-3.5">
-                    <div>
-                      <div className="text-[0.625rem] text-slate-400 uppercase font-mono">{OWNER.role}</div>
-                      <div className="text-xs font-medium text-slate-200 truncate">{OWNER.party}</div>
-                    </div>
-                    <div className="text-xl font-bold font-mono text-emerald-400 tabular-nums">
-                      {OWNER.figure}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 p-3.5">
-                    <div>
-                      <div className="text-[0.625rem] text-slate-400 uppercase font-mono">{CHARTERER.role}</div>
-                      <div className="text-xs font-medium text-slate-200 truncate">{CHARTERER.party}</div>
-                    </div>
-                    <div className="text-xl font-bold font-mono text-amber-400 tabular-nums">
-                      {CHARTERER.figure}
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-violet-500/40 bg-gradient-to-br from-violet-950/40 to-slate-900/80 p-5">
-                    <div className="flex items-center justify-between text-xs font-mono">
-                      <span className="text-violet-300 font-bold uppercase tracking-wider">
-                        {RECONCILED.label}
-                      </span>
-                      <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-[0.625rem] font-bold text-violet-300">
-                        {BRAND.fixture}
-                      </span>
-                    </div>
-                    <div className="text-4xl font-extrabold font-mono text-white tracking-tight mt-2 tabular-nums">
-                      {RECONCILED.figure}
-                    </div>
-                    <div className="text-xs text-slate-400 mt-2 leading-relaxed">
-                      {RECONCILED.arithmetic}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <main id="main-stateflow" tabIndex={-1} className="mx-auto max-w-6xl px-4 pb-8 sm:px-6">
+        <section className="py-6">
+          <p className="font-plex-mono text-[0.6875rem] tracking-[0.16em] text-[#C23B3B]">{HERO.eyebrow}</p>
+          <h1 className="mt-2 max-w-[16ch] font-bricolage text-[clamp(2.2rem,1.1rem+3vw,4rem)] leading-[0.95] font-semibold tracking-[-0.03em] text-balance text-[#1F3A5F]">
+            {HERO.heading}
+          </h1>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed sm:text-base">{HERO.lede}</p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/login"
+              className={`inline-flex min-h-11 items-center bg-[#1F3A5F] px-5 text-sm text-white ${FOCUS} ${PRESS}`}
+            >
+              {CLOSING.cta}
+            </Link>
+            <Explainer
+              triggerClassName={`inline-flex min-h-11 items-center border-2 border-[#1F3A5F] px-5 text-sm ${FOCUS} ${PRESS}`}
+              panelClassName="bg-[#F3F5F4] text-[#1E2A32]"
+            />
           </div>
         </section>
 
-        {/* Visual Graph DAG Pipeline Visualization */}
-        <section id={METHOD.anchor} className="py-16 sm:py-20 border-b border-slate-800">
-          <div className="mb-10">
-            <span className="text-xs font-mono text-violet-400 uppercase tracking-widest">{METHOD.eyebrow}</span>
-            <h2 className="text-2xl sm:text-4xl font-bold text-white mt-1">
-              {METHOD.heading}
-            </h2>
-            <p className="mt-2 text-xs text-slate-400 font-mono">
-              7-NODE LANGGRAPH TOPOLOGY: ORCHESTRATOR &rarr; WORKERS &rarr; VALIDATOR &rarr; STATE MACHINE &rarr; ADJUDICATOR
-            </p>
-          </div>
+        <section className="grid gap-3 py-4 sm:grid-cols-3">
+          <BoardNote kicker={OWNER.role} title={OWNER.figure} body={`${OWNER.party}. ${OWNER.note}`} tone="blue" />
+          <BoardNote kicker={CHARTERER.role} title={CHARTERER.figure} body={`${CHARTERER.party}. ${CHARTERER.note}`} tone="red" />
+          <BoardNote kicker={RECONCILED.label} title={RECONCILED.figure} body={RECONCILED.arithmetic} tone="ink" />
+        </section>
 
-          <ol className="grid grid-cols-1 md:grid-cols-5 gap-4 relative">
-            {STEPS.map((step) => (
-              <li
-                key={step.n}
-                className="rounded-xl border border-slate-800 bg-[#0F1422] p-5 hover:border-violet-500/40 transition-colors"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-mono text-xs font-bold text-violet-400">NODE {step.n}</span>
-                  <span className="size-2 rounded-full bg-emerald-400" />
-                </div>
-                <h3 className="text-base font-bold text-white mb-2">{step.title}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{step.body}</p>
+        <section id={METHOD.anchor} className="py-10">
+          <p className="font-plex-mono text-[0.6875rem] tracking-[0.16em] text-[#2B6CB0]">{METHOD.eyebrow}</p>
+          <h2 className="max-w-[20ch] font-bricolage text-3xl font-semibold text-balance text-[#1F3A5F]">{METHOD.heading}</h2>
+          <ol className="mt-6 grid gap-3 lg:grid-cols-5">
+            {STEPS.map((step, index) => (
+              <li key={step.n} className="relative min-w-0 rounded-sm bg-white/80 p-3 shadow-[0_1px_0_rgba(31,58,95,0.15)]">
+                {index < STEPS.length - 1 ? (
+                  <span className="absolute top-6 -right-2 hidden h-px w-4 bg-[#2B6CB0] lg:block" aria-hidden="true" />
+                ) : null}
+                <p className="font-plex-mono text-xs text-[#2B6CB0]">{step.n}</p>
+                <h3 className="mt-1 font-bricolage text-lg font-semibold">{step.title}</h3>
+                <p className="mt-2 text-xs leading-relaxed">{step.body}</p>
               </li>
             ))}
           </ol>
         </section>
 
-        {/* Visual Weather Timeline Scrub / Ledger Section */}
-        <section id={LEDGER.anchor} className="py-16 sm:py-20 border-b border-slate-800">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+        <section id={LEDGER.anchor} className="py-8">
+          <p className="font-plex-mono text-[0.6875rem] tracking-[0.16em] text-[#C23B3B]">{LEDGER.kicker}</p>
+          <h2 className="font-bricolage text-3xl font-semibold text-[#1F3A5F]">{LEDGER.heading}</h2>
+          <div className="relative mt-8 border-t-4 border-[#1F3A5F] pt-6">
+            <div className="grid gap-6 md:grid-cols-3">
+              {DISPUTED_DAYS.map((day) => (
+                <article key={day.date}>
+                  <span
+                    className={`mb-3 inline-block size-4 rounded-full ${day.winner === "owner" ? "bg-[#2B6CB0]" : "bg-[#C23B3B]"}`}
+                    aria-hidden="true"
+                  />
+                  <p className="font-plex-mono text-sm">{day.date}</p>
+                  <p className="mt-1 font-bricolage text-2xl font-semibold tabular-nums">{day.credited}</p>
+                  <p className="text-sm">
+                    {day.claimed} claimed · {day.adverse} adverse
+                  </p>
+                  <p className="text-sm text-[#3D4C57]">{day.weather}</p>
+                  <p className="mt-1 font-plex-mono text-xs tracking-[0.12em] uppercase">{day.winner}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+          <p className="mt-6 max-w-3xl text-sm leading-relaxed">{LEDGER.thresholdNote}</p>
+          <dl className="mt-6 grid gap-2 sm:grid-cols-2">
+            {FIXTURE_FACTS.map(([term, value]) => (
+              <div key={term} className="bg-white/70 px-3 py-2">
+                <dt className="font-plex-mono text-[0.625rem] tracking-[0.12em] text-[#2B6CB0]">{term}</dt>
+                <dd className="text-sm">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <section id={BUILD.anchor} className="py-10">
+          <p className="font-plex-mono text-[0.6875rem] tracking-[0.16em] text-[#2B6CB0]">{BUILD.eyebrow}</p>
+          <h2 className="font-bricolage text-3xl font-semibold text-[#1F3A5F]">{BUILD.heading}</h2>
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <div>
-              <span className="text-xs font-mono text-violet-400 uppercase tracking-widest">{LEDGER.kicker}</span>
-              <h2 className="text-2xl sm:text-4xl font-bold text-white mt-1">
-                {LEDGER.heading}
-              </h2>
-            </div>
-            <div className="text-xs font-mono text-slate-400">
-              WEATHER TIMELINE &bull; PIRAEUS HARBOUR GAUGE
-            </div>
-          </div>
-
-          {/* Interactive Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {DISPUTED_DAYS.map((day) => {
-              const isOwner = day.winner === "owner";
-              return (
-                <div
-                  key={day.date}
-                  className={`rounded-xl border p-5 bg-[#0F1422] ${
-                    isOwner ? "border-emerald-500/30" : "border-amber-500/30"
-                  }`}
-                >
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <span className="font-bold text-sm text-white">{day.date}</span>
-                    <span
-                      className={`text-[0.625rem] font-mono font-bold uppercase px-2 py-0.5 rounded-full ${
-                        isOwner
-                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                          : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                      }`}
-                    >
-                      {day.winner} won
-                    </span>
-                  </div>
-
-                  <div className="mt-4 space-y-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Claimed Duration:</span>
-                      <span className="font-mono text-slate-200">{day.claimed}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Adverse Exceedances:</span>
-                      <span className="font-mono text-slate-200">{day.adverse}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Observed Weather:</span>
-                      <span className="font-mono text-slate-300">{day.weather}</span>
-                    </div>
-                    <div className="flex justify-between border-t border-slate-800/80 pt-2 font-bold">
-                      <span className="text-slate-300">Sum Credited:</span>
-                      <span className="font-mono text-white">{day.credited}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="rounded-xl border border-slate-800 bg-[#0F1422] p-5 text-xs text-slate-400 leading-relaxed">
-            {LEDGER.thresholdNote}
-          </div>
-        </section>
-
-        {/* Build Verification */}
-        <section id={BUILD.anchor} className="py-16 sm:py-20 border-b border-slate-800">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-8">
-            {BUILD.heading}
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="rounded-xl border border-emerald-500/30 bg-[#0F1422] p-6">
-              <h3 className="text-sm font-bold text-emerald-400 font-mono uppercase mb-4 flex items-center gap-2">
-                <span className="size-2 rounded-full bg-emerald-400" />
-                {BUILD.runsHeading}
-              </h3>
-              <ul className="space-y-3 text-xs text-slate-300">
+              <h3 className="font-bricolage text-lg font-semibold text-[#2B6CB0]">{BUILD.runsHeading}</h3>
+              <ul className="mt-3 space-y-3 text-sm leading-relaxed">
                 {RUNS.map((item) => (
-                  <li key={item} className="flex gap-2">
-                    <span className="text-emerald-400 font-bold font-mono">+</span>
-                    <span>{item}</span>
-                  </li>
+                  <li key={item}>{item}</li>
                 ))}
               </ul>
             </div>
-
-            <div className="rounded-xl border border-slate-800 bg-[#0F1422] p-6">
-              <h3 className="text-sm font-bold text-slate-400 font-mono uppercase mb-4 flex items-center gap-2">
-                <span className="size-2 rounded-full bg-slate-500" />
-                {BUILD.absentHeading}
-              </h3>
-              <ul className="space-y-3 text-xs text-slate-400">
+            <div>
+              <h3 className="font-bricolage text-lg font-semibold text-[#C23B3B]">{BUILD.absentHeading}</h3>
+              <ul className="mt-3 space-y-3 text-sm leading-relaxed">
                 {DOES_NOT_RUN.map((item) => (
-                  <li key={item} className="flex gap-2">
-                    <span className="text-slate-400 font-bold font-mono">&ndash;</span>
-                    <span>{item}</span>
-                  </li>
+                  <li key={item}>{item}</li>
                 ))}
               </ul>
             </div>
           </div>
         </section>
 
-        {/* Closing Call to Action */}
-        <section className="py-20 text-center max-w-3xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            {CLOSING.heading}
-          </h2>
-          <p className="mt-4 text-sm text-slate-300 leading-relaxed">
-            {CLOSING.body}
-          </p>
-          <div className="mt-8 flex justify-center">
-            <Link
-              href="/login"
-              className={`inline-flex items-center justify-center h-12 px-8 rounded-lg bg-violet-600 font-bold text-xs uppercase tracking-wider text-white hover:bg-violet-500 shadow-[0_0_25px_rgba(139,92,246,0.35)] ${FOCUS} ${PRESS}`}
-            >
-              {CLOSING.cta} &rarr;
-            </Link>
-          </div>
+        <section className="border-t-4 border-[#1F3A5F] py-10">
+          <h2 className="font-bricolage text-2xl font-semibold text-[#1F3A5F]">{CLOSING.heading}</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed">{CLOSING.body}</p>
+          <Link href="/login" className={`mt-4 inline-flex min-h-11 items-center text-sm underline ${FOCUS}`}>
+            {CLOSING.portal}
+          </Link>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800 bg-[#080B12] px-4 sm:px-6 py-10 text-xs text-slate-400 font-mono">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-8">
-          <div>
-            <PipelineWordmark />
-            <p className="mt-3 text-slate-400 font-sans max-w-sm text-xs">
-              {FOOTER.blurb}
-            </p>
-          </div>
-          <div>
-            <div className="text-slate-300 font-bold mb-2 uppercase">GRAPH NODES</div>
-            <ul className="space-y-1">
-              {FOOTER.sectionLinks.map(([label, href]) => (
-                <li key={href}>
-                  <a href={href} className={`hover:text-violet-400 transition-colors ${FOCUS}`}>
-                    {label}
-                  </a>
-                </li>
-              ))}
-              <li>
-                <Link href="/login" className={`hover:text-violet-400 transition-colors ${FOCUS}`}>
-                  {CLOSING.portal}
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <div className="text-slate-300 font-bold mb-2 uppercase">GOVERNANCE</div>
-            <ul className="space-y-1 text-slate-400 font-sans">
-              {FOOTER.notes.map((note) => (
-                <li key={note}>&bull; {note}</li>
-              ))}
-            </ul>
-          </div>
+      <footer className="px-4 py-8 sm:px-6">
+        <div className="mx-auto grid max-w-6xl gap-3 sm:grid-cols-2">
+          <p className="max-w-md text-sm">{FOOTER.blurb}</p>
+          <ul className="space-y-1 text-xs text-[#3D4C57]">
+            {FOOTER.notes.map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
         </div>
-        <div className="max-w-7xl mx-auto mt-8 pt-4 border-t border-slate-800/80 flex justify-between text-[0.625rem]">
-          <span>{FOOTER.colophon}</span>
-          <span>LANGGRAPH TOPOLOGY COMPILED // 2026</span>
-        </div>
+        <p className="mx-auto mt-4 max-w-6xl font-plex-mono text-[0.625rem] tracking-[0.14em]">{FOOTER.colophon}</p>
       </footer>
     </div>
+  );
+}
+
+function BoardNote({
+  kicker,
+  title,
+  body,
+  tone,
+}: {
+  kicker: string;
+  title: string;
+  body: string;
+  tone: "blue" | "red" | "ink";
+}) {
+  const ink = tone === "red" ? "text-[#C23B3B]" : tone === "blue" ? "text-[#2B6CB0]" : "text-[#1F3A5F]";
+  return (
+    <article className="rotate-[-0.4deg] bg-white p-4 shadow-[3px_4px_0_rgba(31,58,95,0.12)]">
+      <p className={`font-plex-mono text-[0.625rem] tracking-[0.14em] uppercase ${ink}`}>{kicker}</p>
+      <p className={`mt-2 font-bricolage text-3xl font-semibold tabular-nums ${ink}`}>{title}</p>
+      <p className="mt-2 text-sm leading-relaxed">{body}</p>
+    </article>
   );
 }

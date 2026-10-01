@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 
 /**
  * Design picker for the eleven landing page variants.
@@ -15,6 +15,8 @@ import { useTransition } from "react";
  * URL and comparing designs means walking back through the ones you just
  * looked at. With `replace` the first Back leaves the site entirely.
  */
+
+let variantScrollArmed = false;
 
 export interface VariantOption {
   key: string;
@@ -32,6 +34,23 @@ export function VariantSwitcher({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+
+  // `/?v=` is a same-pathname navigation. Next does not mint a new segment for
+  // it, so the App Router scroll handler never runs — and `{ scroll: false }`
+  // tells it not to. A `scrollTo` in the click handler races the RSC commit
+  // and loses. The flag lives on the module so a remount of this picker (the
+  // page segment can swap around it) still scrolls after the first visit.
+  useEffect(() => {
+    if (!variantScrollArmed) {
+      variantScrollArmed = true;
+      return;
+    }
+    const root = document.documentElement;
+    const previous = root.style.scrollBehavior;
+    root.style.scrollBehavior = "auto";
+    window.scrollTo(0, 0);
+    root.style.scrollBehavior = previous;
+  }, [current]);
 
   return (
     <div
@@ -60,7 +79,6 @@ export function VariantSwitcher({
                 if (active) return;
                 startTransition(() => {
                   router.push(`/?v=${option.key}`, { scroll: false });
-                  window.scrollTo({ top: 0, behavior: "instant" });
                 });
               }}
               className={`inline-flex min-h-9 min-w-9 items-center gap-1.5 rounded-full px-3 font-mono text-xs transition-colors duration-200 ease-out focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-neutral-200 motion-reduce:transition-none ${

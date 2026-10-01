@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { NavigationScrollReset } from "@/components/NavigationScrollReset";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   DM_Sans,
@@ -87,7 +88,10 @@ export default function RootLayout({
         <Script id="theme-initializer" strategy="beforeInteractive" src="/theme-init.js" />
       </head>
       <body>
-        <TooltipProvider>{children}</TooltipProvider>
+        <TooltipProvider>
+          <NavigationScrollReset />
+          {children}
+        </TooltipProvider>
       </body>
     </html>
   );

@@ -1,471 +1,237 @@
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { Explainer } from "./parts/Explainer";
 import {
   BRAND,
   BUILD,
+  CHARTERER,
   CLOSING,
   DISPUTED_DAYS,
   DOES_NOT_RUN,
-  EXPLAINER,
+  FIXTURE_FACTS,
   FOOTER,
   HERO,
   LEDGER,
   METHOD,
   OWNER,
-  CHARTERER,
   RECONCILED,
   RUNS,
   STEPS,
 } from "./content";
 
 /**
- * Variant 2 — Telemetry Console (Nightwatch).
+ * Variant 2 — engine-room telegraph and bell book.
  *
- * Dark maritime terminal & bridge console: abyssal navy ground, phosphor emerald
- * and radar amber status telemetry, monospace instruments, coordinate readouts,
- * and high-density tabular calculation data.
+ * Soot panels, brass engraving, one red telegraph lamp on the reconciled
+ * figure. Not a phosphor terminal.
  */
 
-/**
- * `focus-visible:outline-solid` is load-bearing, not decoration. A Tailwind
- * outline reset sets `--tw-outline-style: none` on the element and
- * `focus-visible:outline-2` reads that same variable back, so the two cancel and
- * nothing is painted. `outline-solid` is also what makes the ring survive on
- * the shadcn `Button`, whose base class carries such a reset of its own.
- */
 const FOCUS =
-  "focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-emerald-400";
+  "focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-[#E7D7A1]";
 const PRESS =
-  "transition-all duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none";
+  "transition-transform duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none";
 
-function ConsoleWordmark() {
+const STATIONS = ["FULL", "HALF", "SLOW", "STOP", "ASTERN"] as const;
+
+function Telegraph() {
   return (
-    <span className="flex items-center gap-3">
-      <span className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded border border-emerald-500/40 bg-emerald-950/60 shadow-[0_0_12px_rgba(16,185,129,0.2)]">
-        <Image
-          src="/logo.png"
-          alt=""
-          width={26}
-          height={26}
-          unoptimized
-          className="size-6 brightness-125"
-        />
-        <span className="absolute inset-0 bg-emerald-400/10 pointer-events-none" />
-      </span>
-      <div className="flex flex-col font-mono leading-none">
-        <span className="flex items-center gap-2 text-sm font-bold tracking-wider text-emerald-300">
-          {BRAND.name.toUpperCase()}
-          <span className="inline-block size-1.5 rounded-full bg-emerald-400 animate-pulse motion-reduce:animate-none" />
-        </span>
-        <span className="mt-1 text-[0.625rem] font-medium tracking-[0.2em] text-emerald-500/80">
-          SYS // TELEMETRY
-        </span>
+    <div className="flex items-stretch gap-4 rounded-sm border border-[#C4A35A]/50 bg-[#141C26] p-4 shadow-[inset_0_0_0_1px_rgba(196,163,90,0.15)]">
+      <div className="relative hidden w-14 shrink-0 sm:block" aria-hidden="true">
+        <div className="absolute inset-y-2 left-1/2 w-px -translate-x-1/2 bg-[#C4A35A]/70" />
+        {STATIONS.map((station, index) => (
+          <div
+            key={station}
+            className="absolute left-0 flex w-full items-center justify-center"
+            style={{ top: `${8 + index * 18}%` }}
+          >
+            <span className="bg-[#141C26] px-1 font-plex-mono text-[0.5rem] tracking-[0.14em] text-[#C4A35A]">
+              {station}
+            </span>
+          </div>
+        ))}
+        <div className="absolute top-[58%] left-1/2 h-1.5 w-9 origin-left -translate-y-1/2 rotate-[-18deg] rounded-full bg-[#E7D7A1] shadow-[0_0_12px_rgba(231,215,161,0.8)] motion-safe:animate-[keel-lever_700ms_ease-out]" />
       </div>
-    </span>
+      <div className="min-w-0 flex-1">
+        <p className="font-plex-mono text-[0.625rem] tracking-[0.22em] text-[#C4A35A]">
+          ENGINE TELEGRAPH · RECONCILED
+        </p>
+        <p className="mt-3 font-plex-mono text-4xl font-semibold tabular-nums text-[#F3E6C4] sm:text-5xl">
+          {RECONCILED.figure}
+        </p>
+        <p className="mt-3 flex items-center gap-2 font-plex-mono text-xs text-[#E7E1D6]">
+          <span className="inline-block size-2.5 rounded-full bg-[#A33B32] shadow-[0_0_10px_rgba(163,59,50,0.9)]" />
+          Lamp on the settled figure
+        </p>
+        <p className="mt-4 font-plex-mono text-[0.6875rem] leading-relaxed text-[#C9C2B4]">
+          {RECONCILED.arithmetic}
+        </p>
+      </div>
+      <style>{`@keyframes keel-lever { from { transform: rotate(-72deg); } to { transform: rotate(-18deg); } }`}</style>
+    </div>
   );
 }
 
 export default function TelemetryVariant() {
   return (
-    <div className="min-h-dvh bg-[#050B14] text-slate-200 selection:bg-emerald-500/30 selection:text-emerald-100 font-plex-mono antialiased">
+    <div className="min-h-dvh overflow-x-clip bg-[#0C1218] text-[#E7E1D6] antialiased">
       <a
         href="#main-telemetry"
-        className={`sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded focus:border focus:border-emerald-500 focus:bg-[#0B1524] focus:px-4 focus:py-3 focus:text-sm focus:text-emerald-300 ${FOCUS}`}
+        className={`sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-[#141C26] focus:px-3 focus:py-2 focus:text-sm ${FOCUS}`}
       >
-        Skip to console feed
+        Skip to content
       </a>
-
-      {/* Top telemetry status ticker */}
-      <div className="border-b border-emerald-500/20 bg-[#070F1B]/95 text-[0.6875rem] text-emerald-400/80 font-mono tracking-widest px-4 py-1.5 flex items-center justify-between overflow-x-auto">
-        <div className="flex items-center gap-4 shrink-0">
-          <span className="flex items-center gap-1.5 text-emerald-300">
-            <span className="size-2 rounded-full bg-emerald-400 animate-ping inline-block motion-reduce:animate-none" />
-            CONSOLE: ONLINE
-          </span>
-          <span className="text-slate-400">|</span>
-          <span>PORT: {BRAND.port.toUpperCase()}</span>
-          <span className="text-slate-400">|</span>
-          <span>VESSEL: {BRAND.vessel.toUpperCase()}</span>
-        </div>
-        <div className="hidden sm:flex items-center gap-3 shrink-0 text-slate-400">
-          <span className="text-emerald-400/90 font-bold">STATE: RECONCILED</span>
-        </div>
+      <div className="border-b border-[#C4A35A]/30 bg-[#101820] px-4 py-2 font-plex-mono text-[0.625rem] tracking-[0.16em] text-[#C4A35A] sm:px-6">
+        BELL BOOK · {BRAND.vessel.toUpperCase()} · {BRAND.port.toUpperCase()} · {BRAND.fixture}
       </div>
-
-      {/* Navigation header */}
-      <header className="sticky top-0 z-30 border-b border-slate-800 bg-[#070F1B]/90 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" className={`inline-flex items-center ${FOCUS}`}>
-            <ConsoleWordmark />
-          </Link>
-
-          <nav aria-label="Console Sections" className="hidden lg:flex items-center gap-6 text-xs text-slate-400 font-mono">
-            {FOOTER.sectionLinks.map(([label, href]) => (
-              <a
-                key={href}
-                href={href}
-                className={`hover:text-emerald-300 transition-colors uppercase tracking-wider ${FOCUS}`}
-              >
-                [{label}]
-              </a>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Link
-              href="/login"
-              className={`hidden sm:inline-flex items-center h-9 px-3.5 rounded border border-emerald-500/30 bg-[#0B1726] text-xs font-mono text-emerald-300 hover:bg-emerald-950/40 hover:border-emerald-500/60 ${FOCUS} ${PRESS}`}
-            >
-              {CLOSING.portal}
-            </Link>
-            <Link
-              href="/login"
-              className={`inline-flex items-center h-9 px-4 rounded bg-emerald-500 text-xs font-mono font-bold text-slate-950 hover:bg-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] ${FOCUS} ${PRESS}`}
-            >
-              {CLOSING.cta} &rarr;
-            </Link>
-          </div>
-        </div>
+      <header className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+        <Link href="/" className={`inline-flex items-center gap-3 ${FOCUS}`}>
+          <Image src="/logo.png" alt="" width={28} height={28} unoptimized className="size-7" />
+          <span className="font-archivo text-sm font-semibold tracking-[0.18em] text-[#E7D7A1]">
+            {BRAND.name.toUpperCase()} · ENGINE ROOM
+          </span>
+        </Link>
+        <nav aria-label="Sections" className="hidden items-center gap-4 font-plex-mono text-[0.6875rem] text-[#C9C2B4] md:flex">
+          {FOOTER.sectionLinks.map(([label, href]) => (
+            <a key={href} href={href} className={`hover:text-[#E7D7A1] ${FOCUS}`}>
+              {label}
+            </a>
+          ))}
+        </nav>
       </header>
 
-      <main id="main-telemetry" tabIndex={-1} className="relative z-10">
-        {/* Hero Section */}
-        <section className="relative border-b border-slate-800/80 px-4 py-16 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-center">
-              <div className="lg:col-span-7">
-                <div className="inline-flex items-center gap-2 rounded border border-emerald-500/30 bg-emerald-950/30 px-2.5 py-1 text-xs font-mono text-emerald-300 mb-6">
-                  <span className="size-1.5 rounded-full bg-emerald-400" />
-                  SYS_MISSION // {HERO.eyebrow.toUpperCase()}
-                </div>
-
-                <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight font-sans">
-                  {HERO.heading}
-                </h1>
-
-                <p className="mt-6 text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl font-sans">
-                  {HERO.lede}
-                </p>
-
-                <div className="mt-8 flex flex-wrap items-center gap-4">
-                  <Link
-                    href="/login"
-                    className={`inline-flex items-center justify-center h-11 px-6 rounded bg-emerald-500 font-mono text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] ${FOCUS} ${PRESS}`}
-                  >
-                    {CLOSING.cta}
-                  </Link>
-
-                  <Dialog>
-                    <DialogTrigger
-                      render={
-                        <Button
-                          variant="outline"
-                          className={`h-11 px-5 rounded border border-slate-700 bg-slate-900/60 font-mono text-xs text-slate-300 hover:bg-slate-800 hover:text-white ${FOCUS} ${PRESS}`}
-                        />
-                      }
-                    >
-                      {CLOSING.explainer}
-                    </DialogTrigger>
-                    <DialogContent className="border border-emerald-500/30 bg-[#0B1524] text-slate-200 max-w-xl font-mono">
-                      <DialogHeader>
-                        <DialogTitle className="text-emerald-400 font-bold text-base tracking-wide flex items-center gap-2">
-                          <span className="size-2 rounded-full bg-emerald-400" />
-                          SYS_DOC // {CLOSING.explainer.toUpperCase()}
-                        </DialogTitle>
-                        <DialogDescription className="text-slate-400 text-xs">
-                          Deterministic verification workflow
-                        </DialogDescription>
-                      </DialogHeader>
-                      <p className="text-xs text-slate-300 leading-relaxed mt-4 font-sans">
-                        {EXPLAINER}
-                      </p>
-                      <div className="mt-6 flex justify-end">
-                        <DialogClose
-                          render={
-                            <Button className={`h-8 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40 text-xs font-mono ${FOCUS}`} />
-                          }
-                        >
-                          CLOSE_STREAM
-                        </DialogClose>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-
-              {/* Live Telemetry Instrument Cluster */}
-              <div className="lg:col-span-5">
-                <div className="rounded-lg border border-emerald-500/30 bg-[#071322]/80 p-5 shadow-2xl backdrop-blur-md">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-3 text-xs font-mono">
-                    <span className="text-emerald-400 font-bold flex items-center gap-2">
-                      <span className="size-2 rounded-full bg-emerald-400" />
-                      RECONCILIATION_HUD
-                    </span>
-                    <span className="text-slate-400">ID: {BRAND.fixture}</span>
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <div className="rounded border border-slate-800/80 bg-slate-900/50 p-3">
-                      <div className="text-[0.625rem] text-slate-400 uppercase tracking-wider">{OWNER.role}</div>
-                      <div className="mt-1 font-mono text-xl font-bold text-emerald-400">{OWNER.figure}</div>
-                      <div className="mt-1 text-[0.625rem] text-slate-400 truncate">{OWNER.party}</div>
-                    </div>
-
-                    <div className="rounded border border-slate-800/80 bg-slate-900/50 p-3">
-                      <div className="text-[0.625rem] text-slate-400 uppercase tracking-wider">{CHARTERER.role}</div>
-                      <div className="mt-1 font-mono text-xl font-bold text-amber-400">{CHARTERER.figure}</div>
-                      <div className="mt-1 text-[0.625rem] text-slate-400 truncate">{CHARTERER.party}</div>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 rounded border border-emerald-500/40 bg-emerald-950/20 p-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-mono uppercase tracking-wider text-emerald-300">
-                        {RECONCILED.label}
-                      </span>
-                      <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[0.625rem] font-bold text-emerald-300">
-                        FINAL
-                      </span>
-                    </div>
-                    <div className="mt-2 font-mono text-3xl font-extrabold text-white tracking-tight">
-                      {RECONCILED.figure}
-                    </div>
-                    <div className="mt-2 text-xs text-slate-400 leading-relaxed font-sans">
-                      {RECONCILED.arithmetic}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Ledger Section */}
-        <section id={LEDGER.anchor} className="border-b border-slate-800/80 px-4 py-16 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-7xl">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-              <div>
-                <p className="text-xs font-mono uppercase tracking-widest text-emerald-400">
-                  {LEDGER.kicker}
-                </p>
-                <h2 className="mt-2 text-2xl sm:text-3xl font-bold text-white font-sans">
-                  {LEDGER.heading}
-                </h2>
-              </div>
-              <div className="text-xs font-mono text-slate-400 max-w-md">
-                Every hour checked deterministically against port weather readings.
-              </div>
-            </div>
-
-            {/* Table Matrix */}
-            <div className="overflow-x-auto rounded-lg border border-slate-800 bg-[#071322]/60">
-              <table className="w-full text-left font-mono text-xs">
-                <thead>
-                  <tr className="border-b border-slate-800 bg-slate-900/60 text-slate-400">
-                    <th className="py-3.5 px-4 font-semibold uppercase">Date Window</th>
-                    <th className="py-3.5 px-4 font-semibold uppercase">Claimed Lost</th>
-                    <th className="py-3.5 px-4 font-semibold uppercase">Adverse Hours</th>
-                    <th className="py-3.5 px-4 font-semibold uppercase">Sensor Observations</th>
-                    <th className="py-3.5 px-4 font-semibold uppercase">Deterministic Verdict</th>
-                    <th className="py-3.5 px-4 font-semibold uppercase text-right">Settlement Credited</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {DISPUTED_DAYS.map((day) => {
-                    const isOwner = day.winner === "owner";
-                    return (
-                      <tr key={day.date} className="hover:bg-slate-900/40 transition-colors">
-                        <td className="py-4 px-4 font-bold text-white">{day.date}</td>
-                        <td className="py-4 px-4 text-slate-300">{day.claimed}</td>
-                        <td className="py-4 px-4 text-slate-300">{day.adverse}</td>
-                        <td className="py-4 px-4 text-slate-400">{day.weather}</td>
-                        <td className="py-4 px-4">
-                          <span
-                            className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider ${
-                              isOwner
-                                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                                : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                            }`}
-                          >
-                            <span className={`size-1.5 rounded-full ${isOwner ? "bg-emerald-400" : "bg-amber-400"}`} />
-                            {day.winner} Winner
-                          </span>
-                        </td>
-                        <td className="py-4 px-4 text-right font-bold text-white tabular-nums">
-                          {day.credited}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="mt-6 rounded border border-slate-800 bg-[#070F1B] p-4 text-xs text-slate-400 leading-relaxed font-sans">
-              <span className="font-mono text-emerald-400 font-bold mr-2">[RULE_AUTHORITY]</span>
-              {LEDGER.thresholdNote}
-            </div>
-          </div>
-        </section>
-
-        {/* Method Section */}
-        <section id={METHOD.anchor} className="border-b border-slate-800/80 px-4 py-16 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-7xl">
-            <div className="mb-12">
-              <p className="text-xs font-mono uppercase tracking-widest text-emerald-400">
-                {METHOD.eyebrow}
-              </p>
-              <h2 className="mt-2 text-2xl sm:text-3xl font-bold text-white font-sans max-w-2xl">
-                {METHOD.heading}
-              </h2>
-            </div>
-
-            <ol className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {STEPS.map((step) => (
-                <li
-                  key={step.n}
-                  className="rounded-lg border border-slate-800 bg-[#071322]/40 p-5 flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="font-mono text-xs text-emerald-400/80 font-bold mb-3">
-                      NODE_{step.n}
-                    </div>
-                    <h3 className="text-base font-bold text-white mb-2 font-sans">
-                      {step.title}
-                    </h3>
-                    <p className="text-xs text-slate-400 leading-relaxed font-sans">
-                      {step.body}
-                    </p>
-                  </div>
-                  <div className="mt-6 pt-3 border-t border-slate-800/60 text-[0.625rem] font-mono text-slate-400 uppercase">
-                    STATUS: VERIFIED
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        {/* Build Verification Section */}
-        <section id={BUILD.anchor} className="border-b border-slate-800/80 px-4 py-16 sm:px-6 sm:py-20 bg-[#060D17]">
-          <div className="mx-auto max-w-7xl">
-            <p className="text-xs font-mono uppercase tracking-widest text-emerald-400">
-              {BUILD.eyebrow}
-            </p>
-            <h2 className="mt-2 text-2xl sm:text-3xl font-bold text-white font-sans">
-              {BUILD.heading}
-            </h2>
-
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="rounded-lg border border-emerald-500/20 bg-[#071322]/60 p-6">
-                <h3 className="text-sm font-bold text-emerald-300 font-mono uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-emerald-400" />
-                  {BUILD.runsHeading}
-                </h3>
-                <ul className="space-y-3 font-sans text-xs text-slate-300">
-                  {RUNS.map((item) => (
-                    <li key={item} className="flex items-start gap-2.5">
-                      <span className="font-mono text-emerald-400 font-bold text-sm leading-none shrink-0">+</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="rounded-lg border border-slate-800 bg-[#071322]/60 p-6">
-                <h3 className="text-sm font-bold text-slate-400 font-mono uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-slate-500" />
-                  {BUILD.absentHeading}
-                </h3>
-                <ul className="space-y-3 font-sans text-xs text-slate-400">
-                  {DOES_NOT_RUN.map((item) => (
-                    <li key={item} className="flex items-start gap-2.5">
-                      <span className="font-mono text-slate-400 font-bold text-sm leading-none shrink-0">&ndash;</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Closing CTA */}
-        <section className="px-4 py-16 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-4xl text-center">
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white font-sans tracking-tight">
-              {CLOSING.heading}
-            </h2>
-            <p className="mt-4 text-sm text-slate-300 leading-relaxed font-sans max-w-2xl mx-auto">
-              {CLOSING.body}
-            </p>
-            <div className="mt-8 flex justify-center">
+      <main id="main-telemetry" tabIndex={-1} className="mx-auto max-w-6xl px-4 pb-8 sm:px-6">
+        <section className="grid items-start gap-8 border-b border-[#C4A35A]/25 py-10 lg:grid-cols-[1.3fr_0.9fr]">
+          <div className="min-w-0">
+            <p className="font-plex-mono text-[0.6875rem] tracking-[0.2em] text-[#C4A35A]">{HERO.eyebrow}</p>
+            <h1 className="mt-3 max-w-[18ch] font-archivo text-[clamp(2rem,1.2rem+2.4vw,3.5rem)] font-semibold leading-[0.98] tracking-[-0.03em] text-balance text-[#F4EFE4]">
+              {HERO.heading}
+            </h1>
+            <p className="mt-5 max-w-xl text-sm leading-relaxed text-[#C9C2B4] sm:text-base">{HERO.lede}</p>
+            <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/login"
-                className={`inline-flex items-center justify-center h-12 px-8 rounded bg-emerald-500 font-mono text-xs font-bold uppercase tracking-widest text-slate-950 hover:bg-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.3)] ${FOCUS} ${PRESS}`}
+                className={`inline-flex min-h-11 items-center bg-[#A33B32] px-5 font-archivo text-sm font-semibold tracking-wide text-[#F4EFE4] hover:bg-[#8B3A2E] ${FOCUS} ${PRESS}`}
               >
-                {CLOSING.cta} &rarr;
+                {CLOSING.cta}
               </Link>
+              <Explainer
+                triggerClassName={`inline-flex min-h-11 items-center border border-[#C4A35A]/60 px-5 font-archivo text-sm text-[#E7D7A1] hover:bg-[#C4A35A]/10 ${FOCUS} ${PRESS}`}
+                panelClassName="border border-[#C4A35A]/40 bg-[#141C26] text-[#E7E1D6]"
+              />
             </div>
           </div>
+          <Telegraph />
+        </section>
+
+        <section className="grid gap-px border-b border-[#C4A35A]/25 py-8 sm:grid-cols-3">
+          {[
+            [OWNER.role, OWNER.party, OWNER.note, OWNER.figure],
+            [CHARTERER.role, CHARTERER.party, CHARTERER.note, CHARTERER.figure],
+            [RECONCILED.label, BRAND.vessel, BRAND.port, RECONCILED.figure],
+          ].map(([role, party, note, figure]) => (
+            <div key={role} className="border border-[#C4A35A]/20 bg-[#101820] p-4">
+              <p className="font-plex-mono text-[0.625rem] tracking-[0.16em] text-[#C4A35A]">{role}</p>
+              <p className="mt-3 font-plex-mono text-2xl tabular-nums text-[#F4EFE4]">{figure}</p>
+              <p className="mt-2 text-xs text-[#C9C2B4]">{party}</p>
+              <p className="text-xs text-[#8E887C]">{note}</p>
+            </div>
+          ))}
+        </section>
+
+        <section id={LEDGER.anchor} className="border-b border-[#C4A35A]/25 py-12">
+          <p className="font-plex-mono text-[0.6875rem] tracking-[0.18em] text-[#C4A35A]">{LEDGER.kicker}</p>
+          <h2 className="mt-2 font-archivo text-3xl font-semibold tracking-[-0.03em] text-[#F4EFE4]">{LEDGER.heading}</h2>
+          <ol className="mt-8 divide-y divide-[#C4A35A]/20 border-y border-[#C4A35A]/30">
+            {DISPUTED_DAYS.map((day) => (
+              <li key={day.date} className="grid gap-2 py-4 sm:grid-cols-[9rem_1fr_auto] sm:items-baseline">
+                <p className="font-plex-mono text-sm tabular-nums text-[#E7D7A1]">{day.date}</p>
+                <div className="min-w-0 text-sm">
+                  <p>
+                    Claimed {day.claimed} · adverse {day.adverse}
+                  </p>
+                  <p className="text-[#C9C2B4]">{day.weather}</p>
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#C4A35A]">{day.winner}</p>
+                </div>
+                <p className="font-plex-mono text-lg tabular-nums">{day.credited}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-6 max-w-3xl text-sm leading-relaxed text-[#C9C2B4]">{LEDGER.thresholdNote}</p>
+        </section>
+
+        <section id={METHOD.anchor} className="border-b border-[#C4A35A]/25 py-12">
+          <p className="font-plex-mono text-[0.6875rem] tracking-[0.18em] text-[#C4A35A]">{METHOD.eyebrow}</p>
+          <h2 className="mt-2 max-w-[20ch] font-archivo text-3xl font-semibold tracking-[-0.03em] text-balance text-[#F4EFE4]">
+            {METHOD.heading}
+          </h2>
+          <ol className="mt-8 space-y-4">
+            {STEPS.map((step) => (
+              <li key={step.n} className="grid gap-3 border-l-2 border-[#C4A35A]/50 pl-4 sm:grid-cols-[3rem_1fr]">
+                <p className="font-plex-mono text-sm text-[#C4A35A]">{step.n}</p>
+                <div>
+                  <h3 className="font-archivo text-lg font-semibold">{step.title}</h3>
+                  <p className="mt-1 max-w-3xl text-sm leading-relaxed text-[#C9C2B4]">{step.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section id={BUILD.anchor} className="py-12">
+          <p className="font-plex-mono text-[0.6875rem] tracking-[0.18em] text-[#C4A35A]">{BUILD.eyebrow}</p>
+          <h2 className="mt-2 font-archivo text-3xl font-semibold tracking-[-0.03em] text-[#F4EFE4]">{BUILD.heading}</h2>
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            <div>
+              <h3 className="font-plex-mono text-xs tracking-[0.16em] text-[#E7D7A1]">{BUILD.runsHeading}</h3>
+              <ul className="mt-3 space-y-3 text-sm leading-relaxed text-[#C9C2B4]">
+                {RUNS.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-plex-mono text-xs tracking-[0.16em] text-[#C4A35A]">{BUILD.absentHeading}</h3>
+              <ul className="mt-3 space-y-3 text-sm leading-relaxed text-[#C9C2B4]">
+                {DOES_NOT_RUN.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <dl className="mt-8 grid gap-3 sm:grid-cols-2">
+            {FIXTURE_FACTS.map(([term, value]) => (
+              <div key={term} className="border border-[#C4A35A]/20 px-3 py-2">
+                <dt className="font-plex-mono text-[0.625rem] tracking-[0.14em] text-[#C4A35A]">{term}</dt>
+                <dd className="text-sm">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <section className="border-t border-[#C4A35A]/30 py-12">
+          <h2 className="font-archivo text-2xl font-semibold text-[#F4EFE4]">{CLOSING.heading}</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#C9C2B4]">{CLOSING.body}</p>
+          <Link
+            href="/login"
+            className={`mt-6 inline-flex min-h-11 items-center bg-[#E7D7A1] px-5 font-archivo text-sm font-semibold text-[#1A1208] ${FOCUS} ${PRESS}`}
+          >
+            {CLOSING.portal}
+          </Link>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800 bg-[#040810] px-4 py-12 sm:px-6 text-xs font-mono text-slate-400">
-        <div className="mx-auto max-w-7xl flex flex-col md:flex-row justify-between gap-8">
-          <div>
-            <ConsoleWordmark />
-            <p className="mt-4 max-w-md text-slate-400 leading-relaxed font-sans">
-              {FOOTER.blurb}
-            </p>
-          </div>
-          <div>
-            <div className="text-slate-300 font-bold mb-3 uppercase tracking-wider">
-              [NAV_INDEX]
-            </div>
-            <ul className="space-y-2">
-              {FOOTER.sectionLinks.map(([label, href]) => (
-                <li key={href}>
-                  <a href={href} className={`hover:text-emerald-400 transition-colors ${FOCUS}`}>
-                    {label}
-                  </a>
-                </li>
-              ))}
-              <li>
-                <Link href="/login" className={`hover:text-emerald-400 transition-colors ${FOCUS}`}>
-                  {CLOSING.portal}
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <div className="text-slate-300 font-bold mb-3 uppercase tracking-wider">
-              [{FOOTER.buildHeading.toUpperCase()}]
-            </div>
-            <ul className="space-y-1.5 text-slate-400 font-sans">
-              {FOOTER.notes.map((note) => (
-                <li key={note}>&bull; {note}</li>
-              ))}
-            </ul>
-          </div>
+      <footer className="border-t border-[#C4A35A]/30 px-4 py-8 sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:justify-between">
+          <p className="max-w-md text-sm text-[#C9C2B4]">{FOOTER.blurb}</p>
+          <ul className="space-y-1 text-xs text-[#8E887C]">
+            {FOOTER.notes.map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
         </div>
-        <div className="mx-auto max-w-7xl mt-8 pt-6 border-t border-slate-800/80 flex justify-between items-center text-[0.625rem]">
-          <span>{FOOTER.colophon}</span>
-          <span className="text-emerald-500/80">END_TRANSMISSION // 2026</span>
-        </div>
+        <p className="mx-auto mt-6 max-w-6xl font-plex-mono text-[0.625rem] tracking-[0.14em] text-[#C4A35A]">
+          {FOOTER.colophon}
+        </p>
       </footer>
     </div>
   );
