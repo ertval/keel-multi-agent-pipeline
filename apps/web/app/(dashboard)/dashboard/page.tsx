@@ -851,7 +851,7 @@ export function DashboardContent({ title, subtitle, showGraphs = true }: Dashboa
                     const voyage = barChartData.candidates[hoveredBarIndex];
                     const ownerVal = voyage.owner_total_usd ?? 0;
                     const reconciledVal = voyage.reconciled_total_usd ?? 0;
-                    const savings = Math.max(0, ownerVal - reconciledVal);
+                    const claimGap = Math.max(0, ownerVal - reconciledVal);
 
                     const groupCount = barChartData.candidates.length;
                     const groupWidth = barChartData.chartWidth / groupCount;
@@ -897,11 +897,11 @@ export function DashboardContent({ title, subtitle, showGraphs = true }: Dashboa
                               {formatUsd(reconciledVal)}
                             </span>
                           </div>
-                          {savings > 0 && (
+                          {claimGap > 0 && (
                             <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "0.15rem", color: "color-mix(in srgb, hsl(var(--owner)) 65%, var(--muted-foreground) 35%)" }}>
-                              <span style={{ fontWeight: 600 }}>Savings:</span>
+                              <span style={{ fontWeight: 600 }}>Owner − reconciled:</span>
                               <span className="mono" style={{ fontWeight: 700 }}>
-                                {formatUsd(savings)}
+                                {formatUsd(claimGap)}
                               </span>
                             </div>
                           )}
