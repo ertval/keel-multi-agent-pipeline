@@ -1,6 +1,17 @@
 allowBuilds:
-  core-js: set this to true or false
-  msw: set this to true or false
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
+  # sharp's `install` hook only verifies the prebuilt platform binary already
+  # present as an optional dep (@img/sharp-linux-x64 + libvips); it does not
+  # download or compile anything here. Next.js needs it for image optimization.
+  sharp: true
+  # postinstall links the prebuilt native binding
+  # (@unrs/resolver-binding-linux-x64-gnu, already installed as an optional
+  # dep). Without it `unrs-resolver` throws at require time and `eslint` dies.
+  unrs-resolver: true
+  # postinstall is a no-op for this project: it reads INIT_CWD/package.json and
+  # returns early unless `msw.workerDirectory` is set, which it is not. msw is
+  # only a transitive dep of the `shadcn` CLI. Explicitly denied.
+  msw: false
+  # Not in the dependency graph at all (stale create-next-app scaffold entry).
+  # Denied so a future transitive add cannot silently start executing scripts.
+  core-js: false
 minimumReleaseAge: 0

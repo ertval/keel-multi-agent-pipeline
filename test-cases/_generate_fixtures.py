@@ -8,7 +8,7 @@ Design notes
 ------------
 * "Real docs + crafted numbers": the source PDFs are modelled on genuine
   maritime document formats (GENCON-style charterparty prose, a standard
-  Statement of Facts event table, a BIMCO-style demurrage claim) but the
+  Statement of Facts event table, a laytime demurrage claim) but the
   figures are hand-authored so each case ties out to a known answer.
 
 * Determinism: keel_api.pipeline._load_or_extract is cache-first — when all
@@ -77,6 +77,8 @@ CASES = [
         "nor_turn_hours": 6.0,
         "laytime_exception": "SHEX",
         "weather_clause": "WWD",
+        "weather_beaufort_threshold": 6,
+        "weather_precipitation_threshold_mm": 2.0,
         "load_start": "2026-07-01T20:00:00",
         "load_end": "2026-07-05T08:00:00",
         "windows": [],
@@ -102,7 +104,7 @@ CASES = [
         "summary": (
             "Charterer logs a 12-hour weather delay, but port records show only "
             "Beaufort Force 5 with light drizzle and loading gear was never "
-            "actually stood down. Below the BIMCO 2013 Force-6 threshold, so the "
+            "actually stood down. Below the threshold in Clause 3.2, so the "
             "exception fails and the disputed time is credited back to the owner."
         ),
         "vessel": "MV Adriatic Star",
@@ -117,6 +119,8 @@ CASES = [
         "nor_turn_hours": 6.0,
         "laytime_exception": "SHEX",
         "weather_clause": "WWD",
+        "weather_beaufort_threshold": 6,
+        "weather_precipitation_threshold_mm": 2.0,
         "load_start": "2026-07-03T18:00:00",
         "load_end": "2026-07-06T10:00:00",
         "windows": [
@@ -146,8 +150,8 @@ CASES = [
         "title": "Charterer win — sustained storm (Force 8, ops prevented)",
         "summary": (
             "A 24-hour gale (Beaufort Force 8, heavy rain) shuts the berth. Port "
-            "records confirm sustained conditions above the BIMCO 2013 threshold "
-            "with operations prevented throughout, so the weather exception is "
+            "records confirm sustained conditions above the threshold in "
+            "Clause 3.2 with operations prevented throughout, so the weather exception is "
             "validly invoked and none of the disputed time is credited to owner."
         ),
         "vessel": "MV Pacific Crest",
@@ -162,6 +166,8 @@ CASES = [
         "nor_turn_hours": 6.0,
         "laytime_exception": "SHEX",
         "weather_clause": "WWD",
+        "weather_beaufort_threshold": 6,
+        "weather_precipitation_threshold_mm": 2.0,
         "load_start": "2026-08-10T04:00:00",
         "load_end": "2026-08-13T18:00:00",
         "windows": [
@@ -207,6 +213,8 @@ CASES = [
         "nor_turn_hours": 6.0,
         "laytime_exception": "SHEX",
         "weather_clause": "WWD",
+        "weather_beaufort_threshold": 6,
+        "weather_precipitation_threshold_mm": 2.0,
         "load_start": "2026-09-01T20:00:00",
         "load_end": "2026-09-05T20:00:00",
         "windows": [
@@ -298,15 +306,14 @@ def charterparty_lines(c: dict) -> list[str]:
         "",
         "Clause 3.2 — Threshold",
         "  The threshold for invocation of the weather exception under Clause 3.1 shall be",
-        "  conditions of Beaufort Force 6 or above sustained for the period claimed, or",
-        "  precipitation of sufficient intensity to halt cargo operations under prevailing",
-        "  port practice, in each case assessed in accordance with the BIMCO Laytime",
-        "  Definitions for Charter Parties 2013.",
+        "  conditions of Beaufort Force 6 or above, or precipitation of 2.0 mm/h or above,",
+        "  recorded for a majority of the hours of the period claimed, together with actual",
+        "  prevention of loading operations.",
         "",
         "Clause 4.1 — Once on Demurrage",
         "  Once on demurrage the Vessel shall remain on demurrage continuously until",
         "  completion of loading, save only where the weather exception under Clause 3.1 is",
-        "  validly invoked in accordance with the BIMCO 2013 thresholds.",
+        "  validly invoked in accordance with the threshold in Clause 3.2.",
         "",
         "Clause 5 — Notice of Readiness",
         f"  NOR may be tendered upon arrival at the port limits, whether in berth or not,",
@@ -415,8 +422,8 @@ def build_charterparty_terms(c: dict) -> dict:
         f"Laytime allowed for loading shall be {c['laytime_hours']:.0f} running hours, Sundays and Holidays excepted (SHEX).",
         f"The demurrage rate is USD {c['demurrage_rate']:,.0f} per running day and pro rata, payable by the Charterers.",
         "Time lost on account of weather shall not count as laytime, provided that such weather actually prevented loading operations.",
-        "The threshold for invocation of the weather exception under Clause 3.1 shall be conditions of Beaufort Force 6 or above sustained for the period claimed, assessed per BIMCO Laytime Definitions 2013.",
-        "Once on demurrage the Vessel shall remain on demurrage continuously until completion of loading, save only where the weather exception under Clause 3.1 is validly invoked per BIMCO 2013.",
+        f"The threshold for invocation of the weather exception under Clause 3.1 shall be conditions of Beaufort Force {c['weather_beaufort_threshold']} or above, or precipitation of {c['weather_precipitation_threshold_mm']:.1f} mm/h or above, recorded for a majority of the hours of the period claimed, together with actual prevention of loading operations.",
+        "Once on demurrage the Vessel shall remain on demurrage continuously until completion of loading, save only where the weather exception under Clause 3.1 is validly invoked in accordance with the threshold in Clause 3.2.",
         f"NOR may be tendered upon arrival at the port limits, whether in berth or not, and shall be deemed accepted {c['nor_turn_hours']:.0f} hours after tender.",
     ]
     return {
@@ -432,7 +439,12 @@ def build_charterparty_terms(c: dict) -> dict:
         "nor_turn_time_hours": c["nor_turn_hours"],
         "laytime_exception": c["laytime_exception"],
         "weather_clause": c["weather_clause"],
-        "rule_authority": "BIMCO_2013",
+        "weather_beaufort_threshold": c["weather_beaufort_threshold"],
+        "weather_precipitation_threshold_mm": c["weather_precipitation_threshold_mm"],
+        # None of these charterparties incorporates a ruleset by its own words, so
+        # the extracted authority is "custom" rather than a ruleset the document
+        # never names.
+        "rule_authority": "custom",
         "clauses": [
             {"page": 2 + i, "bbox": list(ZERO_BBOX), "text": t}
             for i, t in enumerate(clause_texts)
@@ -455,11 +467,11 @@ def manifest_md(c: dict) -> str:
 
 | File | Role | Format modelled on |
 |------|------|--------------------|
-| `charterparty.pdf` | Voyage charter party (extract) | GENCON 1994 clause structure + BIMCO 2013 WWD wording |
+| `charterparty.pdf` | Voyage charter party (extract) | GENCON 1994 clause structure + a bespoke weather-exception clause |
 | `sof_owner.pdf` | Owners' Statement of Facts | Standard SOF event log |
 | `sof_charterer.pdf` | Charterers' Statement of Facts | Standard SOF event log (includes weather delays) |
-| `claim_owner.pdf` | Owners' demurrage claim | BIMCO-style claim statement |
-| `claim_charterer.pdf` | Charterers' counter-statement | BIMCO-style claim statement |
+| `claim_owner.pdf` | Owners' demurrage claim | Laytime claim statement |
+| `claim_charterer.pdf` | Charterers' counter-statement | Laytime claim statement |
 | `weather_port_xyz.json` | Independent port weather records | Hourly observation series |
 
 The figures are hand-authored ("real docs + crafted numbers") so the case ties
@@ -471,7 +483,8 @@ extraction (cache-first path) used by the deterministic checking loop.
 - Load port: **{c['load_port']}** ({c['lat']}, {c['lon']})
 - Laytime allowance: **{c['laytime_hours']:.0f} h**, exception **{c['laytime_exception']}**
 - Demurrage: **USD {c['demurrage_rate']:,.0f}/day** (= USD {c['demurrage_rate']/24:,.2f}/h)
-- Weather clause: **{c['weather_clause']}**, authority **BIMCO 2013**
+- Weather clause: **{c['weather_clause']}** — a charterparty drafting label, not a definition of any ruleset. Weather-working threshold: **Beaufort Force {c['weather_beaufort_threshold']} or {c["weather_precipitation_threshold_mm"]:.1f} mm/h**, this charterparty's own term in its threshold clause.
+- Ruleset incorporated: **none** — this charterparty cites no ruleset, so the reconciliation's authority is `custom` and each weather verdict's authority is Keel's own policy against that clause. The threshold is the contract's own term and the share of hours that must meet it is this product's own policy; no ruleset supplies either.
 
 ## Hand-computed working
 

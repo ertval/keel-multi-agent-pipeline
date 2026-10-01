@@ -1,8 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-test("login reaches the dashboard", async ({ page }) => {
+test("landing page reaches the login flow and then the dashboard", async ({ page }) => {
   await page.goto("/");
 
+  await expect(page).toHaveURL(/\/$/);
+  await expect(
+    page.getByRole("heading", { name: /Bringing Deterministic/i })
+  ).toBeVisible();
+
+  await page.getByRole("banner").getByRole("link", { name: "Client Portal" }).click();
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole("heading", { name: "Keel" })).toBeVisible();
   await page.getByRole("button", { name: /Enter Demo Mode/i }).click();
@@ -29,7 +35,7 @@ test("dashboard can start a demo voyage and show the audited total", async ({ pa
 
   await page.getByRole("link", { name: /View Reconciliation/i }).click();
   await expect(page).toHaveURL(/\/voyage\/voyage_001\/reconcile$/);
-  await expect(page.getByText("Per-day verdicts")).toBeVisible();
+  await expect(page.getByText("Per-day assessments")).toBeVisible();
   await expect(page.locator("#reconciled-total-display")).toHaveText("$112,000");
 });
 
@@ -40,5 +46,24 @@ test("sidebar voyages link navigates to the voyages list", async ({ page }) => {
 
   await page.getByRole("link", { name: "Voyages" }).click();
   await expect(page).toHaveURL(/\/voyages$/);
+  // `/voyages` and `/dashboard` render the same component, so the heading is the
+  // only thing that tells them apart. "Recent Voyages" appears on both.
+  await expect(page.getByRole("heading", { name: "Voyages", level: 1 })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Dashboard", level: 1 })
+  ).toHaveCount(0);
   await expect(page.getByText("Recent Voyages")).toBeVisible();
+});
+
+test("the dashboard is the only list that draws the analytics panels", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByRole("button", { name: /Enter Demo Mode/i }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+
+  await expect(page.getByText("Voyage Claims Comparison").first()).toBeVisible();
+  await expect(page.getByText("Fleet Audit Status")).toBeVisible();
+
+  await page.getByRole("link", { name: "Voyages" }).click();
+  await expect(page).toHaveURL(/\/voyages$/);
+  await expect(page.getByText("Fleet Audit Status")).toHaveCount(0);
 });

@@ -18,15 +18,26 @@ def _dt(s: str) -> datetime:
 
 def test_loads_all_96_observations() -> None:
     provider = FixtureWeatherProvider(FIXTURE_DIR)
-    all_obs = provider.get(0.0, 0.0, _dt("2026-06-14T00:00:00"), _dt("2026-06-17T23:00:00"))
+    # The window is half-open, [start, end), so four days of hourly records
+    # run to midnight at the end of the fourth day.
+    all_obs = provider.get(0.0, 0.0, _dt("2026-06-14T00:00:00"), _dt("2026-06-18T00:00:00"))
     assert len(all_obs) == 96
 
 
 def test_window_filter_returns_correct_subset() -> None:
     provider = FixtureWeatherProvider(FIXTURE_DIR)
-    # June 16 00:00 → June 17 12:00 = 37 hours inclusive
+    # June 16 00:00 → June 17 12:00 = 36 hours, counted [start, end)
     obs = provider.get(0.0, 0.0, _dt("2026-06-16T00:00:00"), _dt("2026-06-17T12:00:00"))
-    assert len(obs) == 37
+    assert len(obs) == 36
+
+
+def test_window_filter_excludes_the_end_instant() -> None:
+    """The claimed period runs to the end instant; an observation timestamped
+    exactly there belongs to the next period and must not widen the majority
+    denominator beyond the hours being adjudicated."""
+    provider = FixtureWeatherProvider(FIXTURE_DIR)
+    obs = provider.get(0.0, 0.0, _dt("2026-06-16T00:00:00"), _dt("2026-06-17T12:00:00"))
+    assert all(o.timestamp < _dt("2026-06-17T12:00:00") for o in obs)
 
 
 def test_force_7_hours_in_window() -> None:

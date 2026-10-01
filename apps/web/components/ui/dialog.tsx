@@ -39,10 +39,56 @@ function DialogOverlay({
   )
 }
 
+const FOCUSABLE = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",")
+
+function tabbableWithin(container: HTMLElement): HTMLElement[] {
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+    (el) => !el.hasAttribute("hidden") && el.getAttribute("aria-hidden") !== "true"
+  )
+}
+
+
+/**
+ * Keep Tab inside the popup. The base primitive moves focus in on open and
+ * closes on Escape, but its sentinels are not reachable in this app's portal,
+ * so Tab walks out to the page behind while the dialog is still open — the
+ * same defect the hand-rolled overlays had. `aria-modal` is only true while
+ * this holds.
+ */
+function containTab(event: React.KeyboardEvent<HTMLElement>) {
+  if (event.key !== "Tab" || event.defaultPrevented) return
+  const popup = event.currentTarget
+  const items = tabbableWithin(popup)
+  if (items.length === 0) {
+    event.preventDefault()
+    return
+  }
+  const first = items[0]
+  const last = items[items.length - 1]
+  const active = document.activeElement
+  if (event.shiftKey) {
+    if (active === first || !popup.contains(active)) {
+      event.preventDefault()
+      last.focus()
+    }
+  } else if (active === last || !popup.contains(active)) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
 function DialogContent({
   className,
   children,
   showCloseButton = true,
+  onKeyDown,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
@@ -52,10 +98,15 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Popup
         data-slot="dialog-content"
+        aria-modal="true"
         className={cn(
           "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className
         )}
+        onKeyDown={(event) => {
+          containTab(event)
+          onKeyDown?.(event)
+        }}
         {...props}
       >
         {children}

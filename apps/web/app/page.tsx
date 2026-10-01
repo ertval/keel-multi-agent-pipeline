@@ -1,569 +1,632 @@
-"use client";
-
-import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
-  Ship,
-  ArrowRight,
-  CheckCircle2,
-  Mail,
-  FileText,
-  LayoutGrid,
-  ShieldCheck,
-  Layers,
-  Menu,
-  X,
-  Play,
-} from "lucide-react";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-function KeelLogo({ showTagline = true, className = "" }: { showTagline?: boolean; className?: string }) {
+const LABEL =
+  "text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground";
+const HAIRLINE = "border-foreground/15";
+const RULE = "border-foreground/30";
+const FOCUS =
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+const PRESS =
+  "transition-[transform,background-color,border-color,color] duration-200 ease-out active:scale-[0.98] motion-reduce:transition-none";
+const REVEAL =
+  "motion-safe:[animation:fadeIn_0.45s_cubic-bezier(0.23,1,0.32,1)_both]";
+
+const FIXTURE_FACTS = [
+  ["Voyage", "voyage_001"],
+  ["Vessel", "MV Hellenic Pioneer"],
+  ["Port", "Piraeus"],
+  ["Laytime allowed", "72 running hours, Sundays and holidays excepted"],
+  ["Demurrage", "$50,000 per running day"],
+  ["Weather threshold", "Beaufort 6, or 2.0 mm/h"],
+];
+
+const STEPS = [
+  {
+    n: "01",
+    title: "Read",
+    body: "The charterparty and both statements of facts are parsed in a separate process under a page and memory limit. A language model extracts the text into fixed schemas and cites the document and page each term came from.",
+  },
+  {
+    n: "02",
+    title: "Measure",
+    body: "Each party's account runs through the same state machine: before notice of readiness, on laytime, weather pause, on demurrage. Every dollar in this product is arithmetic in that file, not a number a model produced.",
+  },
+  {
+    n: "03",
+    title: "Check",
+    body: "A validator re-checks the extracted terms and coordinates against each other and can send them back to the worker that produced them, three times at most.",
+  },
+  {
+    n: "04",
+    title: "Test and reconcile",
+    body: "Every disputed weather window is tested against the threshold the charterparty itself sets, then the difference between the two accounts is reconciled to a single number, shown as the arithmetic behind it.",
+  },
+  {
+    n: "05",
+    title: "Draft",
+    body: "A settlement letter is rendered as HTML from the reconciled figure, naming the charterparty clause behind every item it settles.",
+  },
+];
+
+const RUNS = [
+  "An agent graph: an orchestrator, a charterparty worker, a statements-of-facts worker, a validator, the laytime engine, and the step that weighs both positions.",
+  "A pure-Python state machine producing every figure on this page.",
+  "Per-day verdicts that name the document and page each number was read from.",
+  "A settlement letter rendered as HTML from the reconciled figure.",
+  "One voyage, the fixture. There is no customer data in this build.",
+];
+
+const DOES_NOT_RUN = [
+  "Accounts and sign-in. The entry page sets a flag in your browser; nothing is checked and no account exists.",
+  "Sending the letter anywhere. It renders on screen and stops there.",
+  "PDF export. The letter endpoint returns HTML only.",
+  "A human review step between the calculation and the reconciled figure.",
+  "A live weather feed. The port record is a file you supply.",
+  "On-screen previews of the source documents. This checkout carries no PDF bytes to draw, though the citations name the document and page.",
+];
+
+const DISPUTED_DAYS = [
+  {
+    date: "14 Jun 2026",
+    claimed: "12 h",
+    adverse: "0 of 12",
+    weather: "Beaufort 5 · 0.4 mm/h",
+    winner: "Owner",
+    credited: "$25,000",
+    colour: "owner",
+  },
+  {
+    date: "15 Jun 2026",
+    claimed: "12 h",
+    adverse: "0 of 12",
+    weather: "Beaufort 4 · 0.1 mm/h",
+    winner: "Owner",
+    credited: "$25,000",
+    colour: "owner",
+  },
+  {
+    date: "16 Jun 2026",
+    claimed: "36 h",
+    adverse: "36 of 36",
+    weather: "Beaufort 7 · 5.6 mm/h",
+    winner: "Charterer",
+    credited: "$0",
+    colour: "charterer",
+  },
+] as const;
+
+const MARGIN_CLASS = "border-l-2 pl-4 sm:pl-5";
+const OWNER_RULE = "border-l-[hsl(var(--owner))]";
+const CHARTERER_RULE = "border-l-[hsl(var(--charterer))]";
+const OWNER_MARK = "bg-[hsl(var(--owner))]";
+const CHARTERER_MARK = "bg-[hsl(var(--charterer))]";
+
+function Wordmark() {
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <div className="relative w-10 h-10 flex-shrink-0">
-        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-          <rect x="15" y="10" width="12" height="80" rx="3" className="fill-slate-900 dark:fill-white transition-colors duration-300" />
-          <path
-            d="M27 50 L75 10 L45 50 L80 90 Z"
-            fill="url(#keel-gradient)"
-          />
-          <defs>
-            <linearGradient id="keel-gradient" x1="27" y1="50" x2="80" y2="90" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#1e3a8a" />
-              <stop offset="50%" stopColor="#0052cc" />
-              <stop offset="100%" stopColor="#00a2ff" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-      <div className="flex flex-col">
-        <span className="font-display text-xl font-bold tracking-[0.3em] text-slate-900 dark:text-white uppercase leading-none transition-colors duration-300">
+    <span className="flex items-center gap-2.5">
+      <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-[3px] border border-foreground/15 bg-white">
+        <Image
+          src="/logo.png"
+          alt=""
+          width={30}
+          height={30}
+          unoptimized
+          className="size-[1.875rem]"
+        />
+      </span>
+      <span className="flex flex-col leading-none">
+        <span className="font-display text-[1.0625rem] font-extrabold tracking-[-0.02em]">
           Keel
         </span>
-        {showTagline && (
-          <span className="text-[8px] tracking-[0.2em] text-slate-500 dark:text-slate-400 font-semibold uppercase mt-1 leading-none transition-colors duration-300">
-            Operational Intelligence
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/** Signature element: ruled three-column ledger for the canonical fixture. */
-function WorkedExampleLedger({ className = "" }: { className?: string }) {
-  return (
-    <figure className={`border border-[var(--border)] bg-[var(--card)] ${className}`}>
-      <figcaption className="px-4 py-2.5 border-b border-[var(--border)] flex items-center justify-between gap-3">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-          Worked example, not a portfolio.
+        <span className="mt-1 text-[0.625rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+          Maritime intelligence
         </span>
-        <span className="mono text-[10px] text-slate-400 dark:text-slate-500">voyage_001</span>
-      </figcaption>
-      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[var(--border)]">
-        <div className="px-5 py-5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400 mb-2">
-            Owner claim
-          </p>
-          <p className="mono text-2xl md:text-3xl font-medium tracking-tight text-[hsl(var(--owner))]">
-            $187,000
-          </p>
-        </div>
-        <div className="px-5 py-5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400 mb-2">
-            Charterer figure
-          </p>
-          <p className="mono text-2xl md:text-3xl font-medium tracking-tight text-[hsl(var(--charterer))]">
-            $62,000
-          </p>
-        </div>
-        <div className="px-5 py-5 bg-[var(--surface-2)]/50">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400 mb-2">
-            Reconciled total
-          </p>
-          <p className="mono text-2xl md:text-3xl font-medium tracking-tight text-slate-950 dark:text-white">
-            $112,000
-          </p>
-        </div>
-      </div>
-    </figure>
+      </span>
+    </span>
   );
 }
 
-const focusRing =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--keel-primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]";
-
-export default function CorporateHomePage() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [demoModalOpen, setDemoModalOpen] = useState(false);
-  const [emailInput, setEmailInput] = useState("");
-
+export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300 selection:bg-cyan-500/30 selection:text-cyan-800 dark:selection:text-cyan-200 relative overflow-hidden font-sans">
-      {/* Ambient atmosphere — keel blue / cyan only */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/5 dark:bg-blue-900/10 blur-[120px] transition-colors duration-300" />
-        <div className="absolute bottom-[20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-cyan-500/5 dark:bg-cyan-950/20 blur-[150px] transition-colors duration-300" />
-      </div>
+    <div className="min-h-dvh overflow-x-clip bg-background text-foreground selection:bg-[hsl(var(--owner))]/20">
+      <a
+        href="#main"
+        className={`sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-20 focus:rounded-sm focus:border focus:border-foreground/30 focus:bg-background focus:px-4 focus:py-3 focus:text-sm focus:font-medium ${FOCUS}`}
+      >
+        Skip to content
+      </a>
 
-      <div className="absolute inset-0 bg-[linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] bg-[size:48px_48px] opacity-[0.4] dark:opacity-[0.15] pointer-events-none z-0 transition-opacity duration-300" />
-
-      {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-[var(--background)]/85 border-b border-[var(--border)] transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link href="/" className={`rounded-sm ${focusRing}`}>
-            <KeelLogo />
+      <header className="sticky top-0 z-10 border-b border-foreground/15 bg-background/85 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-[82rem] items-center gap-6 px-5 sm:h-[4.5rem] sm:px-8">
+          <Link
+            href="/"
+            className={`inline-flex min-h-11 items-center rounded-sm ${FOCUS}`}
+          >
+            <Wordmark />
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#mission" className={`text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-sm ${focusRing}`}>Mission</a>
-            <a href="#offerings" className={`text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-sm ${focusRing}`}>Offerings</a>
-            <a href="#values" className={`text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-sm ${focusRing}`}>Values</a>
-            <a href="#company" className={`text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-sm ${focusRing}`}>HQ</a>
+          <nav
+            aria-label="Sections"
+            className="ml-auto hidden items-center gap-6 lg:flex"
+          >
+            {[
+              ["The reconciliation", "#ledger"],
+              ["The method", "#method"],
+              ["This build", "#build"],
+            ].map(([label, href]) => (
+              <a
+                key={href}
+                href={href}
+                className={`inline-flex min-h-11 items-center whitespace-nowrap text-sm text-muted-foreground hover:text-foreground ${FOCUS} ${PRESS}`}
+              >
+                {label}
+              </a>
+            ))}
           </nav>
 
-          <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle />
+          <div className="ml-auto flex items-center gap-2 lg:ml-0">
+            <span className="inline-flex min-h-11 min-w-11 items-center justify-center">
+              <ThemeToggle />
+            </span>
             <Link
               href="/login"
-              className={`text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--card)] hover:bg-[var(--surface-2)] transition-all duration-200 ${focusRing}`}
+              className={`hidden min-h-11 shrink-0 items-center whitespace-nowrap rounded-sm border border-foreground/30 px-4 text-sm font-medium hover:bg-foreground/5 sm:inline-flex ${FOCUS} ${PRESS}`}
             >
               Client Portal
             </Link>
             <Link
-              href="/register"
-              className={`text-sm font-semibold text-white bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 hover:opacity-95 px-5 py-2.5 rounded-lg shadow-lg shadow-blue-500/10 transition-all duration-200 ${focusRing}`}
+              href="/login"
+              className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-sm bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/85 ${FOCUS} ${PRESS}`}
             >
-              Request Enterprise Trial
+              Enter Demo Mode
             </Link>
           </div>
-
-          <div className="flex items-center gap-3 md:hidden">
-            <ThemeToggle />
-            <button
-              type="button"
-              aria-expanded={mobileMenuOpen}
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-sm ${focusRing}`}
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
         </div>
-
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-[var(--background)] border-b border-[var(--border)] px-6 py-6 flex flex-col gap-6">
-            <nav className="flex flex-col gap-4">
-              <a href="#mission" onClick={() => setMobileMenuOpen(false)} className={`text-base font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-sm ${focusRing}`}>Mission</a>
-              <a href="#offerings" onClick={() => setMobileMenuOpen(false)} className={`text-base font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-sm ${focusRing}`}>Offerings</a>
-              <a href="#values" onClick={() => setMobileMenuOpen(false)} className={`text-base font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-sm ${focusRing}`}>Values</a>
-              <a href="#company" onClick={() => setMobileMenuOpen(false)} className={`text-base font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors rounded-sm ${focusRing}`}>HQ</a>
-            </nav>
-            <div className="flex flex-col gap-3 pt-4 border-t border-[var(--border)]">
-              <Link href="/login" className={`w-full text-center text-sm font-semibold text-slate-700 dark:text-slate-300 py-3 border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--surface-2)] rounded-lg transition-all ${focusRing}`}>
-                Client Portal
-              </Link>
-              <Link href="/register" className={`w-full text-center text-sm font-semibold text-white bg-gradient-to-r from-blue-700 to-cyan-500 py-3 rounded-lg transition-all ${focusRing}`}>
-                Request Enterprise Trial
-              </Link>
-            </div>
-          </div>
-        )}
       </header>
 
-      {/* Hero */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 pt-16 md:pt-24 pb-20 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-        <div className="lg:col-span-6 flex flex-col gap-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-blue-200/50 dark:border-blue-900/50 bg-blue-50/40 dark:bg-blue-950/40 text-xs font-semibold text-blue-700 dark:text-cyan-400 w-fit transition-colors duration-300">
-            <span>Charterer-side demurrage audit · Alpha</span>
-          </div>
+      <main id="main">
+        <section className="mx-auto max-w-[82rem] px-5 pb-16 pt-14 sm:px-8 sm:pb-20 sm:pt-20">
+          <div className="grid grid-cols-1 gap-x-12 gap-y-12 lg:grid-cols-12">
+            <div className="lg:col-span-8">
+              <p className={`${LABEL} ${REVEAL}`}>Laytime and demurrage</p>
 
-          <h1 className="font-display text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold tracking-tight text-slate-950 dark:text-white leading-[1.12] transition-colors duration-300">
-            Owner claims $187,000.{" "}
-            <span className="text-slate-600 dark:text-slate-300">Charterer holds $62,000.</span>{" "}
-            <span className="bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 dark:from-blue-400 dark:via-cyan-400 dark:to-cyan-300 bg-clip-text text-transparent">
-              Keel cites $112,000—on one voyage.
-            </span>
-          </h1>
-
-          <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 leading-relaxed max-w-xl transition-colors duration-300">
-            Charterer-side laytime and demurrage reconciliation. Upload the owner claim, charterparty, and statement of facts; Keel applies BIMCO 2013 weather-working-day thresholds and returns a cited reconciled total. Output is advisory.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-            <Link
-              href="/register"
-              className={`px-8 py-4 bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-500 hover:opacity-95 text-white font-semibold rounded-xl text-center shadow-lg shadow-blue-600/20 transition-opacity duration-300 ${focusRing}`}
-            >
-              Request Enterprise Trial
-            </Link>
-            <button
-              type="button"
-              onClick={() => setDemoModalOpen(true)}
-              className={`flex items-center justify-center gap-2 px-8 py-4 border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--surface-2)] text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-semibold rounded-xl transition-colors duration-300 ${focusRing}`}
-            >
-              <Play size={16} />
-              Watch 90s Demo
-            </button>
-          </div>
-        </div>
-
-        {/* Hero mock — ledger + weather threshold panel */}
-        <div className="lg:col-span-6 w-full">
-          <div className="relative border border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-xl p-5 md:p-6 shadow-2xl shadow-slate-950/10 dark:shadow-slate-950/50">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-[var(--border)]">
-              <div className="flex gap-1.5" aria-hidden="true">
-                <span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700" />
-                <span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700" />
-                <span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700" />
-              </div>
-              <span className="mono text-[11px] text-slate-400 dark:text-slate-500">keel · worked example</span>
-            </div>
-
-            <WorkedExampleLedger className="mb-5" />
-
-            <div className="border border-[var(--border)] bg-[var(--background)]/80 p-4 mb-5">
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <h2 className="text-xs font-bold text-slate-800 dark:text-slate-300">June 16 · WWD threshold test</h2>
-                <span className="shrink-0 px-2 py-0.5 border border-amber-500/25 bg-amber-500/10 text-[10px] text-amber-700 dark:text-amber-400 font-semibold uppercase tracking-wider">
-                  Disputed day
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed mb-3">
-                Threshold test on observations in the file—Beaufort and precipitation versus BIMCO 2013 WWD thresholds. Not proof the log is true.
-              </p>
-              <div className="flex flex-col gap-1.5 text-[11px] mono">
-                <div className="flex justify-between gap-4 text-slate-500">
-                  <span>Wind (Beaufort)</span>
-                  <span className="text-amber-700 dark:text-amber-400 font-medium text-right">Force 7 · threshold ≥ 6</span>
-                </div>
-                <div className="flex justify-between gap-4 text-slate-500">
-                  <span>Precipitation</span>
-                  <span className="text-amber-700 dark:text-amber-400 font-medium text-right">3.2 mm/h · threshold ≥ 2.0</span>
-                </div>
-                <div className="flex justify-between gap-4 font-medium border-t border-[var(--border)] pt-1.5 mt-1 text-[hsl(var(--owner))]">
-                  <span>BIMCO 2013 WWD</span>
-                  <span className="text-right">Exception met · clock pauses</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-4 p-4 border border-[var(--border)] bg-[var(--surface-2)]/40">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="p-2 border border-[var(--border)] bg-[var(--card)] text-[hsl(var(--owner))] shrink-0">
-                  <ShieldCheck size={18} />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">
-                    Worked-example reconciled total
-                  </span>
-                  <span className="mono text-2xl font-medium text-slate-950 dark:text-white tracking-tight">$112,000</span>
-                </div>
-              </div>
-              <span className="hidden sm:inline text-[10px] font-semibold uppercase tracking-wider text-slate-500 border border-[var(--border)] bg-[var(--card)] px-2.5 py-1 shrink-0">
-                Cited · advisory
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Mission + worked-example ledger (replaces fake portfolio stats) */}
-      <section id="mission" className="relative z-10 border-t border-[var(--border)] bg-[var(--surface-2)]/40 py-20 md:py-28">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          <div className="lg:col-span-5 flex flex-col gap-6">
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-cyan-400 block">The dispute</span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-slate-950 dark:text-white leading-tight">
-              One voyage. Three figures. Sources required.
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400 text-sm md:text-base leading-relaxed">
-              When an owner issues a $187,000 demurrage claim and the charterer&apos;s figure is $62,000, the gap is not a slogan—it is a spreadsheet fight. Keel is built for the charterer side: ingest both positions, test disputed weather days against BIMCO 2013 WWD thresholds on the observations in the file, and surface a cited reconciled total. Advisory output; not a binding determination.
-            </p>
-            <div className="pt-2">
-              <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-3">Operating hubs</p>
-              <div className="flex items-center gap-6 text-sm font-medium text-slate-700 dark:text-slate-300">
-                <span className="flex items-center gap-1.5"><Ship size={14} className="text-blue-500" /> Piraeus</span>
-                <span className="flex items-center gap-1.5"><Ship size={14} className="text-cyan-500" /> London</span>
-                <span className="flex items-center gap-1.5"><Ship size={14} className="text-blue-400" /> Singapore</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-7">
-            <WorkedExampleLedger />
-            <p className="mt-4 text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl">
-              Canonical fixture used in product demos. Not a claim about portfolio volume, speed, or accuracy rates.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Offerings */}
-      <section id="offerings" className="relative z-10 py-20 md:py-28 max-w-7xl mx-auto px-6">
-        <div className="text-center max-w-3xl mx-auto mb-16 flex flex-col gap-4">
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-cyan-400 block">Offerings</span>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-slate-950 dark:text-white leading-tight">
-            What is live in alpha—and what is not.
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm md:text-base">
-            Honest status for charterer-side demurrage audit. No dated roadmaps; no clauses we do not ship.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          {/* LIVE — core platform */}
-          <div className="md:col-span-12 lg:col-span-7 p-8 border border-[var(--border)] bg-[var(--card)] relative overflow-hidden flex flex-col justify-between min-h-[320px] group hover:border-blue-500/40 dark:hover:border-slate-600 transition-colors duration-300">
-            <div className="absolute top-0 right-0 p-6">
-              <span className="px-3 py-1 border border-emerald-500/25 bg-emerald-500/10 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                Live
-              </span>
-            </div>
-            <div className="flex flex-col gap-4 max-w-lg">
-              <div className="p-3 border border-[var(--border)] bg-blue-500/10 text-blue-600 dark:text-cyan-400 w-fit">
-                <Ship size={24} />
-              </div>
-              <h3 className="text-xl font-bold text-slate-950 dark:text-white">Claims intake &amp; demurrage audit</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Ingest owner claims, charterparty, and statement-of-facts PDFs. Side-by-side reconciliation on the voyage page with click-to-source highlights. BIMCO 2013 WWD threshold checks on disputed weather days. Export a claim letter with the cited reconciled total.
-              </p>
-            </div>
-            <div className="pt-6">
-              <Link
-                href="/register"
-                className={`inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 dark:text-cyan-400 hover:text-blue-700 dark:hover:text-cyan-300 transition-colors rounded-sm ${focusRing}`}
+              <h1
+                className={`mt-5 max-w-[19ch] font-display text-[clamp(2.375rem,1.35rem+3.9vw,4rem)] font-semibold leading-[1.04] tracking-[-0.025em] text-balance ${REVEAL} motion-safe:[animation-delay:60ms]`}
               >
-                Access alpha portal
-                <ArrowRight size={16} />
+                Bringing deterministic arithmetic to a demurrage claim.
+              </h1>
+
+              <p
+                className={`mt-7 max-w-[60ch] text-base leading-relaxed text-pretty text-muted-foreground motion-safe:text-foreground/80 ${REVEAL} motion-safe:[animation-delay:120ms]`}
+              >
+                Keel reads a charterparty and both parties&apos; statements of
+                facts, runs each account through the same state machine, tests
+                every disputed weather window against the threshold the
+                charterparty itself sets, and reconciles the difference to one
+                number. A language model extracts the text. It never writes a
+                figure.
+              </p>
+
+              <div
+                className={`mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center ${REVEAL} motion-safe:[animation-delay:180ms]`}
+              >
+                <Link
+                  href="/login"
+                  className={`inline-flex min-h-12 shrink-0 items-center justify-center whitespace-nowrap rounded-sm bg-primary px-6 text-sm font-semibold text-primary-foreground hover:bg-primary/85 ${FOCUS} ${PRESS}`}
+                >
+                  Enter Demo Mode
+                </Link>
+                <Dialog>
+                  <DialogTrigger
+                    render={
+                      <Button
+                        variant="outline"
+                        className={`min-h-12 rounded-sm border-foreground/30 bg-transparent px-6 text-sm hover:bg-foreground/5 hover:text-foreground ${FOCUS} ${PRESS}`}
+                      />
+                    }
+                  >
+                    How the Demo Works
+                  </DialogTrigger>
+                  <DialogContent className="max-w-xl gap-5 p-6">
+                    <DialogHeader>
+                      <DialogTitle className="font-display text-lg font-semibold">
+                        How the demo works
+                      </DialogTitle>
+                      <DialogDescription>
+                        There is no recorded video for this build. In the
+                        workspace, open the new-voyage dialog and run the
+                        bundled fixture: a charterparty and two statements of
+                        facts are parsed, the terms are extracted into fixed
+                        schemas, a state machine computes each party&apos;s
+                        laytime, and each disputed weather window is tested
+                        against the threshold on page 3 of the charterparty.
+                        Every figure carries the document and page it was read
+                        from.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                      <DialogClose
+                        render={
+                          <Button
+                            variant="outline"
+                            className={`min-h-11 rounded-sm border-foreground/30 ${FOCUS} ${PRESS}`}
+                          />
+                        }
+                      >
+                        Close
+                      </DialogClose>
+                      <Link
+                        href="/login"
+                        className={`inline-flex min-h-11 items-center justify-center rounded-sm bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/85 ${FOCUS} ${PRESS}`}
+                      >
+                        Enter Demo Mode
+                      </Link>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                <Link
+                  href="/login"
+                  className={`inline-flex min-h-11 items-center justify-center text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground sm:hidden ${FOCUS} ${PRESS}`}
+                >
+                  Client Portal
+                </Link>
+              </div>
+            </div>
+
+            <aside className="lg:col-span-3 lg:col-start-10">
+              <p className={`${LABEL} border-b ${RULE} pb-3`}>
+                The fixture
+              </p>
+              <dl className="mt-4 space-y-4">
+                {FIXTURE_FACTS.map(([term, value]) => (
+                  <div key={term} className="grid gap-1">
+                    <dt className="text-xs text-muted-foreground">{term}</dt>
+                    <dd className="font-mono text-[0.8125rem] leading-relaxed tabular-nums">
+                      {value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </aside>
+          </div>
+        </section>
+
+        <section
+          id="ledger"
+          aria-labelledby="ledger-heading"
+          className="border-y border-foreground/15 bg-[hsl(var(--surface-2))]/60"
+        >
+          <div className="mx-auto max-w-[82rem] px-5 py-16 sm:px-8 sm:py-20">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <h2
+                id="ledger-heading"
+                className="font-display text-[clamp(1.625rem,1.2rem+1.6vw,2.25rem)] font-semibold leading-tight tracking-[-0.02em] text-balance"
+              >
+                The reconciliation, in full
+              </h2>
+              <p className={`${LABEL} shrink-0`}>
+                voyage_001 · MV Hellenic Pioneer · Piraeus
+              </p>
+            </div>
+
+            <div className="mt-10 border-t-2 border-foreground/35">
+              <div
+                className={`grid grid-cols-1 items-baseline gap-x-8 gap-y-1 border-b ${HAIRLINE} py-5 motion-safe:[animation:fadeIn_0.45s_cubic-bezier(0.23,1,0.32,1)_both] motion-safe:[animation-delay:60ms] sm:grid-cols-[1fr_auto] ${MARGIN_CLASS} ${OWNER_RULE}`}
+              >
+                <div>
+                  <p className="font-display text-lg font-semibold">
+                    The shipowner&apos;s claim
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Aegean Shipping Co. · laytime exhausted, then demurrage
+                  </p>
+                </div>
+                <p className="font-mono text-[clamp(1.5rem,1.2rem+1.4vw,2rem)] font-medium leading-none tabular-nums sm:text-right">
+                  $187,000
+                </p>
+              </div>
+
+              <div
+                className={`grid grid-cols-1 items-baseline gap-x-8 gap-y-1 border-b ${HAIRLINE} py-5 motion-safe:[animation:fadeIn_0.45s_cubic-bezier(0.23,1,0.32,1)_both] motion-safe:[animation-delay:120ms] sm:grid-cols-[1fr_auto] ${MARGIN_CLASS} ${CHARTERER_RULE}`}
+              >
+                <div>
+                  <p className="font-display text-lg font-semibold">
+                    The charterer&apos;s computation
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Mediterranean Grains Ltd. · weather excluded on 16 June only
+                  </p>
+                </div>
+                <p className="font-mono text-[clamp(1.5rem,1.2rem+1.4vw,2rem)] font-medium leading-none tabular-nums sm:text-right">
+                  $62,000
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-12">
+              <p className={`${LABEL} border-b ${RULE} pb-3`}>
+                Three disputed days
+              </p>
+
+              <dl className="mt-2">
+                {DISPUTED_DAYS.map((day, index) => (
+                  <div
+                    key={day.date}
+                    className={`grid grid-cols-1 gap-x-8 gap-y-2 border-b ${HAIRLINE} py-5 motion-safe:[animation:fadeIn_0.45s_cubic-bezier(0.23,1,0.32,1)_both] lg:grid-cols-[8rem_1fr_auto] lg:items-baseline`}
+                    style={
+                      {
+                        animationDelay: `${180 + index * 60}ms`,
+                      } as React.CSSProperties
+                    }
+                  >
+                    <dt className="font-mono text-sm font-medium tabular-nums">
+                      {day.date}
+                    </dt>
+                    <dd className="grid grid-cols-1 gap-x-6 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-[7.5rem_10.5rem_1fr]">
+                      <span>
+                        <span className="text-muted-foreground">
+                          claimed{" "}
+                        </span>
+                        <span className="font-mono tabular-nums">
+                          {day.claimed}
+                        </span>
+                      </span>
+                      <span>
+                        <span className="text-muted-foreground">
+                          met threshold{" "}
+                        </span>
+                        <span className="font-mono tabular-nums">
+                          {day.adverse}
+                        </span>
+                      </span>
+                      <span>
+                        <span className="text-muted-foreground">weather </span>
+                        <span className="font-mono tabular-nums">
+                          {day.weather}
+                        </span>
+                      </span>
+                    </dd>
+                    <dd className="flex items-center gap-2 lg:justify-end">
+                      <span
+                        aria-hidden="true"
+                        className={`size-2 shrink-0 ${
+                          day.colour === "owner" ? OWNER_MARK : CHARTERER_MARK
+                        }`}
+                      />
+                      <span className="text-sm font-semibold">
+                        {day.winner}
+                      </span>
+                      <span className="font-mono text-sm tabular-nums text-muted-foreground">
+                        {day.credited}
+                      </span>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+
+              <p className="mt-5 max-w-[72ch] text-sm leading-relaxed text-pretty">
+                The threshold and the test come from clause 3.2 of the
+                charterparty, page 3: Beaufort 6 or above, or 2.0 mm/h or above.
+                A window is excepted once a majority of its observed hours reach
+                that threshold — Keel&apos;s own test, not one the Laytime
+                Definitions supply. What those Definitions do supply is the
+                measurement basis for an excepted period: the actual period of
+                interruption, definition 16 of the Laytime Definitions for
+                Charter Parties 2013.
+              </p>
+            </div>
+
+            <div className="mt-12 border-t-2 border-foreground/35 pt-6">
+              <div className="grid grid-cols-1 items-end gap-x-8 gap-y-4 sm:grid-cols-[1fr_auto]">
+                <div>
+                  <p className="font-display text-xl font-semibold">
+                    Reconciled
+                  </p>
+                  <p className="mt-2 max-w-[52ch] text-sm leading-relaxed text-pretty">
+                    $62,000 charterer base plus $50,000 for the items favouring
+                    the shipowner. The claim is reduced by $75,000.
+                  </p>
+                </div>
+                <p className="font-mono text-[clamp(2.5rem,1.2rem+5.4vw,4.5rem)] font-medium leading-[0.9] tracking-[-0.05em] tabular-nums sm:text-right">
+                  $112,000
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="method"
+          aria-labelledby="method-heading"
+          className="mx-auto max-w-[82rem] px-5 py-16 sm:px-8 sm:py-24"
+        >
+          <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-12">
+            <div className="lg:col-span-4">
+              <p className={LABEL}>The method</p>
+              <h2
+                id="method-heading"
+                className="mt-4 font-display text-[clamp(1.625rem,1.2rem+1.6vw,2.25rem)] font-semibold leading-tight tracking-[-0.02em] text-balance"
+              >
+                Five steps, and only one of them can produce a dollar.
+              </h2>
+            </div>
+
+            <ol className="lg:col-span-7 lg:col-start-6">
+              {STEPS.map((step) => (
+                <li
+                  key={step.n}
+                  className={`grid grid-cols-[2.5rem_1fr] gap-x-5 border-t ${HAIRLINE} py-6 sm:grid-cols-[3rem_9rem_1fr] sm:gap-x-6`}
+                >
+                  <span className="font-mono text-sm tabular-nums text-muted-foreground">
+                    {step.n}
+                  </span>
+                  <h3 className="font-display text-lg font-semibold">
+                    {step.title}
+                  </h3>
+                  <p className="col-start-2 text-sm leading-relaxed text-pretty sm:col-start-3">
+                    {step.body}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section
+          id="build"
+          aria-labelledby="build-heading"
+          className="border-y border-foreground/15 bg-[hsl(var(--surface-2))]/60"
+        >
+          <div className="mx-auto max-w-[82rem] px-5 py-16 sm:px-8 sm:py-20">
+            <p className={LABEL}>This build</p>
+            <h2
+              id="build-heading"
+              className="mt-4 max-w-[24ch] font-display text-[clamp(1.625rem,1.2rem+1.6vw,2.25rem)] font-semibold leading-tight tracking-[-0.02em] text-balance"
+            >
+              What runs here, and what does not.
+            </h2>
+
+            <div className="mt-10 grid grid-cols-1 gap-x-16 gap-y-10 md:grid-cols-2">
+              <div>
+                <h3 className="border-b border-foreground/30 pb-3 text-sm font-semibold">
+                  Runs in this build
+                </h3>
+                <ul className="mt-4 space-y-4">
+                  {RUNS.map((item) => (
+                    <li key={item} className="grid grid-cols-[1rem_1fr] gap-x-3">
+                      <span
+                        aria-hidden="true"
+                        className="pt-0.5 font-mono text-sm leading-6 text-muted-foreground"
+                      >
+                        +
+                      </span>
+                      <span className="text-sm leading-relaxed text-pretty">
+                        {item}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="border-b border-foreground/30 pb-3 text-sm font-semibold">
+                  Not in this build
+                </h3>
+                <ul className="mt-4 space-y-4">
+                  {DOES_NOT_RUN.map((item) => (
+                    <li key={item} className="grid grid-cols-[1rem_1fr] gap-x-3">
+                      <span
+                        aria-hidden="true"
+                        className="pt-0.5 font-mono text-sm leading-6 text-muted-foreground"
+                      >
+                        &ndash;
+                      </span>
+                      <span className="text-sm leading-relaxed text-pretty">
+                        {item}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-[82rem] px-5 py-16 sm:px-8 sm:py-24">
+          <div className="grid grid-cols-1 items-start gap-x-12 gap-y-8 lg:grid-cols-12">
+            <div className="lg:col-span-7">
+              <h2 className="font-display text-[clamp(1.75rem,1.3rem+1.8vw,2.5rem)] font-semibold leading-tight tracking-[-0.02em] text-balance">
+                Run the fixture voyage end to end.
+              </h2>
+            </div>
+            <div className="lg:col-span-4 lg:col-start-9">
+              <p className="text-sm leading-relaxed text-pretty">
+                The demo parses the bundled Piraeus documents, computes both
+                parties&apos; laytime, tests each disputed weather window and
+                reconciles the difference. It needs no key and creates no
+                account.
+              </p>
+              <Link
+                href="/login"
+                className={`mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-sm bg-primary px-6 text-sm font-semibold text-primary-foreground hover:bg-primary/85 sm:w-auto ${FOCUS} ${PRESS}`}
+              >
+                Enter Demo Mode
               </Link>
             </div>
           </div>
+        </section>
+      </main>
 
-          {/* LIVE qualified — orchestrator */}
-          <div className="md:col-span-12 lg:col-span-5 p-8 border border-[var(--border)] bg-[var(--card)] relative overflow-hidden flex flex-col justify-between min-h-[320px] group hover:border-blue-500/40 dark:hover:border-slate-600 transition-colors duration-300">
-            <div className="absolute top-0 right-0 p-6">
-              <span className="px-3 py-1 border border-amber-500/25 bg-amber-500/10 text-xs font-semibold text-amber-700 dark:text-amber-400">
-                Live · alpha
-              </span>
-            </div>
-            <div className="flex flex-col gap-4">
-              <div className="p-3 border border-[var(--border)] bg-blue-500/10 text-blue-600 dark:text-cyan-400 w-fit">
-                <Layers size={24} />
-              </div>
-              <h3 className="text-xl font-bold text-slate-950 dark:text-white">Pipeline orchestrator</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                The end-to-end audit orchestrator runs in alpha: parse, extract, calculate, reconcile. Extraction quality is gated by schema validation—not by promises that retries or self-correction improve results.
+      <footer className="border-t border-foreground/15">
+        <div className="mx-auto max-w-[82rem] px-5 py-14 sm:px-8">
+          <div className="grid grid-cols-1 gap-x-12 gap-y-10 md:grid-cols-12">
+            <div className="md:col-span-5">
+              <Wordmark />
+              <p className="mt-4 max-w-[40ch] text-sm leading-relaxed text-pretty text-muted-foreground">
+                Laytime and demurrage reconciliation for maritime
+                charterparties. A model reads the documents; the arithmetic is
+                code.
               </p>
             </div>
-            <div className="text-xs mono text-slate-400 dark:text-slate-500 pt-4">
-              Qualified · in alpha
+
+            <nav aria-label="Sections" className="md:col-span-3">
+              <h2 className={LABEL}>On this page</h2>
+              <ul className="mt-4 space-y-1">
+                {[
+                  ["The reconciliation", "#ledger"],
+                  ["The method", "#method"],
+                  ["This build", "#build"],
+                ].map(([label, href]) => (
+                  <li key={href}>
+                    <a
+                      href={href}
+                      className={`inline-flex min-h-11 items-center text-sm text-muted-foreground hover:text-foreground ${FOCUS} ${PRESS}`}
+                    >
+                      {label}
+                    </a>
+                  </li>
+                ))}
+                <li>
+                  <Link
+                    href="/login"
+                    className={`inline-flex min-h-11 items-center text-sm text-muted-foreground hover:text-foreground ${FOCUS} ${PRESS}`}
+                  >
+                    Client Portal
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+
+            <div className="md:col-span-4">
+              <h2 className={LABEL}>The build</h2>
+              <ul className="mt-4 space-y-2 text-sm leading-relaxed text-muted-foreground">
+                <li>Fixture data, not customer data.</li>
+                <li>
+                  The bundled voyage runs without a key. Extracting from your own
+                  documents needs an OpenAI key.
+                </li>
+                <li>Advisory output, not legal advice.</li>
+              </ul>
             </div>
           </div>
 
-          {/* NOT live — email */}
-          <div className="md:col-span-6 lg:col-span-4 p-6 border border-[var(--border)] bg-[var(--card)] relative overflow-hidden flex flex-col justify-between min-h-[240px]">
-            <div className="absolute top-0 right-0 p-6">
-              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Not live</span>
-            </div>
-            <div className="flex flex-col gap-3">
-              <div className="p-2.5 border border-[var(--border)] bg-blue-500/10 text-blue-600 dark:text-cyan-400 w-fit">
-                <Mail size={20} />
-              </div>
-              <h3 className="text-base font-bold text-slate-950 dark:text-white">Email plugin</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Outlook and Gmail overlays that surface demurrage traces beside the inbox. Not available in this alpha.
-              </p>
-            </div>
-          </div>
-
-          {/* NOT live — document routing */}
-          <div className="md:col-span-6 lg:col-span-4 p-6 border border-[var(--border)] bg-[var(--card)] relative overflow-hidden flex flex-col justify-between min-h-[240px]">
-            <div className="absolute top-0 right-0 p-6">
-              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Not live</span>
-            </div>
-            <div className="flex flex-col gap-3">
-              <div className="p-2.5 border border-[var(--border)] bg-blue-500/10 text-blue-600 dark:text-cyan-400 w-fit">
-                <FileText size={20} />
-              </div>
-              <h3 className="text-base font-bold text-slate-950 dark:text-white">Content-based document routing</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Route parsers from document content rather than filenames. Not available in this alpha.
-              </p>
-            </div>
-          </div>
-
-          {/* NOT live — confidence / HITL */}
-          <div className="md:col-span-12 lg:col-span-4 p-6 border border-[var(--border)] bg-[var(--card)] relative overflow-hidden flex flex-col justify-between min-h-[240px]">
-            <div className="absolute top-0 right-0 p-6">
-              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Not live</span>
-            </div>
-            <div className="flex flex-col gap-3">
-              <div className="p-2.5 border border-[var(--border)] bg-blue-500/10 text-blue-600 dark:text-cyan-400 w-fit">
-                <LayoutGrid size={20} />
-              </div>
-              <h3 className="text-base font-bold text-slate-950 dark:text-white">Confidence / human-review queue</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Stage low-confidence extractions for analyst sign-off. Not available in this alpha.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Values */}
-      <section id="values" className="relative z-10 border-t border-[var(--border)] bg-[var(--surface-2)]/40 py-20 md:py-28">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto mb-16 flex flex-col gap-4">
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-cyan-400 block">Principles</span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-slate-950 dark:text-white leading-tight">
-              How the numbers are allowed to appear.
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400 text-sm md:text-base">
-              Extraction proposes; code decides what reaches the page. Output remains advisory.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="flex flex-col gap-4 p-6 border border-[var(--border)] bg-[var(--card)]">
-              <div className="p-2 border border-[var(--border)] bg-blue-500/10 text-blue-600 dark:text-cyan-400 w-fit">
-                <ShieldCheck size={20} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-950 dark:text-white">Python calculates.</h3>
-              <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Models read unstructured PDFs. Laytime clocks, once-on-demurrage, and BIMCO 2013 WWD thresholds run in pure Python—so the arithmetic is not left to the model.
-              </p>
-            </div>
-            <div className="flex flex-col gap-4 p-6 border border-[var(--border)] bg-[var(--card)]">
-              <div className="p-2 border border-[var(--border)] bg-blue-500/10 text-blue-600 dark:text-cyan-400 w-fit">
-                <FileText size={20} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-950 dark:text-white">A figure without a source span is not shown.</h3>
-              <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Click-to-source on the voyage page ties line items to PDF spans. If there is no citeable span, the figure does not appear as a reconciled fact.
-              </p>
-            </div>
-            <div className="flex flex-col gap-4 p-6 border border-[var(--border)] bg-[var(--card)]">
-              <div className="p-2 border border-[var(--border)] bg-blue-500/10 text-blue-600 dark:text-cyan-400 w-fit">
-                <CheckCircle2 size={20} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-950 dark:text-white">Advisory, not adversarial counsel.</h3>
-              <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Engine totals and weather verdicts support charterer-side review. They are not a binding legal determination and do not replace counsel.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="relative z-10 py-20 max-w-7xl mx-auto px-6">
-        <div className="relative border border-[var(--border)] bg-[var(--card)] p-8 md:p-12 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
-          <div className="absolute top-[-50%] right-[-20%] w-[350px] h-[350px] rounded-full bg-cyan-500/5 dark:bg-cyan-600/10 blur-[80px] pointer-events-none" />
-
-          <div className="flex flex-col gap-4 max-w-xl relative z-10">
-            <h2 className="font-display text-2xl md:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight leading-tight">
-              Run the worked example—or bring your own PDFs.
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              Alpha trial for charterer-side demurrage audit. No counterparty onboarding required to inspect a cited reconciliation.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto relative z-10">
-            <input
-              type="email"
-              placeholder="enterprise@shipping.co"
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              className={`px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm text-[var(--foreground)] placeholder-slate-400 focus:outline-none focus:border-cyan-500 ${focusRing} transition-colors w-full sm:w-[220px]`}
-            />
-            <Link
-              href={`/register?email=${encodeURIComponent(emailInput)}`}
-              className={`px-6 py-3 bg-gradient-to-r from-blue-700 to-cyan-500 hover:opacity-95 text-white font-semibold text-sm rounded-lg text-center shadow-lg shadow-blue-500/10 transition-opacity duration-200 ${focusRing}`}
-            >
-              Request Onboarding
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer id="company" className="relative z-10 border-t border-[var(--border)] bg-[var(--background)]/85 py-16 text-slate-500 dark:text-slate-400">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="flex flex-col gap-4 md:col-span-2">
-            <Link href="/" className={`rounded-sm w-fit ${focusRing}`}>
-              <KeelLogo showTagline={true} />
-            </Link>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mt-2">
-              Keel Technologies provides charterer-side laytime and demurrage reconciliation. Engine calculations and reports are advisory and do not represent binding legal representation.
-            </p>
-          </div>
-          <div className="flex flex-col gap-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">Offerings</span>
-            <div className="flex flex-col gap-2.5 text-sm">
-              <Link href="/login" className={`hover:text-slate-900 dark:hover:text-white transition-colors rounded-sm w-fit ${focusRing}`}>Client Portal</Link>
-              <Link href="/register" className={`hover:text-slate-900 dark:hover:text-white transition-colors rounded-sm w-fit ${focusRing}`}>Enterprise Trial</Link>
-              <span className="text-slate-400 dark:text-slate-600">Email Plugin (not live)</span>
-            </div>
-          </div>
-          <div className="flex flex-col gap-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">Operational Hubs</span>
-            <div className="flex flex-col gap-2.5 text-sm mono text-slate-500 dark:text-slate-400">
-              <span className="flex items-center gap-1.5"><Ship size={12} /> Piraeus, Attica</span>
-              <span className="flex items-center gap-1.5"><Ship size={12} /> London, City of</span>
-              <span className="flex items-center gap-1.5"><Ship size={12} /> Singapore, Port of</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-6 pt-12 mt-12 border-t border-[var(--border)] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-          <span>&copy; {new Date().getFullYear()} Keel Technologies. All rights reserved.</span>
-          <div className="flex items-center gap-6">
-            <span>Terms of Service</span>
-            <span>Privacy Policy</span>
-          </div>
+          <p className="mt-12 border-t border-foreground/15 pt-6 text-xs text-muted-foreground">
+            Keel · hackathon demo build
+          </p>
         </div>
       </footer>
-
-      {demoModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="demo-modal-title"
-        >
-          <div className="relative w-full max-w-4xl bg-[var(--card)] border border-[var(--border)] p-4 shadow-2xl">
-            <button
-              type="button"
-              onClick={() => setDemoModalOpen(false)}
-              aria-label="Close demo"
-              className={`absolute top-2 right-2 p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors bg-[var(--background)] border border-[var(--border)] ${focusRing}`}
-            >
-              <X size={20} />
-            </button>
-            <div className="aspect-video w-full bg-[var(--background)] flex flex-col items-center justify-center gap-4 border border-[var(--border)] relative overflow-hidden">
-              <div className="relative z-10 flex flex-col items-center justify-center text-center p-6 gap-3">
-                <div className="p-4 border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-cyan-400 w-fit mx-auto">
-                  <Play size={32} />
-                </div>
-                <h2 id="demo-modal-title" className="text-lg font-bold text-slate-900 dark:text-white mt-2">
-                  Keel claims reconciliation demo
-                </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
-                  Mock player: document intake, side-by-side reconciliation, BIMCO 2013 WWD threshold checks, and click-to-source PDF highlights—ending on the worked-example $112,000 total.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setDemoModalOpen(false)}
-                  className={`px-6 py-2.5 bg-[var(--card)] hover:bg-[var(--surface-2)] text-slate-700 dark:text-slate-200 font-semibold text-sm mt-3 border border-[var(--border)] transition-colors ${focusRing}`}
-                >
-                  Close Player
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

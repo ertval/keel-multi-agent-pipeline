@@ -45,7 +45,9 @@ class FixtureWeatherProvider:
         start_utc = _utc(start)
         end_utc = _utc(end)
 
+        # Half-open [start, end): a 12-hour window holds 12 hourly observations,
+        # not 13, and the majority denominator matches the period adjudicated.
         return [
             obs for obs in self._observations
-            if start_utc <= _utc(obs.timestamp) <= end_utc
+            if start_utc <= _utc(obs.timestamp) < end_utc
         ]

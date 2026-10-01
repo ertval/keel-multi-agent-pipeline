@@ -2,16 +2,14 @@
 
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
-import { fetchVoyageDetail, formatUsd } from "@/lib/api";
+import { fetchVoyageDetail, formatUsd, assessmentLabel } from "@/lib/api";
 import type { VoyageDetailResponse, DayVerdict } from "@/lib/types";
+import { VoyageUnavailable } from "@/components/VoyageUnavailable";
 import {
   Anchor, ArrowLeft, Wind, Droplets, Clock, BookOpen,
   ChevronDown, ChevronUp, Trophy, Loader2, FileText,
   TrendingUp, Scale
 } from "lucide-react";
-
-const PdfViewer = dynamic(() => import("@/components/PdfViewer"), { ssr: false });
 
 const BEAUFORT_LABELS: Record<number, string> = {
   0: "Calm", 1: "Light air", 2: "Light breeze", 3: "Gentle breeze",
@@ -20,27 +18,21 @@ const BEAUFORT_LABELS: Record<number, string> = {
   11: "Violent storm", 12: "Hurricane",
 };
 
-function beaufortColor(force: number) {
+/** The engine reports no reading as `null`; never colour it as if it were calm. */
+function beaufortColor(force: number | null) {
+  if (force === null) return "hsl(var(--muted-foreground))";
   if (force <= 3) return "hsl(var(--owner))";
   if (force <= 5) return "hsl(47 100% 55%)";
   if (force <= 6) return "hsl(30 100% 55%)";
   return "hsl(var(--charterer))";
 }
 
-function normalizeBbox(bbox?: [number, number, number, number]) {
-  if (!bbox) return null;
-  if (bbox.every((value) => value === 0)) return null;
-  return bbox;
-}
-
 interface DayCardProps {
   verdict: DayVerdict;
   index: number;
-  selected: boolean;
-  onSelect: () => void;
 }
 
-function DayCard({ verdict, index, selected, onSelect }: DayCardProps) {
+function DayCard({ verdict, index }: DayCardProps) {
   const [clauseOpen, setClauseOpen] = useState(false);
   const isOwner = verdict.verdict === "owner";
   const dateObj = new Date(verdict.date + "T00:00:00Z");
@@ -52,25 +44,8 @@ function DayCard({ verdict, index, selected, onSelect }: DayCardProps) {
   return (
     <div
       id={`day-card-${verdict.date}`}
-      role="button"
-      tabIndex={0}
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
       className={`card animate-slide-up ${isOwner ? "verdict-card-owner" : "verdict-card-charterer"}`}
-      style={{
-        animationDelay: `${index * 0.12}s`,
-        display: "flex",
-        flexDirection: "column",
-        gap: "1.25rem",
-        cursor: "pointer",
-        outline: selected ? "2px solid hsl(var(--primary))" : undefined,
-        outlineOffset: selected ? 2 : undefined,
-      }}
+      style={{ animationDelay: `${index * 0.12}s`, display: "flex", flexDirection: "column", gap: "1.25rem" }}
     >
       {/* Date header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -87,7 +62,7 @@ function DayCard({ verdict, index, selected, onSelect }: DayCardProps) {
           style={{ fontSize: "0.8125rem", padding: "0.375rem 1rem" }}
         >
           {isOwner ? <Trophy size={12} /> : <Scale size={12} />}
-          {verdict.winner_label}
+          {assessmentLabel(verdict.verdict)}
         </span>
       </div>
 
@@ -119,19 +94,29 @@ function DayCard({ verdict, index, selected, onSelect }: DayCardProps) {
         <p
           style={{ fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.07em", color: "hsl(var(--muted-foreground))", fontWeight: 600, marginBottom: "0.625rem" }}
         >
-          Observations in the file
+          Weather Record
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
           <span className="weather-pill">
             <Wind size={12} style={{ color: beaufortColor(verdict.weather.wind_force_beaufort) }} />
-            <span style={{ color: beaufortColor(verdict.weather.wind_force_beaufort), fontWeight: 600 }}>
-              Bft {verdict.weather.wind_force_beaufort}
-            </span>
-            &nbsp;·&nbsp;{BEAUFORT_LABELS[verdict.weather.wind_force_beaufort]}
+            {verdict.weather.wind_force_beaufort === null ? (
+              <span style={{ color: "hsl(var(--muted-foreground))", fontWeight: 600 }}>
+                Wind force not recorded
+              </span>
+            ) : (
+              <>
+                <span style={{ color: beaufortColor(verdict.weather.wind_force_beaufort), fontWeight: 600 }}>
+                  Bft {verdict.weather.wind_force_beaufort}
+                </span>
+                &nbsp;·&nbsp;{BEAUFORT_LABELS[verdict.weather.wind_force_beaufort] ?? "Force outside the 0–12 scale"}
+              </>
+            )}
           </span>
           <span className="weather-pill">
             <Droplets size={12} />
-            {verdict.weather.precipitation_mm} mm/h peak
+            {verdict.weather.precipitation_mm === null
+              ? "Precipitation not recorded"
+              : `${verdict.weather.precipitation_mm} mm/h peak`}
           </span>
           <span className="weather-pill">
             <Clock size={12} />
@@ -143,22 +128,32 @@ function DayCard({ verdict, index, selected, onSelect }: DayCardProps) {
             </span>
           )}
         </div>
+        {(verdict.weather.wind_force_beaufort === null || verdict.weather.precipitation_mm === null) && (
+          <p style={{ fontSize: "0.6875rem", color: "hsl(var(--muted-foreground))", marginTop: "0.625rem", lineHeight: 1.5 }}>
+            No weather reading was returned for part of this day, so no threshold
+            comparison can be shown for the gap. The assessment above rests only
+            on the readings that were recorded.
+          </p>
+        )}
       </div>
 
-      {/* BIMCO clause */}
+      {/* Rule the engine applied, and the clause it measured against */}
       <div>
         <button
           id={`clause-toggle-${verdict.date}`}
           className="btn btn-ghost"
-          onClick={(e) => {
-            e.stopPropagation();
-            setClauseOpen((o) => !o);
-          }}
+          aria-expanded={clauseOpen}
+          onClick={() => setClauseOpen((o) => !o)}
           style={{ padding: "0.375rem 0.625rem", fontSize: "0.8125rem", width: "100%", justifyContent: "space-between" }}
         >
-          <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
-            <BookOpen size={13} style={{ color: "hsl(var(--primary))" }} />
-            {verdict.bimco_clause.clause_id}
+          <span style={{ display: "flex", alignItems: "center", gap: "0.375rem", minWidth: 0 }}>
+            <BookOpen size={13} style={{ color: "hsl(var(--primary))", flexShrink: 0 }} />
+            <span style={{ fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.07em", color: "hsl(var(--muted-foreground))", flexShrink: 0 }}>
+              Test applied
+            </span>
+            <span className="mono" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
+              {verdict.bimco_clause.clause_id}
+            </span>
           </span>
           {clauseOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
         </button>
@@ -167,18 +162,59 @@ function DayCard({ verdict, index, selected, onSelect }: DayCardProps) {
             className="card-flat animate-fade-in"
             style={{ marginTop: "0.375rem", borderLeft: "3px solid hsl(var(--primary))" }}
           >
-            <p style={{ fontSize: "0.8125rem", fontStyle: "italic", lineHeight: 1.6, color: "hsl(var(--foreground) / 0.85)" }}>
-              {verdict.bimco_clause.clause_text}
-            </p>
-            <p style={{ fontSize: "0.75rem", color: "hsl(var(--muted-foreground))", marginTop: "0.5rem" }}>
-              <FileText size={11} style={{ display: "inline", marginRight: "0.25rem" }} />
-              {verdict.bimco_clause.source_document} · p.{verdict.bimco_clause.page_number}
+            <div>
+              <p style={{ fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.07em", color: "hsl(var(--muted-foreground))", fontWeight: 600, marginBottom: "0.375rem" }}>
+                Charterparty text quoted
+              </p>
+              {verdict.bimco_clause.clause_text ? (
+                <p style={{ fontSize: "0.8125rem", fontStyle: "italic", lineHeight: 1.6, color: "hsl(var(--foreground) / 0.85)" }}>
+                  {verdict.bimco_clause.clause_text}
+                </p>
+              ) : (
+                <p style={{ fontSize: "0.8125rem", lineHeight: 1.6, color: "hsl(var(--muted-foreground))" }}>
+                  No charterparty clause text was matched to this day, so there is
+                  nothing to quote.
+                </p>
+              )}
+              <p style={{ fontSize: "0.75rem", color: "hsl(var(--muted-foreground))", marginTop: "0.5rem" }}>
+                <FileText size={11} style={{ display: "inline", marginRight: "0.25rem" }} />
+                {verdict.bimco_clause.source_document
+                  ? `${verdict.bimco_clause.source_document} · ${
+                      verdict.bimco_clause.page_number === null
+                        ? "page not recorded"
+                        : `p.${verdict.bimco_clause.page_number}`
+                    }`
+                  : "source document not named · page not recorded"}
+              </p>
+            </div>
+            <div style={{ borderTop: "1px solid var(--border)", marginTop: "0.75rem", paddingTop: "0.75rem" }}>
+              <p style={{ fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.07em", color: "hsl(var(--muted-foreground))", fontWeight: 600, marginBottom: "0.375rem" }}>
+                Measurement basis
+              </p>
+              <p
+                id={`measurement-basis-${verdict.date}`}
+                className="mono"
+                style={{ fontSize: "0.8125rem", lineHeight: 1.6, color: "hsl(var(--foreground) / 0.85)" }}
+              >
+                {verdict.measurement_basis}
+              </p>
+              <p style={{ fontSize: "0.6875rem", lineHeight: 1.6, color: "hsl(var(--muted-foreground))", marginTop: "0.375rem" }}>
+                The source that fixes how an excepted period is measured. It is
+                not the authority for the test above or for the charterparty
+                threshold.
+              </p>
+            </div>
+            <p style={{ fontSize: "0.6875rem", lineHeight: 1.6, color: "hsl(var(--muted-foreground))", marginTop: "0.75rem", borderTop: "1px solid var(--border)", paddingTop: "0.5rem" }}>
+              The rule id above is the engine&apos;s label for the test it applied. It
+              is not a quotation from the charterparty, and where a clause is quoted
+              below it is shown as the engine read it rather than as an exact copy
+              of the source.
             </p>
           </div>
         )}
       </div>
 
-      {/* Verdict */}
+      {/* Day assessment */}
       <div
         style={{
           padding: "1rem",
@@ -200,7 +236,7 @@ function DayCard({ verdict, index, selected, onSelect }: DayCardProps) {
             }}
           >
             {isOwner ? <Trophy size={12} /> : <Scale size={12} />}
-            VERDICT
+            KEEL ASSESSMENT
           </span>
           {verdict.dollars_credited_usd > 0 && (
             <span
@@ -232,7 +268,6 @@ export default function ReconciliationPage({
   const [data, setData] = useState<VoyageDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
     fetchVoyageDetail(id)
@@ -259,16 +294,11 @@ export default function ReconciliationPage({
     );
   }
 
-  const { reconciliation, pdf_urls } = data!;
-  const selectedVerdict =
-    reconciliation.day_verdicts.find((v) => v.date === selectedDate) ?? null;
-  const selectedPdfUrl = selectedVerdict
-    ? pdf_urls[selectedVerdict.bimco_clause.source_document] ?? null
-    : null;
-  const selectedBbox = selectedVerdict
-    ? normalizeBbox(selectedVerdict.bimco_clause.bbox)
-    : null;
-  const selectedPage = selectedVerdict?.bimco_clause.page_number || 1;
+  if (!data?.reconciliation) {
+    return <VoyageUnavailable voyageId={id} />;
+  }
+
+  const { reconciliation } = data;
 
   return (
     <div>
@@ -291,8 +321,12 @@ export default function ReconciliationPage({
             Voyage {id}
           </p>
         </div>
-        <span className="badge badge-primary">
-          BIMCO 2013
+        <span
+          className="badge badge-primary"
+          title="The Laytime Definitions for Charter Parties 2013 supply the measurement basis for an excepted period, named on each day card below. They are not the authority for the test the engine applied or for the threshold: the Beaufort and precipitation threshold and the majority-of-hours test are this charterparty's own term and Keel's own policy respectively."
+        >
+          Measurement basis from the Laytime Definitions &middot; threshold from this
+          charterparty
         </span>
       </header>
 
@@ -352,7 +386,7 @@ export default function ReconciliationPage({
           ))}
         </div>
 
-        {/* ── Day verdict cards ── */}
+        {/* ── Day assessment cards ── */}
         <div style={{ marginBottom: "2rem" }}>
           <p
             style={{
@@ -364,40 +398,14 @@ export default function ReconciliationPage({
               marginBottom: "1rem",
             }}
           >
-            Per-day verdicts
+            Per-day assessments
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.25rem" }}>
             {reconciliation.day_verdicts.map((verdict, i) => (
-              <DayCard
-                key={verdict.date}
-                verdict={verdict}
-                index={i}
-                selected={selectedDate === verdict.date}
-                onSelect={() => setSelectedDate(verdict.date)}
-              />
+              <DayCard key={verdict.date} verdict={verdict} index={i} />
             ))}
           </div>
         </div>
-
-        {/* Citation PDF viewer */}
-        {selectedVerdict && (
-          <div className="card animate-fade-in" style={{ marginBottom: "2rem" }}>
-            <h2 style={{ fontSize: "0.8125rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "hsl(var(--muted-foreground))", marginBottom: "1rem" }}>
-              Source citation — {selectedVerdict.bimco_clause.clause_id} · {selectedVerdict.date}
-            </h2>
-            {selectedPdfUrl ? (
-              <PdfViewer
-                url={selectedPdfUrl}
-                initialPage={selectedPage}
-                highlightBbox={selectedBbox ?? undefined}
-              />
-            ) : (
-              <p style={{ fontSize: "0.875rem", color: "hsl(var(--muted-foreground))", padding: "2rem 0", textAlign: "center" }}>
-                No source PDF is bundled for this citation.
-              </p>
-            )}
-          </div>
-        )}
 
         {/* ── B-06: Reconciled total band ── */}
         <div
@@ -440,7 +448,7 @@ export default function ReconciliationPage({
                       key={v.date}
                       className={`badge ${v.verdict === "owner" ? "badge-owner" : "badge-charterer"}`}
                     >
-                      {dateLabel} — {v.winner_label}
+                      {dateLabel} — {assessmentLabel(v.verdict)}
                     </span>
                   );
                 })}
@@ -462,7 +470,7 @@ export default function ReconciliationPage({
                   href={`/voyage/${id}/letter`}
                   className="btn btn-primary"
                   id="generate-claim-letter-btn"
-                  title="Generate claim letter (requires A-09)"
+                  title="Generate the claim letter for this voyage"
                 >
                   Generate Claim Letter
                 </Link>

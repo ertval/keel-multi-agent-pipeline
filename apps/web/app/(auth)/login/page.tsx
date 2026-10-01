@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,34 +11,46 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 
 // TODO(security): Replace with real OAuth 2.0 / JWT auth before production.
 // This is a visual mock only — no credentials are stored, transmitted, or validated.
+// The cookie below is a demo session flag (see proxy.ts): it records that the
+// visitor walked through this page and nothing more.
+
+const DEMO_COOKIE = "keel_demo_session=keel-demo-session; path=/; samesite=lax";
+
+const subscribe = () => () => {};
 
 export default function LoginPage() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const mounted = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false
+  );
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const enter = () => {
+    document.cookie = DEMO_COOKIE;
+    // Same-origin paths only: `?next=` is attacker-supplied.
+    const requested = new URLSearchParams(window.location.search).get("next");
+    const target = requested && requested.startsWith("/") && !requested.startsWith("//")
+      ? requested
+      : "/dashboard";
+    router.push(target);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Mock auth — simulate latency then redirect
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 800);
+    // Mock auth — no credential check, just simulated latency then redirect
+    setTimeout(enter, 800);
   };
 
   const handleDemoLogin = () => {
     setEmail("demo@keel.io");
     setPassword("demo");
     setLoading(true);
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 600);
+    setTimeout(enter, 600);
   };
 
   if (!mounted) {
@@ -278,6 +290,17 @@ export default function LoginPage() {
             >
               Demo credentials: demo@keel.io / any password
             </p>
+            <p
+              style={{
+                fontSize: "0.6875rem",
+                color: "var(--muted-foreground)",
+                textAlign: "center",
+                marginTop: "0.375rem",
+              }}
+            >
+              Demo build — nothing is checked, no account is created, and this
+              session grants no real access.
+            </p>
           </CardContent>
         </Card>
 
@@ -292,8 +315,9 @@ export default function LoginPage() {
             animationDelay: "0.3s",
           }}
         >
-          Applies <span style={{ color: "var(--foreground)" }}>BIMCO 2013</span> weather
-          clauses · Enterprise-grade reconciliation
+          Applies your charterparty&apos;s own weather clause, and measures excepted
+          periods on the basis the Laytime Definitions supply &middot; demo data,
+          advisory output only
         </p>
       </div>
     </div>

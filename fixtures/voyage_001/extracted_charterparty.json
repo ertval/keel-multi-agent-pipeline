@@ -11,6 +11,8 @@
   "nor_turn_time_hours": 6.0,
   "laytime_exception": "SHEX",
   "weather_clause": "WWD",
+  "weather_beaufort_threshold": 6,
+  "weather_precipitation_threshold_mm": 2.0,
   "rule_authority": "BIMCO_2013",
   "clauses": [
     {
@@ -41,7 +43,7 @@
         0.0,
         0.0
       ],
-      "text": "Time lost on account of weather shall not count as laytime, provided that such weather actually prevented loading operations."
+      "text": "Time lost on account of weather shall not count as laytime, provided that such weather actually prevented loading operations. This clause is to be interpreted in accordance with the BIMCO Laytime Definitions for Charter Parties, 2013."
     },
     {
       "page": 3,
@@ -51,7 +53,7 @@
         0.0,
         0.0
       ],
-      "text": "The threshold for invocation of the weather exception under Clause 3.1 shall be conditions of Beaufort Force 6 or above sustained for the period claimed, or precipitation of sufficient intensity to halt cargo operations under prevailing port practice."
+      "text": "The threshold for invocation of the weather exception under Clause 3.1 shall be conditions of Beaufort Force 6 or above, or precipitation of 2.0 mm/h or above, recorded for a majority of the hours of the period claimed, together with actual prevention of loading operations."
     },
     {
       "page": 4,
@@ -61,7 +63,7 @@
         0.0,
         0.0
       ],
-      "text": "Once on demurrage, the vessel shall remain on demurrage continuously until completion of loading, save only where the weather exception under Clause 3.1 is validly invoked in accordance with BIMCO 2013 thresholds."
+      "text": "Once on demurrage, the vessel shall remain on demurrage continuously until completion of loading, save only where the weather exception under Clause 3.1 is validly invoked in accordance with the threshold in Clause 3.2."
     },
     {
       "page": 5,

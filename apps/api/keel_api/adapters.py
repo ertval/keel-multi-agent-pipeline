@@ -10,6 +10,7 @@ from keel_api.schemas import (
     AuditEntry,
     CalculationResult,
     CharterpartyTerms,
+    ClauseCitation,
     DisputedLineItem,
     Reconciliation,
 )
@@ -22,7 +23,24 @@ def _round_usd_display(amount: float) -> float:
     return round(amount / 1000) * 1000
 
 
-def _audit_entry_to_frontend(entry: AuditEntry, idx: int, document: str) -> dict:
+def _bbox_or_none(bbox: tuple[float, float, float, float] | None) -> list[float] | None:
+    """A citation's rectangle, or None when the parser recorded the [0,0,0,0]
+    sentinel for a row it could not locate on the page."""
+    if not bbox or not any(bbox):
+        return None
+    return list(bbox)
+
+
+def _clause_citation_to_frontend(clause: ClauseCitation) -> dict:
+    return {
+        "document": "charterparty.pdf",
+        "page_number": clause.page,
+        "excerpt": clause.text,
+        "bbox": _bbox_or_none(clause.bbox),
+    }
+
+
+def _audit_entry_to_frontend(entry: AuditEntry, idx: int, document: str | None) -> dict:
     return {
         "step": idx + 1,
         "description": f"{entry.state}: {entry.rule_applied}",
@@ -32,15 +50,26 @@ def _audit_entry_to_frontend(entry: AuditEntry, idx: int, document: str) -> dict
                 "document": document,
                 "page_number": entry.sof_citation.page,
                 "excerpt": entry.sof_citation.row_text,
+                "bbox": _bbox_or_none(entry.sof_citation.bbox),
             }
             if entry.sof_citation
+            else None
+        ),
+        # The charterparty clause the row applies, where the charterparty states
+        # one: absent on rows that cite no clause, rather than a stand-in.
+        "clause_citation": (
+            _clause_citation_to_frontend(entry.clause_citation)
+            if entry.clause_citation
             else None
         ),
     }
 
 
-def _calc_to_frontend(result: CalculationResult, total_usd: float | None = None) -> dict:
-    document = "sof_owner.pdf" if result.party == "owner" else "sof_charterer.pdf"
+def _calc_to_frontend(
+    result: CalculationResult,
+    total_usd: float | None = None,
+    document: str | None = None,
+) -> dict:
     return {
         "party": result.party,
         "total_usd": result.demurrage_due_usd if total_usd is None else total_usd,
@@ -66,11 +95,15 @@ def _parse_clause_id(text: str, index: int) -> str:
 
 
 def _terms_to_frontend(terms: CharterpartyTerms) -> dict:
+    # hire_rate_per_day_usd is None because CharterpartyTerms carries no hire
+    # rate and the extractor never asks for one; the only hire figure in the
+    # repo is a mock in apps/web/lib/api.ts. Reported as unavailable rather
+    # than mirroring the demurrage rate.
     return {
         "vessel_name": terms.vessel,
         "owner_name": terms.owner,
         "charterer_name": terms.charterer,
-        "hire_rate_per_day_usd": terms.demurrage_rate_per_day_usd,
+        "hire_rate_per_day_usd": None,
         "laytime_allowed_hours": terms.laytime_allowance_hours,
         "demurrage_rate_per_day_usd": terms.demurrage_rate_per_day_usd,
         "despatch_rate_per_day_usd": terms.despatch_rate_per_day_usd,
@@ -81,7 +114,7 @@ def _terms_to_frontend(terms: CharterpartyTerms) -> dict:
                 "clause_text": c.text,
                 "source_document": "charterparty.pdf",
                 "page_number": c.page,
-                "bbox": list(c.bbox),
+                "bbox": _bbox_or_none(c.bbox),
             }
             for i, c in enumerate(terms.clauses)
         ],
@@ -97,8 +130,8 @@ def _extract_weather_snapshot(item: DisputedLineItem, demurrage_rate_per_day_usd
     adverse_hours = item.owner_amount_usd / rate_per_hour if rate_per_hour else item.verdict.hours_credited_to_owner
 
     return {
-        "wind_force_beaufort": int(force_match.group(1)) if force_match else 0,
-        "precipitation_mm": float(precip_match.group(1)) if precip_match else 0.0,
+        "wind_force_beaufort": int(force_match.group(1)) if force_match else None,
+        "precipitation_mm": float(precip_match.group(1)) if precip_match else None,
         "adverse_hours": round(adverse_hours, 1),
         "is_excepted": item.verdict.winner == "charterer",
     }
@@ -109,6 +142,7 @@ def _disputed_item_to_day_verdict(
     demurrage_rate_per_day_usd: float,
 ) -> dict:
     weather = _extract_weather_snapshot(item, demurrage_rate_per_day_usd)
+    clause = item.clause_citations[0] if item.clause_citations else None
     return {
         "date": item.disputed_date.isoformat(),
         "owner_position": item.owner_position,
@@ -134,12 +168,19 @@ def _disputed_item_to_day_verdict(
         },
         "bimco_clause": {
             "clause_id": item.verdict.rule_id,
-            "clause_text": item.verdict.justification,
-            "source_document": "charterparty.pdf",
-            "page_number": 1,
+            "clause_text": clause.text if clause else None,
+            "source_document": "charterparty.pdf" if clause else None,
+            "page_number": clause.page if clause else None,
         },
+        # The rule id names the test applied; the source that fixes how an
+        # excepted period is measured is reported beside it, never inside it.
+        "measurement_basis": item.verdict.measurement_basis,
         "verdict": item.verdict.winner,
-        "winner_label": f"{'Owner' if item.verdict.winner == 'owner' else 'Charterer'} wins",
+        "winner_label": (
+            "Owner position better supported"
+            if item.verdict.winner == "owner"
+            else "Charterer position better supported"
+        ),
         "dollars_credited_usd": item.verdict.dollars_credited_to_owner_usd,
         "justification": item.verdict.justification,
     }
@@ -150,8 +191,16 @@ def reconciliation_to_frontend(
     terms: CharterpartyTerms | None,
     owner_result: CalculationResult | None,
     charterer_result: CalculationResult | None,
+    owner_document: str | None = None,
+    charterer_document: str | None = None,
 ) -> dict:
-    """Convert internal Reconciliation + context to the frontend VoyageDetailResponse shape."""
+    """Convert internal Reconciliation + context to the frontend VoyageDetailResponse shape.
+
+    `owner_document` / `charterer_document` name the file each party's statement
+    of facts was parsed from. They are the citation's real source; when the
+    caller does not name one, the trace carries no document rather than a name
+    inferred from the party.
+    """
 
     demurrage_rate = terms.demurrage_rate_per_day_usd if terms else 0
     day_verdicts = [
@@ -164,7 +213,7 @@ def reconciliation_to_frontend(
     )
     math = (
         f"${reconciliation.charterer_total_usd:,.0f} (charterer base)"
-        f" + ${owner_wins:,.0f} (owner-win items)"
+        f" + ${owner_wins:,.0f} (items favouring the owner's position)"
         f" = ${reconciliation.reconciled_total_usd:,.0f}"
     )
 
@@ -172,7 +221,7 @@ def reconciliation_to_frontend(
         "vessel_name": reconciliation.voyage_id,
         "owner_name": None,
         "charterer_name": None,
-        "hire_rate_per_day_usd": 0,
+        "hire_rate_per_day_usd": None,
         "laytime_allowed_hours": 0,
         "demurrage_rate_per_day_usd": 0,
         "despatch_rate_per_day_usd": 0,
@@ -184,14 +233,20 @@ def reconciliation_to_frontend(
         "voyage_id": reconciliation.voyage_id,
         "charterparty": frontend_terms,
         "owner_calculation": (
-            _calc_to_frontend(owner_result, reconciliation.owner_total_usd)
+            _calc_to_frontend(owner_result, reconciliation.owner_total_usd, owner_document)
             if owner_result
             else {"party": "owner", "total_usd": reconciliation.owner_total_usd, "audit_trace": []}
         ),
         "charterer_calculation": (
-            _calc_to_frontend(charterer_result, reconciliation.charterer_total_usd)
+            _calc_to_frontend(
+                charterer_result, reconciliation.charterer_total_usd, charterer_document
+            )
             if charterer_result
-            else {"party": "charterer", "total_usd": reconciliation.charterer_total_usd, "audit_trace": []}
+            else {
+                "party": "charterer",
+                "total_usd": reconciliation.charterer_total_usd,
+                "audit_trace": [],
+            }
         ),
         "day_verdicts": day_verdicts,
         "reconciled_total_usd": reconciliation.reconciled_total_usd,

@@ -28,34 +28,16 @@ import {
   Ship,
   Scale,
   FileBarChart,
-  Settings,
   LogOut,
   ChevronUp,
-  Gauge,
-  Fuel,
-  Receipt,
 } from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Voyages", href: "/voyages", icon: Ship },
-  { label: "Reconciliations", href: "/reconciliations", icon: Scale },
-  { label: "Reports", href: "/reports", icon: FileBarChart },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, active: true },
+  { label: "Voyages", href: "/voyages", icon: Ship, active: true },
+  { label: "Reconciliations", href: "/reconciliations", icon: Scale, active: true },
+  { label: "Reports", href: "/reports", icon: FileBarChart, active: true },
 ];
-
-const IN_BUILD_ITEMS = [
-  { label: "Speed & consumption", href: "/modules/speed", icon: Gauge },
-  { label: "Bunkers", href: "/modules/bunkers", icon: Fuel },
-  { label: "Disbursements", href: "/modules/disbursements", icon: Receipt },
-];
-
-function isNavActive(label: string, pathname: string): boolean {
-  if (label === "Dashboard") return pathname === "/dashboard";
-  if (label === "Voyages") return pathname.startsWith("/voyages");
-  if (label === "Reconciliations") return pathname === "/reconciliations";
-  if (label === "Reports") return pathname === "/reports";
-  return false;
-}
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -117,52 +99,43 @@ export function AppSidebar() {
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {NAV_ITEMS.map((item) => (
-                <SidebarMenuItem key={item.label}>
-                  <SidebarMenuButton
-                    render={<Link href={item.href} />}
-                    isActive={isNavActive(item.label, pathname)}
-                  >
-                    <item.icon size={18} />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-              <SidebarMenuItem>
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <SidebarMenuButton
-                        style={{ opacity: 0.4, cursor: "default" }}
-                        aria-disabled="true"
-                      />
-                    }
-                  >
-                    <Settings size={18} />
-                    <span>Settings</span>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">Not available yet</TooltipContent>
-                </Tooltip>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+              {NAV_ITEMS.map((item) => {
+                const isActive =
+                  item.label === "Dashboard"
+                    ? pathname === "/dashboard"
+                    : item.label === "Voyages"
+                      ? pathname.startsWith("/voyages")
+                      : item.label === "Reconciliations"
+                        ? pathname === "/reconciliations"
+                        : item.label === "Reports"
+                          ? pathname === "/reports"
+                          : false;
 
-        <SidebarGroup>
-          <SidebarGroupLabel>In build</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {IN_BUILD_ITEMS.map((item) => (
-                <SidebarMenuItem key={item.label}>
-                  <SidebarMenuButton
-                    render={<Link href={item.href} />}
-                    isActive={pathname.startsWith(item.href)}
-                  >
-                    <item.icon size={18} />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                if (!item.active) {
+                  return (
+                    <SidebarMenuItem key={item.label}>
+                      <Tooltip>
+                        <TooltipTrigger render={<SidebarMenuButton style={{ opacity: 0.4, cursor: "default" }} />}>
+                          <item.icon size={18} />
+                          <span>{item.label}</span>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          Coming Soon
+                        </TooltipContent>
+                      </Tooltip>
+                    </SidebarMenuItem>
+                  );
+                }
+
+                return (
+                  <SidebarMenuItem key={item.label}>
+                    <SidebarMenuButton render={<Link href={item.href} />} isActive={isActive}>
+                      <item.icon size={18} />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

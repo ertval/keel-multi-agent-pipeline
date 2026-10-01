@@ -1,12 +1,53 @@
 # Keel — Ticket Tracker
 
+> ## ⚠️ SUPERSEDED — 2026-09-30
+>
+> **This is a historical record of a 12-hour hackathon build, preserved as
+> written.** It is not a backlog and not a status report. None of the workstreams
+> below were carried out as planned, and the completion marks in
+> [tracker.md](tracker.md) are the state at the end of the hackathon, not the
+> state of the code today.
+>
+> **The working roadmap is [../continuation-plan.md](../continuation-plan.md).**
+> The code as it actually is is described in [AGENTS.md](../../AGENTS.md) and
+> [README.md](../../README.md).
+>
+> Where this document would actively mislead, the line is annotated in place,
+> marked `> **Superseded — 2026-09-30:**`. Everything else — including the
+> dependency graph and the timeline — is left exactly as it was, because
+> rewriting history to match the code would destroy the reason this file exists.
+>
+> One note on the ticket titles: **"A-07 BIMCO 2013 rules" is a ticket name, not a
+> sourcing claim**, and must not be read as saying BIMCO supplies a weather
+> threshold. It does not. The *Laytime Definitions for Charter Parties 2013*
+> supply only the measurement basis for an excepted period (definition 16) and set
+> no numeric threshold; the threshold and the invocation test come from the
+> charterparty, and a weather verdict's `rule_authority` is `custom`
+> (`apps/api/keel_api/rules/evaluators.py:3-42`, `:60-65`).
+
 12-hour hackathon build for a 2-person team. Tickets are organized into three streams:
 
 - **Magnus** — backend, engine, rule library (Person A)
 - **Ertval** — frontend, demo UX (Person B)
 - **Joint** (below) — synchronous checkpoints both people stop for
 
-The single success criterion: **at hour 8, the canonical scenario in [PRD Section 4](../prd.md) produces `reconciled_total_usd == 112_000` end-to-end through the UI.** Everything else is in service of that.
+The single success criterion: **at hour 8, the canonical scenario in [PRD §5](../prd.md) produces `reconciled_total_usd == 112_000` end-to-end through the UI.** Everything else is in service of that.
+
+> **Superseded — 2026-09-30:** the section reference was wrong and is corrected
+> above. The canonical scenario is **PRD §5**, *"Canonical demo scenario — the
+> north star"* (`docs/prd.md:115`), not §4, which is the terminology glossary.
+> The figures themselves are unchanged.
+
+> **Superseded — 2026-09-30:** the criterion was met, and it still holds. The
+> canonical path is green today: `uv run pytest -m canonical -q` → **15 passed**
+> (`tests/test_canonical.py` and `tests/test_reconciliation_cases.py`), and a
+> running API serves owner `$187,000`, charterer `$62,000`, reconciled
+> `$112,000`, with owner / owner / charterer on 14 / 15 / 16 June 2026.
+>
+> What this ticket set does **not** describe, and never did: there is no
+> authentication, no multi-tenancy, no account system, no sign-up, and no
+> certification of any kind. `apps/web/proxy.ts` is a demo stub that says in its
+> own first line that it is not authentication.
 
 ---
 
@@ -25,6 +66,14 @@ These are the only times both people stop their work and align. Skipping these i
 
 **Done when**: schemas are committed, all six fixture files exist on disk, the expected reconciliation JSON declares `$112,000` and the three per-day verdicts.
 
+> **Superseded — 2026-09-30:** the schemas are committed and still frozen
+> (`apps/api/keel_api/schemas.py`), and `expected_reconciliation.json` is
+> committed and still the oracle. **The five PDFs were never committed to this
+> sanitised public copy** — `fixtures/voyage_001/` holds eight JSON files and no
+> `*.pdf`. That is why 16 parser and extraction tests fail here and are
+> quarantined in CI. The demo does not need them: the cached `extracted_*.json`
+> files let the graph run with no API key.
+
 ---
 
 ### J-02 — API contract checkpoint (hour 5 → 5.5)
@@ -39,6 +88,14 @@ These are the only times both people stop their work and align. Skipping these i
 
 **Done when**: voyage detail page renders real numbers for both parties from a real backend.
 
+> **Superseded — 2026-09-30:** the contract did not settle the way this ticket
+> describes. There are no `/extract` or `/calculate` endpoints; the API exposes
+> `/voyages`, `/voyages/{id}`, `/voyages/{id}/status`, `/reconciliations`, and
+> `/voyages/{id}/letter`, and the whole reconciliation comes back from one
+> `GET /voyages/{id}` (`apps/api/keel_api/main.py`). The wire contract is
+> `apps/web/lib/types.ts`, produced by `apps/api/keel_api/adapters.py`, and the
+> frontend's mock is off (`USE_MOCK = false`, `lib/api.ts:24`).
+
 ---
 
 ### J-03 — Canonical assertion green (hour 8)
@@ -52,6 +109,21 @@ These are the only times both people stop their work and align. Skipping these i
 - If this is not green at hour 8, stop adding features. Both people drop into fix-mode.
 
 **Done when**: `$112,000` is rendered in the browser via the real pipeline.
+
+> **Superseded — 2026-09-30:** both commands still work and both are green.
+>
+> ```console
+> $ cd apps/api && uv run pytest -k canonical -q
+> 19 passed, 311 deselected in 1.33s
+>
+> $ cd apps/api && uv run pytest -m canonical -q
+> 15 passed, 315 deselected in 1.42s
+> ```
+>
+> `-m canonical` is the gate CI runs. It is a **different, narrower** set than
+> `-k canonical`: the marker selects 3 tests in `test_canonical.py` plus 12 in
+> `test_reconciliation_cases.py`, while `-k` additionally matches four tests whose
+> *names* contain "canonical" (`test_engine.py`, `test_agent_graph.py`).
 
 ---
 

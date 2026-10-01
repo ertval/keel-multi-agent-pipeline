@@ -1,5 +1,36 @@
 # Keel — Phase 1 Alpha Hardening Plan
 
+> ## ⚠️ SUPERSEDED — 2026-09-30
+>
+> **This document is a historical record and nothing in it shipped.** It is kept
+> for the reasoning behind it, not as a plan. The working roadmap is
+> [docs/continuation-plan.md](continuation-plan.md), whose step 1 is a human
+> sign-off gate on extracted terms and SOF events. The code as it actually is is
+> described in [AGENTS.md](../AGENTS.md) and [README.md](../README.md).
+>
+> Do not act on the "current state" audit in §0 without re-verifying it: that
+> table was written against the `alpha-prep` branch and several of its rows are
+> now false. The rows that changed are corrected **in place**, each marked
+> `> **Superseded — <date>:**`, and everything else is left as written.
+>
+> Three terms are worth stating plainly here because the plan uses them as if
+> they were goals this build met:
+>
+> - **"enterprise-alpha"** (§Status) was never reached. There is no
+>   multi-tenancy, no Postgres, no queue, no observability, and no
+>   human-in-the-loop review UI in this repo. There is no SOC 2, ISO, or GDPR
+>   certification and none is claimed anywhere. **On "no auth":** the route guard
+>   is a demo stub and there is no identity, no session and no `tenant_id` — but
+>   the API is not unguarded against *configured* callers. An optional shared
+>   `KEEL_API_TOKEN` gates every route except `/healthz` (`main.py:546-552`,
+>   `:562-594`), off by default, and it is one shared secret with no expiry, no
+>   rotation and no per-voyage check. §0 records the same thing; "no auth" in the
+>   sentence above means no authentication *system*.
+> - **No customer or pilot data exists.** The only voyage is the Piraeus fixture
+>   `voyage_001`.
+> - **The free-tier cost tables in §2** were research verified in May 2026 and
+>   have not been re-checked. They are planning input, not a quotation.
+
 **Status:** Plan for review (not yet started). Derived from PRD §13.2.
 **Window:** Months 1–6, 2-person team.
 **Goal:** Take the hackathon MVP from "demo-grade" to "enterprise-alpha" — robust
@@ -14,21 +45,35 @@ file it came from so the scope is honest.
 
 ## 0. Where we actually are (codebase audit)
 
+> **Superseded — 2026-09-30:** written against `alpha-prep`. Rows corrected below
+> are now false as written; the rest were accurate and are left alone.
+
 | Area | Current state (verified) | File |
 |------|--------------------------|------|
 | Persistence | SQLite, single `voyages(id TEXT PK, data_json TEXT, created_at TEXT, owner_name TEXT)` table — the whole reconciliation is a JSON blob. No `tenant_id`. Schema migrated by inline `ALTER TABLE`. | `apps/api/keel_api/store.py` |
 | Dead persistence layer | `database.py` exists but is **imported nowhere**. | `apps/api/keel_api/database.py` |
-| Auth / tenancy | **None.** No auth dependency, no JWT, no `tenant_id`, CORS is `allow_origins=["*"]`. | `apps/api/keel_api/main.py` |
-| Task processing | FastAPI in-process `BackgroundTasks`; uploaded PDFs land in temp dirs; status tracked in memory (lost on restart). | `apps/api/keel_api/main.py`, `pipeline.py` |
-| Totals source | Reconciliation totals come from the **extracted claim amounts**, not the engine. `owner_total = round(owner_claim/1000)*1000` (engine `demurrage_due_usd` used only as a fallback when the claim is 0). | `apps/api/keel_api/pipeline.py` L206–213 |
-| Orphaned demo logic | `reconcile/adjudicator.py` + `differ.py` are **imported nowhere** and hardcode `date(2026,6,14/15/16)` verdicts with an `is_canonical` branch. | `apps/api/keel_api/reconcile/` |
-| BIMCO rules | One evaluator, a *simplified* WWD approximation (`wind_force ≥ 6` **or** `precip ≥ 2.0 mm/h`, then majority + ops-prevented). Thresholds are module constants, not per-clause config. No Def 15/16. | `apps/api/keel_api/rules/evaluators.py` |
-| FHEX bug | `_eligible_laytime_hours` excludes `weekday() == 6` (Sunday) for *both* SHEX and FHEX. **FHEX silently behaves like SHEX** — it should except Fridays (weekday 4). | `apps/api/keel_api/engine/state_machine.py` L36–44 |
+| Auth / tenancy | **None.** No auth dependency, no JWT, no `tenant_id`, CORS is `allow_origins=["*"]`. <br>*Superseded — 2026-09-30: the CORS claim is no longer true. `allow_origins` now defaults to `["http://localhost:3000"]` and is overridable with `KEEL_CORS_ORIGINS` (`main.py:547`, `:601-607`), and an **optional** shared `KEEL_API_TOKEN` can require a bearer token on every route except `/healthz` (`main.py:546-552`, `:562-594`). It is off by default, there is still no identity and still no `tenant_id`, so the §1.5 work below is entirely undone.* | `apps/api/keel_api/main.py` |
+| Task processing | FastAPI in-process `BackgroundTasks` calls `run_voyage_pipeline`, which invokes the LangGraph in `pipeline_agents.py` synchronously inside that task. No checkpointer. Uploaded PDFs land in temp dirs; status tracked in memory (lost on restart). | `apps/api/keel_api/main.py`, `pipeline.py`, `pipeline_agents.py` |
+| Totals source | The graph adjudicator sets reconciled dollars from each party's engine `demurrage_due_usd`, plus weather credits. It does not use the old linear rule (rounded extracted claim amounts, engine only as a fallback). <br>*Superseded — 2026-09-30: this row is now **backwards**. The adjudicator does use the extracted claim amount, rounded, and falls back to the engine only when that claim is zero (`pipeline_agents.py:579-590`); the reconciled total is the rounded charterer total plus the sum of the per-day credits (`:591-592`). `reconciled = charterer base + items favouring the owner`.* | `apps/api/keel_api/pipeline_agents.py` adjudicator node |
+| Orphaned demo logic | `reconcile/adjudicator.py` + `differ.py` are **imported nowhere** and hardcode `date(2026,6,14/15/16)` verdicts with an `is_canonical` branch. <br>*Superseded — 2026-09-30: **deleted**, along with the whole `keel_api/reconcile/` package. The money rule now lives in `pipeline_agents.adjudicator_node` plus `apps/api/keel_api/adapters.py`.* | ~~`apps/api/keel_api/reconcile/`~~ |
+| BIMCO rules | One evaluator, a *simplified* WWD approximation (`wind_force ≥ 6` **or** `precip ≥ 2.0 mm/h`, then majority + ops-prevented). Thresholds are module constants, not per-clause config. No Def 15/16. <br>*Superseded — 2026-09-30, on two counts.* (1) **Sourcing:** the numeric threshold is the *charterparty's own term*, not a BIMCO one. The Laytime Definitions for Charter Parties 2013 set no wind force and no precipitation figure; they supply only the measurement basis (definition 16), and a weather verdict's `rule_authority` is `custom` (`rules/evaluators.py:3-42`, `:60-65`). Never attribute a threshold to BIMCO. (2) **Status:** the thresholds are now read off the charterparty when the extractor can, falling back to `BEAUFORT_THRESHOLD = 6` / `PRECIPITATION_THRESHOLD_MM = 2.0` with the fallback named as unverified (`evaluators.py:51-55`, `:94-108`); definition 16 is the measure actually applied. Definition 15 remains arithmetic with no clause selecting it, and definition 17's artificial working day is still not modelled (`engine/state_machine.py:83-96`). | `apps/api/keel_api/rules/evaluators.py` |
+| FHEX bug | `_eligible_laytime_hours` excludes `weekday() == 6` (Sunday) for *both* SHEX and FHEX. **FHEX silently behaves like SHEX** — it should except Fridays (weekday 4). <br>*Superseded — 2026-09-30: the bug is unchanged and is now documented in the module docstring, but the line reference is stale — the function is at `engine/state_machine.py:213-228`, not L36–44. FHEX remains unimplemented (`state_machine.py:14-17`).* | `apps/api/keel_api/engine/state_machine.py` `:213-228` |
 | Weather | Fixture JSON only (`FixtureWeatherProvider`). `WeatherProvider` Protocol exists in `schemas.py`; no live provider implemented. | `apps/api/keel_api/weather/fixture_provider.py` |
 | Extraction | Single LLM call per doc; charterparty text **truncated at 12,000 chars**; 30s timeout, 3 retries; no confidence scoring, no document-hash / model-version capture. | `apps/api/keel_api/extraction/extractor.py` |
 | Document routing | **Filename-based** (`_PYMUPDF_NAMES = {"charterparty.pdf"}`); text-only PDFs; no OCR, no scanned-document detection. | `apps/api/keel_api/parsing/dispatcher.py` |
 | Frontend ↔ API | Live API (`USE_MOCK=false`); pipeline progress via **polling** (`pollVoyageStatus`), not SSE/WebSocket. | `apps/web/lib/api.ts` |
 | Tests | Canonical $112K assertion + a new 4-case reconciliation checking loop (`test-cases/` + `test_reconciliation_cases.py`), one case proven through the live LLM. | `apps/api/tests/` |
+
+> **Superseded — 2026-09-30:** the test row is incomplete rather than wrong. 330
+> tests are collected; `uv run pytest -q` gives **16 failed, 313 passed, 1
+> skipped**, and the 16 are missing source PDFs rather than product defects.
+> `uv run pytest -m canonical -q` gives **15 passed**. The frontend adds 31
+> Playwright tests. See [README.md](../README.md#tests).
+>
+> Also: parsing is no longer in-process. `parse()` fork+execs a sandbox with an
+> address-space limit and a wall clock (`parsing/dispatcher.py:79-115`,
+> `parsing/sandbox.py`, `parsing/limits.py`), and the upload path has real
+> admission control (`main.py:175-194`, `:215-325`, `:775-872`).
 
 **Implication for sequencing:** multi-tenancy is *foundational* — it touches the
 DB schema, every query, auth, and the audit log. It must land before pilot data
@@ -66,11 +111,22 @@ required before a second/third pilot, **P2** = Phase-1 stretch / Phase-2 seed.
   token metrics can be P1/P2.
 
 **API hardening** *(P0 for the security items)*
-- Replace `allow_origins=["*"]` with an explicit allowlist.
+- ~~Replace `allow_origins=["*"]` with an explicit allowlist.~~
+  > **Superseded — 2026-09-30: done.** `allow_origins` defaults to
+  > `["http://localhost:3000"]`, overridable with `KEEL_CORS_ORIGINS`
+  > (`main.py:547`, `:601-607`). Payload-size limits also landed (25 MB per
+  > document, 60 MB per request, 12 documents, a 200-page cap, and a subprocess
+  > with an address-space limit — `main.py:175-194`, `parsing/limits.py`).
+  > Rate limiting did **not**: the only concurrency control is the run-slot cap
+  > that returns 429 (`main.py:842-849`). `/api/v1/` versioning and JWT auth with
+  > tenant-scoped claims (§1.5) did not.
 - `/api/v1/` versioning; payload-size limits; rate limiting.
 - JWT auth with tenant-scoped claims (see §1.5).
-- **Remove orphaned `reconcile/adjudicator.py` + `differ.py`** (hardcoded
-  canonical-date verdicts) — they are dead and actively misleading.
+- ~~**Remove orphaned `reconcile/adjudicator.py` + `differ.py`** (hardcoded
+  canonical-date verdicts) — they are dead and actively misleading.~~
+  > **Superseded — 2026-09-30: done.** Both files and the `keel_api/reconcile/`
+  > package are deleted. The money rule is in `pipeline_agents.adjudicator_node`
+  > plus `adapters.py`.
 
 **Semantic validation layer (new)** *(P1)*
 - Range checks on extractions (demurrage $1K–$200K/day, laytime > 0, NOR before
@@ -120,9 +176,24 @@ required before a second/third pilot, **P2** = Phase-1 stretch / Phase-2 seed.
   a self-contained class with `rule_id`, `evaluate(observations, terms, window)`,
   `cite()`. Make Beaufort/precip thresholds **configurable per CP clause** (today
   they're module constants).
+  > *Superseded — 2026-09-30, partly: the thresholds are configurable per CP
+  > clause — `CharterpartyTerms.weather_beaufort_threshold` and
+  > `weather_precipitation_threshold_mm` are extracted from the document and
+  > passed into `evaluate_wwd_exception`, with Keel's module constants only as a
+  > named fallback (`schemas.py:73-74`, `pipeline_agents.py:479-511`). No
+  > registry pattern exists.*
 - *(P0)* Implement BIMCO 2013 **Def 15** (pro-rata) and **Def 16** (actual
   interruption) correctly — the current single threshold is an illustrative demo,
   not a faithful definition.
+  > *Superseded — 2026-09-30: definition 16's measure is what the engine now
+  > applies, and it is named per verdict in `measurement_basis`. Definition 15's
+  > pro-rata arithmetic exists (`_pro_rata_struck_off_hours`) but **no clause
+  > selects it**, and definition 17's artificial working day is **not modelled**,
+  > so `WWDSHEX`/`WWDSHINC` run on the actual-period measure
+  > (`engine/state_machine.py:83-96`, `:184-209`). And the framing itself was
+  > wrong: no BIMCO definition supplies a numeric weather threshold. The threshold
+  > and the invocation test are the charterparty's own terms
+  > (`rules/evaluators.py:3-42`).*
 - *(P0/P1)* Custom port holiday calendars (P0); WIBON NOR validity + VOYLAYRULES 93
   (P1). Reversible/multi-hatch laytime is P2.
 - **Legal validation gate**: have a maritime lawyer review any rule codification
@@ -149,8 +220,25 @@ required before a second/third pilot, **P2** = Phase-1 stretch / Phase-2 seed.
 - *(P1)* Assessment-override UI with justification → audit trail.
 - *(P1)* Dashboard filter/sort/search; status workflow Processing → In Review →
   Reconciled → Closed; CSV/Excel/PDF exports; tablet-responsive layout.
-- *(Known deferred bug)* the letter "PDF" button currently serves HTML — fold the
-  fix into the export work.
+  > *Superseded — 2026-09-30: the status workflow landed as a manual PATCH, not an
+  > automatic one — `PATCH /voyages/{id}/status` accepts `Reconciled`,
+  > `In Review`, `Pending`, `Closed` (`main.py:687-696`), and an uploaded voyage
+  > is persisted as `"In Review"` pending analyst approval (`main.py:480`). The
+  > export is **CSV only** (`app/(dashboard)/reports/page.tsx:466-473`). Filter,
+  > search, XLSX and PDF export did not.*
+- ~~*[Known deferred bug]* the letter "PDF" button currently serves HTML — fold the
+  fix into the export work.~~
+  > **Superseded — 2026-09-30: no longer a bug, and there is nothing to fold
+  > into.** The API serves HTML only and returns a 400 for `?format=pdf`, naming
+  > the browser's Print → Save as PDF instead (`main.py:757-772`); the letter page
+  > calls it and handles the refusal honestly
+  > (`apps/web/app/(dashboard)/voyage/[id]/letter/page.tsx:59-83`). Note that
+  > "Print / Save as PDF" (`:397`) is **not** a page-level button — it is the
+  > primary action in the Delivery modal's `DialogFooter` (`:387`), reached by
+  > clicking *Send to Other Party* (`:126`). The page-level buttons are *Send to
+  > Other Party*, *Download PDF* (`:135`) and *Print* (`:143`).
+  > There is still no
+  > server-side PDF generation, which remains absent by design.
 
 ---
 

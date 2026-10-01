@@ -1,8 +1,10 @@
 """Frozen Pydantic data contracts between Keel's layers.
 
-Sourced verbatim from PRD §9. The shapes are locked at J-01 and must
-not change without explicit cross-stream coordination — the frontend's
-TypeScript types and the canonical assertion test both depend on them.
+Originated from PRD §9 and since grown: the weather clause values, the
+charterparty weather thresholds, the verdict measurement basis and the audit
+entry clause citation were all added during the build. The shapes are locked at
+J-01 and must not change without explicit cross-stream coordination — the
+frontend's TypeScript types and the canonical assertion test both depend on them.
 """
 
 from __future__ import annotations
@@ -13,7 +15,23 @@ from typing import Literal, Protocol
 from pydantic import BaseModel
 
 
+# A ruleset a charterparty expressly incorporates by name, read off the face of
+# the document. "custom" means the charterparty incorporates none, so nothing
+# here is the authority for the rules this product applies: a weather verdict's
+# authority is always "custom" (see rules.evaluators), because the threshold and
+# the majority-of-hours test are the charterparty's own term and this product's
+# own policy respectively.
 RuleAuthority = Literal["BIMCO_2013", "VOYLAYRULES_93", "custom"]
+
+# Mirrors the Literal members of CharterpartyTerms.weather_clause. The LLM
+# output schema imports this so the two enumerations cannot drift.
+#
+# "WEATHER PERMITTING" is the 2013 definitions' own term (definition 18), which
+# the source gives the same meaning as definition 16. Without it here a
+# charterparty drafted on that expressly preserved term could not be represented
+# at all, and the extractor would have to silently pick one of the others — most
+# likely "none", losing the weather exception entirely.
+WEATHER_CLAUSE_VALUES = ("WWD", "WWDSHEX", "WWDSHINC", "WEATHER PERMITTING", "none")
 
 
 # ---------------------------------------------------------------------------
@@ -45,8 +63,15 @@ class CharterpartyTerms(BaseModel):
     despatch_rate_per_day_usd: float
     nor_turn_time_hours: float
     laytime_exception: Literal["SHEX", "FHEX", "SHINC"]
-    weather_clause: Literal["WWD", "WWDSHEX", "none"]
+    weather_clause: Literal["WWD", "WWDSHEX", "WWDSHINC", "WEATHER PERMITTING", "none"]
     rule_authority: RuleAuthority
+    # The weather-working threshold is a term of this charterparty, not of any
+    # ruleset, so it is read off the charterparty text like any other term.
+    # None means the document states no figure: the evaluator then falls back to
+    # its own configured default and says in the resulting justification that the
+    # figure is Keel's default and has not been verified against this document.
+    weather_beaufort_threshold: int | None = None
+    weather_precipitation_threshold_mm: float | None = None
     clauses: list[ClauseCitation]
 
 
@@ -127,7 +152,14 @@ class CalculationResult(BaseModel):
 class Verdict(BaseModel):
     winner: Literal["owner", "charterer", "split"]
     justification: str
+    # Names the test this product applied to the window, and nothing else: it is
+    # not a citation into any source document and carries no definition number.
     rule_id: str
+    # The source that fixes how an excepted period is *measured*, named on its
+    # own so it is never read as the authority for the test or the threshold.
+    measurement_basis: str
+    # Always "custom" on a weather verdict: the share test is this product's own
+    # policy and the threshold is the charterparty's own term.
     rule_authority: RuleAuthority
     hours_credited_to_owner: float
     dollars_credited_to_owner_usd: float
@@ -160,4 +192,10 @@ class Reconciliation(BaseModel):
     charterer_total_usd: float
     disputed_items: list[DisputedLineItem]
     reconciled_total_usd: float
+    # The ruleset this charterparty expressly incorporates by name, and which
+    # therefore governs how its clauses are read — not the authority for the
+    # rules this product applied. Derived from a clause that incorporates a
+    # ruleset, and "custom" when the charterparty incorporates none, so the
+    # LLM's own guess is never presented as the product's authority. Per-day
+    # `Verdict.rule_authority` is the separate, narrower claim.
     rule_authority: RuleAuthority

@@ -25,8 +25,10 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Root-anchored: bare "lib/" matches at any depth and silently swallows
+# apps/web/lib/ (the Next.js data layer). The venv is covered by .venv/ below.
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -80,9 +82,11 @@ Desktop.ini
 
 # SQLite database
 *.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
 
 # Agent & CLI caches
-.entire/logs/
-.entire/metadata.json
 .antigravitycli/
 

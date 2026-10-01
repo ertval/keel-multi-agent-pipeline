@@ -25,69 +25,78 @@ import {
 } from "@/components/ui/dialog";
 import {
   FileText,
-  Calendar,
   Filter,
   CheckCircle2,
-  RefreshCw,
   Download,
   Trash2,
   Loader2,
   Plus,
-  FileSpreadsheet,
   Layers,
   Ship,
   Scale,
   DollarSign,
   TrendingUp,
   Award,
-  Clock,
-  ArrowUpRight,
   Info,
+  TriangleAlert,
 } from "lucide-react";
-import { fetchReconciliations, formatUsd, MOCK_RECONCILIATIONS } from "@/lib/api";
-import { getSettlement } from "@/lib/settlements";
+import { fetchReconciliations, formatUsd, USE_MOCK } from "@/lib/api";
 import type { ReconciliationSummary } from "@/lib/types";
 
-// Predefined mock reports in archive
+// A report selection. Nothing is pre-seeded: every entry here was created by
+// the operator from rows this page actually loaded.
 interface SavedReport {
   id: string;
   name: string;
   created_at: string;
-  format: "PDF" | "EXCEL" | "CSV";
-  size: string;
   vessels: string[];
 }
 
-const INITIAL_REPORTS: SavedReport[] = [
-  {
-    id: "rep_001",
-    name: "Q1 2026 Fleet Demurrage Reconciliation Report",
-    created_at: "2026-05-10T14:30:00Z",
-    format: "EXCEL",
-    size: "1.2 MB",
-    vessels: ["MV Aegean Star", "MV Baltic Dawn", "MV Fjord Princess", "MV Golden Horizon"],
-  },
-  {
-    id: "rep_002",
-    name: "MV Aegean Star - Weather Exception Adjudication",
-    created_at: "2026-06-16T18:45:00Z",
-    format: "PDF",
-    size: "840 KB",
-    vessels: ["MV Aegean Star"],
-  },
-  {
-    id: "rep_003",
-    name: "Baltic Dawn Claim Package",
-    created_at: "2026-06-14T09:15:00Z",
-    format: "PDF",
-    size: "1.4 MB",
-    vessels: ["MV Baltic Dawn"],
-  },
+const CSV_COLUMNS = [
+  "Voyage ID",
+  "Created At",
+  "Vessel",
+  "Owner",
+  "Charterer",
+  "Status",
+  "Owner Claim (USD)",
+  "Charterer Claim (USD)",
+  "Reconciled (USD)",
+  "Disputed Days",
 ];
+
+function csvCell(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) return "";
+  const text = String(value);
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function buildReconciliationCsv(rows: ReconciliationSummary[]): string {
+  return [
+    CSV_COLUMNS.join(","),
+    ...rows.map((r) =>
+      [
+        r.voyage_id,
+        r.created_at,
+        r.vessel_name,
+        r.owner_name,
+        r.charterer_name,
+        r.status,
+        r.owner_total_usd,
+        r.charterer_total_usd,
+        r.reconciled_total_usd,
+        r.disputed_count,
+      ]
+        .map(csvCell)
+        .join(",")
+    ),
+  ].join("\r\n");
+}
 
 export default function ReportsPage() {
   const [reconciliations, setReconciliations] = useState<ReconciliationSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedVessels, setSelectedVessels] = useState<string[]>([]);
   const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
   const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
@@ -96,34 +105,33 @@ export default function ReportsPage() {
   const [creatorOpen, setCreatorOpen] = useState(false);
   const [reportTitle, setReportTitle] = useState("");
   const [wizardDateRange, setWizardDateRange] = useState("all");
-  const [wizardFormat, setWizardFormat] = useState<"PDF" | "EXCEL" | "CSV">("PDF");
   const [wizardVessels, setWizardVessels] = useState<string[]>([]);
   const [generating, setGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStep, setGenerationStep] = useState("");
   const [generationSuccess, setGenerationSuccess] = useState(false);
-  const [savedReports, setSavedReports] = useState<SavedReport[]>(INITIAL_REPORTS);
-  const [downloadingReportId, setDownloadingReportId] = useState<string | null>(null);
-  const [settlementTick, setSettlementTick] = useState(0);
+  const [savedReports, setSavedReports] = useState<SavedReport[]>([]);
 
-  // Load Reconciliations data
+  const rowsFor = (vessels: string[]) =>
+    reconciliations.filter((r) => r.vessel_name && vessels.includes(r.vessel_name));
+
   useEffect(() => {
     let active = true;
-    setLoading(true);
     fetchReconciliations(1, 100)
       .then((data) => {
         if (!active) return;
-        // If API returns successfully, use it; if empty, fallback to MOCK
-        if (data && data.items && data.items.length > 0) {
-          setReconciliations(data.items);
-        } else {
-          setReconciliations(MOCK_RECONCILIATIONS);
-        }
+        setReconciliations(Array.isArray(data?.items) ? data.items : []);
+        setLoadError(null);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err: unknown) => {
         if (!active) return;
-        setReconciliations(MOCK_RECONCILIATIONS);
+        setReconciliations([]);
+        setLoadError(
+          err instanceof Error
+            ? err.message
+            : "The reconciliation list could not be read."
+        );
         setLoading(false);
       });
     return () => {
@@ -133,7 +141,9 @@ export default function ReportsPage() {
 
   // Filter values
   const allVesselNames = useMemo(() => {
-    const names = reconciliations.map((r) => r.vessel_name).filter(Boolean);
+    const names = reconciliations
+      .map((r) => r.vessel_name)
+      .filter((name): name is string => typeof name === "string" && name.length > 0);
     return Array.from(new Set(names));
   }, [reconciliations]);
 
@@ -152,7 +162,10 @@ export default function ReportsPage() {
   const filteredData = useMemo(() => {
     return reconciliations.filter((r) => {
       // Vessel filter
-      if (selectedVessels.length > 0 && !selectedVessels.includes(r.vessel_name)) {
+      if (
+        selectedVessels.length > 0 &&
+        !(r.vessel_name && selectedVessels.includes(r.vessel_name))
+      ) {
         return false;
       }
       // Date filter
@@ -177,75 +190,37 @@ export default function ReportsPage() {
     });
   }, [reconciliations, selectedVessels, selectedDateRange]);
 
-  // Aggregate stats
+  // Aggregate stats. A null total is a figure the API never produced, so it is
+  // excluded from every sum rather than counted as zero, and a list in which no
+  // voyage returned a figure reports "—" instead of a total of nothing.
   const stats = useMemo(() => {
-    const totalCount = filteredData.length;
-    const ownerClaimTotal = filteredData.reduce((acc, r) => acc + r.owner_total_usd, 0);
-    const reconciledTotal = filteredData.reduce((acc, r) => acc + r.reconciled_total_usd, 0);
-    const chartererClaimTotal = filteredData.reduce((acc, r) => acc + r.charterer_total_usd, 0);
-    const claimsSavedTotal = ownerClaimTotal - reconciledTotal;
-    const activeDisputesCount = filteredData.reduce(
-      (acc, r) => acc + (r.status === "In Review" ? r.disputed_count : 0),
-      0
-    );
-
-    const timingData = filteredData
-      .map((r) => r.resolution_seconds)
-      .filter((s): s is number => typeof s === "number");
-    const avgResolutionTime = timingData.length
-      ? timingData.reduce((a, b) => a + b, 0) / timingData.length
-      : 0;
-
-    const recoveryRate = ownerClaimTotal > 0 ? (reconciledTotal / ownerClaimTotal) * 100 : 0;
+    const measured = filteredData.filter((r) => r.owner_total_usd !== null);
+    const ownerClaimTotal = measured.reduce((acc, r) => acc + (r.owner_total_usd ?? 0), 0);
+    const reconciledTotal = filteredData.reduce((acc, r) => acc + (r.reconciled_total_usd ?? 0), 0);
 
     return {
-      totalCount,
+      totalCount: filteredData.length,
+      measuredCount: measured.length,
+      unmeasuredCount: filteredData.length - measured.length,
       ownerClaimTotal,
       reconciledTotal,
-      chartererClaimTotal,
-      claimsSavedTotal,
-      activeDisputesCount,
-      avgResolutionTime,
-      recoveryRate,
+      claimsSavedTotal: ownerClaimTotal - reconciledTotal,
     };
   }, [filteredData]);
 
-  // Settlement readout for filtered voyages (localStorage; empty until human saves)
-  const settlementSummary = useMemo(() => {
-    void settlementTick;
-    let settled = 0;
-    let unset = 0;
-    let amountSum = 0;
-    let hasNumericAmount = false;
-    for (const r of filteredData) {
-      const s = getSettlement(r.voyage_id);
-      if (!s) {
-        unset += 1;
-        continue;
-      }
-      settled += 1;
-      if (typeof s.amountUsd === "number" && Number.isFinite(s.amountUsd)) {
-        amountSum += s.amountUsd;
-        hasNumericAmount = true;
-      }
-    }
-    return { settled, unset, amountSum, hasNumericAmount };
-  }, [filteredData, settlementTick]);
-
-  useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "keel.settlements.v1") setSettlementTick((t) => t + 1);
-    };
-    window.addEventListener("storage", onStorage);
-    setSettlementTick((t) => t + 1);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-
-  // Chronological data for line chart
+  // Chronological data for line chart. A voyage whose totals are all null is
+  // not charted: the API measured no figures for it, and plotting it at zero
+  // would draw a claim the pipeline never made.
   const chronologicalData = useMemo(() => {
-    return [...filteredData].sort(
-      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    );
+    return [...filteredData]
+      .filter((r) =>
+        [r.owner_total_usd, r.charterer_total_usd, r.reconciled_total_usd].some(
+          (v) => typeof v === "number"
+        )
+      )
+      .sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
   }, [filteredData]);
 
   // Donut chart status calculations
@@ -263,57 +238,20 @@ export default function ReportsPage() {
     return statusCounts;
   }, [filteredData]);
 
-  // Adjudication verdict estimations
-  const verdictSummary = useMemo(() => {
-    // Distributing dispute verdicts logically based on voyage totals
-    // Aegean Star (voyage_001): 3 disputes -> Owner: 2, Charterer: 1
-    // Baltic Dawn (voyage_002): 5 disputes -> Owner: 3, Charterer: 2
-    // Caspian Voyager (voyage_003): 7 disputes -> Owner: 4, Charterer: 3
-    // Diamond Spirit (voyage_004): 2 disputes -> Owner: 1, Charterer: 1
-    // Emerald Bay (voyage_005): 4 disputes -> Owner: 2, Charterer: 2
-    // Fjord Princess (voyage_006): 6 disputes -> Owner: 4, Charterer: 2
-    // Golden Horizon (voyage_007): 0 disputes
-    let ownerWins = 0;
-    let chartererWins = 0;
-    let splitVerdicts = 0;
-
-    filteredData.forEach((r) => {
-      const disputedCount = r.disputed_count;
-      if (disputedCount === 0) return;
-
-      // Assign deterministic mock counts for visual realism
-      if (r.voyage_id === "voyage_001") {
-        ownerWins += 2;
-        chartererWins += 1;
-      } else if (r.voyage_id === "voyage_002") {
-        ownerWins += 3;
-        chartererWins += 2;
-      } else if (r.voyage_id === "voyage_003") {
-        ownerWins += 4;
-        chartererWins += 3;
-      } else if (r.voyage_id === "voyage_004") {
-        ownerWins += 1;
-        chartererWins += 1;
-      } else if (r.voyage_id === "voyage_005") {
-        ownerWins += 2;
-        chartererWins += 2;
-      } else if (r.voyage_id === "voyage_006") {
-        ownerWins += 4;
-        chartererWins += 2;
-      } else {
-        // Fallback ratio
-        const half = Math.floor(disputedCount / 2);
-        ownerWins += half;
-        chartererWins += disputedCount - half;
-        if (disputedCount % 2 !== 0 && disputedCount > 1) {
-          ownerWins -= 1;
-          splitVerdicts += 1;
-        }
-      }
-    });
-
-    const total = ownerWins + chartererWins + splitVerdicts;
-    return { ownerWins, chartererWins, splitVerdicts, total };
+  /**
+   * `GET /reconciliations` returns one row per voyage: totals, a status and a
+   * disputed-day count. It carries no per-day outcome, so no per-day
+   * distribution can be drawn from it — a day-level split has to come from
+   * `GET /voyages/{id}` on the reconciliation page. Only the disputed-day
+   * count is reported here.
+   */
+  const disputedDays = useMemo(() => {
+    const withFigures = filteredData.filter((r) => r.disputed_count !== null);
+    return {
+      total: filteredData.reduce((acc, r) => acc + (r.disputed_count ?? 0), 0),
+      voyagesCounted: withFigures.length,
+      voyagesUnmeasured: filteredData.length - withFigures.length,
+    };
   }, [filteredData]);
 
   // Line Chart Calculations
@@ -326,11 +264,11 @@ export default function ReportsPage() {
     if (chronologicalData.length === 0) return null;
 
     // Find min and max for scaling Y-axis
-    const allValues = chronologicalData.flatMap((d) => [
-      d.owner_total_usd,
-      d.charterer_total_usd,
-      d.reconciled_total_usd,
-    ]);
+    const allValues = chronologicalData.flatMap((d) =>
+      [d.owner_total_usd, d.charterer_total_usd, d.reconciled_total_usd].filter(
+        (v): v is number => typeof v === "number"
+      )
+    );
     const maxValue = Math.max(...allValues, 10000) * 1.1; // Add padding to top of chart
     const minValue = 0; // standard Y-axis baseline
 
@@ -346,19 +284,19 @@ export default function ReportsPage() {
 
     const ownerPoints = chronologicalData.map((d, i) => ({
       x: scaleX(i),
-      y: scaleY(d.owner_total_usd),
+      y: scaleY(d.owner_total_usd ?? 0),
       val: d.owner_total_usd,
     }));
 
     const chartererPoints = chronologicalData.map((d, i) => ({
       x: scaleX(i),
-      y: scaleY(d.charterer_total_usd),
+      y: scaleY(d.charterer_total_usd ?? 0),
       val: d.charterer_total_usd,
     }));
 
     const reconciledPoints = chronologicalData.map((d, i) => ({
       x: scaleX(i),
-      y: scaleY(d.reconciled_total_usd),
+      y: scaleY(d.reconciled_total_usd ?? 0),
       val: d.reconciled_total_usd,
     }));
 
@@ -478,11 +416,11 @@ export default function ReportsPage() {
     setGenerationStep("Ingesting Statements of Facts and Charterparties...");
 
     const steps = [
-      { max: 20, text: "Ingesting Statements of Facts and Charterparties..." },
-      { max: 45, text: "Reading weather observations stored with the voyage..." },
-      { max: 70, text: "Applying BIMCO Laytime Definitions 2013 exception rules..." },
-      { max: 90, text: "Calculating demurrage adjustments and compiling audit trails..." },
-      { max: 99, text: "Assembling claims package and generating report files..." },
+      { max: 20, text: "Collecting the selected voyages..." },
+      { max: 45, text: "Reading owner and charterer claims and the reconciled total..." },
+      { max: 70, text: "Counting disputed days..." },
+      { max: 90, text: "Registering the export in the archive..." },
+      { max: 99, text: "Ready — the CSV is written when you download it." },
       { max: 100, text: "Done!" },
     ];
 
@@ -501,8 +439,6 @@ export default function ReportsPage() {
             id: `rep_${Date.now()}`,
             name: reportTitle || "Custom Audit Report",
             created_at: new Date().toISOString(),
-            format: wizardFormat,
-            size: wizardFormat === "PDF" ? "1.8 MB" : wizardFormat === "EXCEL" ? "880 KB" : "320 KB",
             vessels: [...wizardVessels],
           };
           setSavedReports((prev) => [newReport, ...prev]);
@@ -515,30 +451,38 @@ export default function ReportsPage() {
     }, 250);
   };
 
-  // Simulated download
-  const handleDownload = (id: string) => {
-    setDownloadingReportId(id);
-    setTimeout(() => {
-      setDownloadingReportId(null);
-      // Trigger a mock file download in browser
-      const report = savedReports.find((r) => r.id === id);
-      if (!report) return;
-      const blob = new Blob([`Mock Report Content: ${report.name}`], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${report.name.toLowerCase().replace(/\s+/g, "_")}.${report.format.toLowerCase()}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }, 1000);
+  // Real CSV export of the rows this page already shows. This build has no PDF
+  // or Excel writer, so it offers the one format it can produce correctly and
+  // names the file `.csv`.
+  const handleDownload = (report: SavedReport) => {
+    const rows = rowsFor(report.vessels);
+    if (rows.length === 0) return;
+    const banner = USE_MOCK
+      ? "# SYNTHETIC DEMO DATA - these voyages were never analysed by the engine"
+      : null;
+    const parts: string[] = [];
+    if (banner) parts.push(banner);
+    parts.push(buildReconciliationCsv(rows));
+    const csv = ["﻿", ...parts].join("\r\n");
+    const blob = new Blob([csv], {
+      type: "text/csv;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${report.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // Delete generated report
   const handleDeleteReport = (id: string) => {
     setSavedReports((prev) => prev.filter((r) => r.id !== id));
   };
+
+  const noRows = !loading && !loadError && reconciliations.length === 0;
 
   return (
     <div className="page-content" style={{ display: "grid", gap: "1.5rem" }}>
@@ -561,14 +505,99 @@ export default function ReportsPage() {
             Maritime Reports & Portfolio Analytics
           </h1>
           <p style={{ fontSize: "0.875rem", color: "var(--muted-foreground)" }}>
-            Execute, schedule, and compile structured laytime audits and demurrage reconciliation summaries
+            Filter, compare, and export laytime audit and demurrage reconciliation rows
           </p>
         </div>
-        <Button id="create-report-btn" onClick={openReportCreator}>
+        <Button
+          id="create-report-btn"
+          onClick={openReportCreator}
+          disabled={reconciliations.length === 0}
+          title={
+            reconciliations.length === 0
+              ? "No reconciliation rows have been loaded, so there is nothing to export."
+              : undefined
+          }
+        >
           <Plus size={16} />
-          Create Report
+          Export Rows
         </Button>
       </div>
+
+      {(loadError || noRows) && (
+        <div
+          role="status"
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "0.625rem",
+            padding: "0.875rem 1rem",
+            fontSize: "0.8125rem",
+            lineHeight: 1.6,
+            color: "hsl(var(--foreground) / 0.85)",
+            background: "hsl(var(--charterer-bg))",
+            border: "1px solid hsl(var(--charterer) / 0.3)",
+            borderRadius: "var(--radius)",
+          }}
+        >
+          {loadError ? (
+            <TriangleAlert size={16} style={{ color: "hsl(var(--charterer))", flexShrink: 0, marginTop: 2 }} />
+          ) : (
+            <Info size={16} style={{ color: "hsl(var(--charterer))", flexShrink: 0, marginTop: 2 }} />
+          )}
+          <div>
+            {loadError ? (
+              <>
+                <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>
+                  The reconciliation list could not be read, so there is nothing to report on.
+                </p>
+                <p style={{ color: "var(--muted-foreground)" }}>
+                  The API said: {loadError.replace(/\.\s*$/, "")}. No figures are shown
+                  and no export can be produced &mdash; nothing here has been filled in
+                  from a sample.
+                </p>
+              </>
+            ) : (
+              <>
+                <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>
+                  No reconciliations have been produced yet, so there is nothing to report on.
+                </p>
+                <p style={{ color: "var(--muted-foreground)" }}>
+                  Every figure, chart and export on this page comes from
+                  {" "}<code className="mono">GET /reconciliations</code>. With no rows in
+                  that response there is nothing to total and nothing to download. Upload a
+                  voyage from the dashboard, or open{" "}
+                  <Link href="/reconciliations" style={{ textDecoration: "underline" }}>
+                    Reconciliations
+                  </Link>{" "}
+                  to see the list.
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {USE_MOCK && (
+        <div
+          role="status"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            padding: "0.625rem 0.875rem",
+            fontSize: "0.8125rem",
+            color: "hsl(var(--foreground) / 0.85)",
+            background: "hsl(var(--charterer-bg))",
+            border: "1px solid hsl(var(--charterer) / 0.3)",
+            borderRadius: "var(--radius)",
+          }}
+        >
+          <TriangleAlert size={14} style={{ color: "hsl(var(--charterer))" }} />
+          Synthetic demo data. <code className="mono">USE_MOCK</code> is on, so these
+          rows were never analysed by the engine and any CSV exported from them says so
+          in its first line.
+        </div>
+      )}
 
       {/* Interactive Filters Grid */}
       <div
@@ -645,29 +674,34 @@ export default function ReportsPage() {
               {allVesselNames.map((name) => {
                 const isSelected = selectedVessels.includes(name);
                 return (
-                  <Badge
+                  <button
                     key={name}
-                    variant={isSelected ? "default" : "outline"}
+                    type="button"
+                    aria-pressed={isSelected}
                     onClick={() => handleVesselToggle(name)}
+                    className="badge"
                     style={{
                       cursor: "pointer",
                       padding: "0.25rem 0.625rem",
                       fontSize: "0.75rem",
+                      fontFamily: "inherit",
                       transition: "all 0.15s ease",
                       ...(isSelected
                         ? {
                             background: "var(--primary)",
                             color: "var(--primary-foreground)",
+                            borderColor: "var(--primary)",
                           }
                         : {
                             borderColor: "var(--border)",
                             color: "var(--muted-foreground)",
+                            background: "transparent",
                           }),
                     }}
                   >
                     <Ship size={10} style={{ marginRight: "0.25rem" }} />
                     {name}
-                  </Badge>
+                  </button>
                 );
               })}
             </div>
@@ -686,30 +720,64 @@ export default function ReportsPage() {
         {[
           {
             label: "Total Audited Value",
-            value: formatUsd(stats.ownerClaimTotal),
-            change: `Across ${stats.totalCount} voyage claims`,
+            value: loading
+              ? "Loading…"
+              : stats.measuredCount === 0
+                ? "—"
+                : formatUsd(stats.ownerClaimTotal),
+            change: loading
+              ? "Reading GET /reconciliations"
+              : stats.measuredCount === 0
+                ? stats.totalCount === 0
+                  ? "No reconciliations to total"
+                  : `No owner claim figure returned for any of the ${stats.totalCount} voyage claims`
+                : `Across ${stats.measuredCount} voyage claim${stats.measuredCount === 1 ? "" : "s"}`,
             icon: DollarSign,
             color: "var(--chart-1)",
           },
           {
             label: "Reconciled Demurrage",
-            value: formatUsd(stats.reconciledTotal),
-            change: `Approved audit determinations`,
+            value: loading
+              ? "Loading…"
+              : stats.measuredCount === 0
+                ? "—"
+                : formatUsd(stats.reconciledTotal),
+            change: loading
+              ? "Reading GET /reconciliations"
+              : stats.measuredCount === 0
+                ? "Nothing to reconcile"
+                : "Reconciled total across the selection",
             icon: Scale,
             color: "hsl(var(--owner))",
           },
           {
-            label: "Owner claim minus reconciled total",
-            value: formatUsd(stats.claimsSavedTotal),
-            change: `Gap on the listed voyages — not a typical saving`,
+            label: "Claims Saved (Charterer)",
+            value: loading
+              ? "Loading…"
+              : stats.measuredCount === 0
+                ? "—"
+                : formatUsd(stats.claimsSavedTotal),
+            change: loading
+              ? "Reading GET /reconciliations"
+              : stats.measuredCount === 0
+                ? "Nothing to write down"
+                : "Owner claim less the reconciled total",
             icon: TrendingUp,
             color: "hsl(var(--owner))",
             highlight: true,
           },
           {
-            label: "Gap as % of owner claim",
-            value: stats.ownerClaimTotal > 0 ? `${((stats.claimsSavedTotal / stats.ownerClaimTotal) * 100).toFixed(1)}%` : "0%",
-            change: `${formatUsd(stats.ownerClaimTotal - stats.reconciledTotal)} write-down across listed disputes`,
+            label: "Demurrage Write-Down %",
+            value: loading
+              ? "Loading…"
+              : stats.ownerClaimTotal > 0
+                ? `${((stats.claimsSavedTotal / stats.ownerClaimTotal) * 100).toFixed(1)}%`
+                : "—",
+            change: loading
+              ? "Reading GET /reconciliations"
+              : stats.ownerClaimTotal > 0
+                ? `${formatUsd(stats.claimsSavedTotal)} written down across the selection`
+                : "No percentage is defined without an owner claim",
             icon: Award,
             color: "var(--chart-4)",
           },
@@ -767,36 +835,6 @@ export default function ReportsPage() {
         ))}
       </div>
 
-      {/* Settlement readout */}
-      <div
-        className="animate-fade-in"
-        style={{
-          background: "var(--card)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius)",
-          padding: "1rem 1.25rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "1rem",
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <p style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--muted-foreground)", marginBottom: "0.25rem" }}>
-            Settlements
-          </p>
-          <p style={{ fontSize: "0.9375rem", fontWeight: 600, margin: 0 }}>
-            Settled {settlementSummary.settled} · Unset {settlementSummary.unset}
-          </p>
-        </div>
-        {settlementSummary.hasNumericAmount ? (
-          <p className="mono" style={{ fontSize: "1.125rem", fontWeight: 700, margin: 0 }}>
-            {formatUsd(settlementSummary.amountSum)}
-          </p>
-        ) : null}
-      </div>
-
       {/* Analytics Graphs Section */}
       <div
         style={{
@@ -811,7 +849,7 @@ export default function ReportsPage() {
             <div>
               <CardTitle style={{ fontSize: "1rem", fontWeight: 600 }}>Voyage Claims Comparison</CardTitle>
               <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>
-                Owner Claim vs Charterer Claim vs Adjudicated Reconciled Total
+                Owner Claim vs Charterer Claim vs Keel Reconciled Total
               </p>
             </div>
             {/* Chart Legend */}
@@ -826,7 +864,7 @@ export default function ReportsPage() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: "hsl(var(--owner))" }} />
-                <span style={{ color: "var(--muted-foreground)" }}>Keel Adjudicated</span>
+                <span style={{ color: "var(--muted-foreground)" }}>Keel Reconciled</span>
               </div>
             </div>
           </CardHeader>
@@ -880,7 +918,7 @@ export default function ReportsPage() {
                       fill="var(--muted-foreground)"
                       style={{ fontSize: "0.625rem" }}
                     >
-                      {d.vessel_name.split(" ").slice(1).join(" ")}
+                      {(d.vessel_name ?? d.voyage_id).split(" ").slice(1).join(" ")}
                     </text>
                   ))}
 
@@ -995,7 +1033,8 @@ export default function ReportsPage() {
                     }}
                   >
                     <p style={{ fontSize: "0.8125rem", fontWeight: 700, borderBottom: "1px solid var(--border)", paddingBottom: "0.25rem", marginBottom: "0.5rem", color: "var(--foreground)" }}>
-                      {chronologicalData[hoveredLineIndex].vessel_name}
+                      {chronologicalData[hoveredLineIndex].vessel_name ??
+                        chronologicalData[hoveredLineIndex].voyage_id}
                     </p>
                     <div style={{ display: "grid", gap: "0.25rem", fontSize: "0.75rem" }}>
                       <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -1017,11 +1056,11 @@ export default function ReportsPage() {
                         </span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span style={{ color: "var(--muted-foreground)" }}>Owner − reconciled:</span>
+                        <span style={{ color: "var(--muted-foreground)" }}>Savings:</span>
                         <span className="mono" style={{ color: "hsl(var(--owner))", fontWeight: 500 }}>
                           {formatUsd(
-                            chronologicalData[hoveredLineIndex].owner_total_usd -
-                              chronologicalData[hoveredLineIndex].reconciled_total_usd
+                            (chronologicalData[hoveredLineIndex].owner_total_usd ??
+                              0) - (chronologicalData[hoveredLineIndex].reconciled_total_usd ?? 0)
                           )}
                         </span>
                       </div>
@@ -1127,73 +1166,53 @@ export default function ReportsPage() {
         </Card>
       </div>
 
-      {/* Adjudication Verdicts Horizontal Bar Chart */}
+      {/* Disputed days */}
       <Card style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <CardHeader style={{ paddingBottom: "0.5rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
             <div>
-              <CardTitle style={{ fontSize: "1rem", fontWeight: 600 }}>Adjudication Verdicts Breakdown</CardTitle>
+              <CardTitle style={{ fontSize: "1rem", fontWeight: 600 }}>Disputed Days In Scope</CardTitle>
               <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>
-                Distribution of dispute determinations under BIMCO 2013 Laytime exception definitions
+                Days the engine flagged as contested, summed over the voyages above. The
+                reconciliation endpoint reports no per-day outcome, so no owner / charterer
+                split can be drawn here.
               </p>
             </div>
             <Badge variant="secondary" className="mono" style={{ fontSize: "0.75rem" }}>
-              {verdictSummary.total} Total Verdicts
+              {disputedDays.total} Disputed Days
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
-          {verdictSummary.total > 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {[
-                {
-                  label: "Owner Upheld (Time Counts as Laytime)",
-                  count: verdictSummary.ownerWins,
-                  percentage: (verdictSummary.ownerWins / verdictSummary.total) * 100,
-                  color: "hsl(var(--owner))",
-                  desc: "Threshold test on the observations in the file did not meet the rule, or operations continued.",
-                },
-                {
-                  label: "Charterer Upheld (Time Excepted)",
-                  count: verdictSummary.chartererWins,
-                  percentage: (verdictSummary.chartererWins / verdictSummary.total) * 100,
-                  color: "hsl(var(--charterer))",
-                  desc: "Threshold test on the observations in the file met the BIMCO 2013 WWD rule.",
-                },
-                {
-                  label: "Split / Conceded Verdicts",
-                  count: verdictSummary.splitVerdicts,
-                  percentage: (verdictSummary.splitVerdicts / verdictSummary.total) * 100,
-                  color: "var(--chart-4)",
-                  desc: "Partially excepted periods or conceded values under mutual settlement agreements.",
-                },
-              ].map((item, i) => (
-                <div key={i} style={{ display: "grid", gap: "0.25rem" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", fontSize: "0.8125rem" }}>
-                    <span style={{ fontWeight: 600 }}>{item.label}</span>
-                    <span className="mono" style={{ fontWeight: 700, color: item.color }}>
-                      {item.count} Verdicts ({Math.round(item.percentage)}%)
-                    </span>
-                  </div>
-                  {/* Progress track */}
-                  <div style={{ height: 10, background: "var(--border)", borderRadius: 5, overflow: "hidden" }}>
-                    <div
-                      style={{
-                        height: "100%",
-                        width: `${item.percentage}%`,
-                        background: item.color,
-                        borderRadius: 5,
-                        transition: "width 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
-                      }}
-                    />
-                  </div>
-                  <span style={{ fontSize: "0.6875rem", color: "var(--muted-foreground)" }}>{item.desc}</span>
+          {disputedDays.total > 0 ? (
+            <div style={{ display: "grid", gap: "0.75rem", fontSize: "0.8125rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "var(--muted-foreground)" }}>
+                  Counted across {disputedDays.voyagesCounted} voyage
+                  {disputedDays.voyagesCounted === 1 ? "" : "s"}
+                </span>
+                <span className="mono" style={{ fontWeight: 700 }}>{disputedDays.total}</span>
+              </div>
+              {disputedDays.voyagesUnmeasured > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "var(--muted-foreground)" }}>
+                    Voyages reporting no disputed-day count
+                  </span>
+                  <span className="mono" style={{ fontWeight: 700 }}>
+                    {disputedDays.voyagesUnmeasured}
+                  </span>
                 </div>
-              ))}
+              )}
+              <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", lineHeight: 1.6, borderTop: "1px solid var(--border)", paddingTop: "0.625rem" }}>
+                Which position the engine supported on each of those days, and the dollars
+                credited, is a per-day finding. It is published on each voyage&apos;s
+                reconciliation page, where the weather record and the charterparty
+                threshold behind it are shown alongside.
+              </p>
             </div>
           ) : (
-            <div style={{ height: 100, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted-foreground)" }}>
-              No disputed verdicts observed in current filtered scope.
+            <div style={{ minHeight: 100, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted-foreground)" }}>
+              No disputed days in the current filtered scope.
             </div>
           )}
         </CardContent>
@@ -1205,10 +1224,10 @@ export default function ReportsPage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <CardTitle style={{ fontSize: "1rem", fontWeight: 600 }}>Generated Reports Archive</CardTitle>
-              <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>Historical record of compiled demurrage summaries</p>
+              <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>Voyage selections saved for later CSV export</p>
             </div>
             <Badge variant="outline" className="mono" style={{ fontSize: "0.6875rem" }}>
-              {savedReports.length} Available Packages
+              {savedReports.length} Saved Exports
             </Badge>
           </div>
         </CardHeader>
@@ -1219,7 +1238,7 @@ export default function ReportsPage() {
                 <TableHead>Report Name</TableHead>
                 <TableHead>Date Created</TableHead>
                 <TableHead>Format</TableHead>
-                <TableHead>File Size</TableHead>
+                <TableHead>Rows</TableHead>
                 <TableHead>Vessels Covered</TableHead>
                 <TableHead style={{ textAlign: "right" }}></TableHead>
               </TableRow>
@@ -1228,11 +1247,15 @@ export default function ReportsPage() {
               {savedReports.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} style={{ textAlign: "center", color: "var(--muted-foreground)", padding: "2rem" }}>
-                    No reports generated yet. Click "Create Report" above to compile one.
+                    {reconciliations.length === 0
+                      ? "Nothing has been exported from this session. The archive starts empty and is only populated by the export dialog above."
+                      : "No exports saved yet. Use \"Export Rows\" above to save one."}
                   </TableCell>
                 </TableRow>
               ) : (
-                savedReports.map((report) => (
+                savedReports.map((report) => {
+                  const rowCount = rowsFor(report.vessels).length;
+                  return (
                   <TableRow key={report.id}>
                     <TableCell style={{ fontWeight: 600 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -1250,34 +1273,12 @@ export default function ReportsPage() {
                       })}
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          report.format === "PDF"
-                            ? "default"
-                            : report.format === "EXCEL"
-                              ? "secondary"
-                              : "outline"
-                        }
-                        style={{
-                          fontSize: "0.625rem",
-                          fontWeight: 700,
-                          ...(report.format === "PDF" && {
-                            background: "hsl(var(--charterer-bg))",
-                            color: "hsl(var(--charterer))",
-                            border: "1px solid hsl(var(--charterer) / 0.3)",
-                          }),
-                          ...(report.format === "EXCEL" && {
-                            background: "hsl(var(--owner-bg))",
-                            color: "hsl(var(--owner))",
-                            border: "1px solid hsl(var(--owner) / 0.3)",
-                          }),
-                        }}
-                      >
-                        {report.format}
+                      <Badge variant="outline" style={{ fontSize: "0.625rem", fontWeight: 700 }}>
+                        CSV
                       </Badge>
                     </TableCell>
                     <TableCell className="mono" style={{ fontSize: "0.8125rem" }}>
-                      {report.size}
+                      {rowCount}
                     </TableCell>
                     <TableCell>
                       <span style={{ fontSize: "0.8125rem", color: "var(--muted-foreground)" }}>
@@ -1289,23 +1290,30 @@ export default function ReportsPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          disabled={downloadingReportId === report.id}
-                          onClick={() => handleDownload(report.id)}
+                          disabled={rowCount === 0}
+                          onClick={() => handleDownload(report)}
+                          title={
+                            rowCount === 0
+                              ? "None of these vessels are in the loaded dataset, so there is nothing to export."
+                              : `Download ${rowCount} reconciliation row${rowCount === 1 ? "" : "s"} as CSV`
+                          }
                         >
-                          {downloadingReportId === report.id ? (
-                            <Loader2 size={14} className="animate-spin" />
-                          ) : (
-                            <Download size={14} />
-                          )}
-                          Download
+                          <Download size={14} />
+                          Download CSV
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteReport(report.id)}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          aria-label={`Delete export ${report.name}`}
+                          onClick={() => handleDeleteReport(report.id)}
+                        >
                           <Trash2 size={14} style={{ color: "hsl(var(--charterer) / 0.7)" }} />
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>
@@ -1316,9 +1324,11 @@ export default function ReportsPage() {
       <Dialog open={creatorOpen} onOpenChange={setCreatorOpen}>
         <DialogContent style={{ maxWidth: 520, padding: "1.5rem" }}>
           <DialogHeader>
-            <DialogTitle>Generate Demurrage Audit Report</DialogTitle>
+            <DialogTitle>Export Reconciliation Rows</DialogTitle>
             <DialogDescription>
-              Compile structured claim determinations, BIMCO 2013 clause analyses, and port weather observations
+              Writes the selected voyages&apos; reconciliation rows to a CSV file
+              in your browser. This build has no PDF or Excel writer, so those
+              formats are not offered.
             </DialogDescription>
           </DialogHeader>
 
@@ -1326,8 +1336,9 @@ export default function ReportsPage() {
             <div style={{ display: "grid", gap: "1.25rem", marginTop: "0.5rem" }}>
               {/* Report Name Input */}
               <div style={{ display: "grid", gap: "0.375rem" }}>
-                <label style={{ fontSize: "0.75rem", fontWeight: 600 }}>Report Title</label>
+                <label htmlFor="report-title-input" style={{ fontSize: "0.75rem", fontWeight: 600 }}>Report Title</label>
                 <Input
+                  id="report-title-input"
                   value={reportTitle}
                   onChange={(e) => setReportTitle(e.target.value)}
                   placeholder="e.g. Q2 Demurrage Reconciliation Digest"
@@ -1336,7 +1347,7 @@ export default function ReportsPage() {
 
               {/* Vessels Select (Checkboxes) */}
               <div style={{ display: "grid", gap: "0.375rem" }}>
-                <label style={{ fontSize: "0.75rem", fontWeight: 600 }}>Vessels to Include</label>
+                <p style={{ fontSize: "0.75rem", fontWeight: 600 }}>Vessels to Include</p>
                 <div
                   style={{
                     display: "grid",
@@ -1353,9 +1364,9 @@ export default function ReportsPage() {
                   {allVesselNames.map((vessel) => {
                     const checked = wizardVessels.includes(vessel);
                     return (
-                      <div
+                      <label
                         key={vessel}
-                        onClick={() => handleWizardVesselToggle(vessel)}
+                        htmlFor={`wizard-vessel-${vessel}`}
                         style={{
                           display: "flex",
                           alignItems: "center",
@@ -1367,63 +1378,58 @@ export default function ReportsPage() {
                           background: checked ? "var(--secondary)" : "transparent",
                         }}
                       >
-                        <div
+                        <input
+                          id={`wizard-vessel-${vessel}`}
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => handleWizardVesselToggle(vessel)}
                           style={{
                             width: 14,
                             height: 14,
-                            border: "1px solid var(--border)",
-                            borderRadius: "3px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            background: checked ? "var(--primary)" : "transparent",
+                            accentColor: "var(--primary)",
+                            flexShrink: 0,
                           }}
-                        >
-                          {checked && <div style={{ width: 6, height: 6, background: "var(--primary-foreground)", borderRadius: "1px" }} />}
-                        </div>
+                        />
                         <span style={{ fontSize: "0.75rem", fontWeight: 500 }}>{vessel}</span>
-                      </div>
+                      </label>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Format & Scope selector grid */}
+              {/* Export & Scope selector grid */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                {/* Format selection */}
+                {/* Export selection */}
                 <div>
                   <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, marginBottom: "0.375rem" }}>
                     Export Format
                   </label>
-                  <div style={{ display: "flex", border: "1px solid var(--border)", borderRadius: "var(--radius)", overflow: "hidden" }}>
-                    {(["PDF", "EXCEL", "CSV"] as const).map((fmt) => (
-                      <button
-                        key={fmt}
-                        onClick={() => setWizardFormat(fmt)}
-                        style={{
-                          flex: 1,
-                          padding: "0.375rem",
-                          fontSize: "0.75rem",
-                          fontWeight: 600,
-                          background: wizardFormat === fmt ? "var(--primary)" : "transparent",
-                          color: wizardFormat === fmt ? "var(--primary-foreground)" : "var(--muted-foreground)",
-                          border: "none",
-                          cursor: "pointer",
-                          transition: "all 0.1s",
-                        }}
-                      >
-                        {fmt}
-                      </button>
-                    ))}
+                  <div
+                    style={{
+                      padding: "0.375rem 0.5rem",
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      border: "1px solid var(--border)",
+                      borderRadius: "var(--radius)",
+                      background: "var(--secondary)",
+                      color: "var(--foreground)",
+                    }}
+                  >
+                    CSV
                   </div>
+                  <p style={{ fontSize: "0.6875rem", color: "var(--muted-foreground)", marginTop: "0.375rem", lineHeight: 1.5 }}>
+                    The only format this build can write. It is generated in your
+                    browser from the rows above.
+                  </p>
                 </div>
 
                 {/* Scope selector */}
                 <div>
-                  <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, marginBottom: "0.375rem" }}>
+                  <label htmlFor="wizard-scope-select" style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, marginBottom: "0.375rem" }}>
                     Report Scope
                   </label>
                   <select
+                    id="wizard-scope-select"
                     value={wizardDateRange}
                     onChange={(e) => setWizardDateRange(e.target.value)}
                     style={{
@@ -1447,23 +1453,26 @@ export default function ReportsPage() {
 
               {/* Sections Checklist */}
               <div style={{ display: "grid", gap: "0.375rem" }}>
-                <label style={{ fontSize: "0.75rem", fontWeight: 600 }}>Included Audits & Annexes</label>
+                <p style={{ fontSize: "0.75rem", fontWeight: 600 }}>Columns Written</p>
                 <div style={{ display: "grid", gap: "0.25rem", fontSize: "0.75rem", color: "var(--muted-foreground)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <CheckCircle2 size={12} style={{ color: "hsl(var(--owner))" }} />
-                    <span>Executive Demurrage Reconciliation Summary</span>
+                    <span>Voyage id, timestamp, vessel, owner, charterer, status</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <CheckCircle2 size={12} style={{ color: "hsl(var(--owner))" }} />
-                    <span>BIMCO 2013 Laytime Exception Verdict Reports</span>
+                    <span>Owner claim, charterer claim and reconciled total (USD)</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <CheckCircle2 size={12} style={{ color: "hsl(var(--owner))" }} />
-                    <span>Weather Station Sensor Log Audits (Meteorological corroboration)</span>
+                    <span>Disputed day count</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <CheckCircle2 size={12} style={{ color: "hsl(var(--owner))" }} />
-                    <span>Drafted Dispute Counter-Claim Letters</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--muted-foreground)" }}>
+                    <Info size={12} />
+                    <span>
+                      No resolution time: the API records how long a pipeline ran, not
+                      how long a dispute took, and does not return such a field.
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1486,7 +1495,7 @@ export default function ReportsPage() {
                 />
               </div>
               <div style={{ textAlign: "center" }}>
-                <p style={{ fontSize: "0.875rem", fontWeight: 600 }}>Compiling Reconciliation Package...</p>
+                <p style={{ fontSize: "0.875rem", fontWeight: 600 }}>Preparing export…</p>
                 <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", marginTop: "0.25rem" }}>
                   {generationStep} ({generationProgress}%)
                 </p>
@@ -1513,23 +1522,24 @@ export default function ReportsPage() {
                 <CheckCircle2 size={32} />
               </div>
               <div style={{ textAlign: "center" }}>
-                <p style={{ fontSize: "1.0625rem", fontWeight: 800 }}>Audit Report Compiled Successfully</p>
+                <p style={{ fontSize: "1.0625rem", fontWeight: 800 }}>Report Added To The Archive</p>
                 <p style={{ fontSize: "0.8125rem", color: "var(--muted-foreground)", marginTop: "0.25rem" }}>
-                  File size: {wizardFormat === "PDF" ? "1.8 MB" : wizardFormat === "EXCEL" ? "880 KB" : "320 KB"} · {wizardFormat} Format
+                  {rowsFor(wizardVessels).length} row
+                  {rowsFor(wizardVessels).length === 1 ? "" : "s"} · CSV · the file is written
+                  when you download it
                 </p>
               </div>
               <div style={{ display: "flex", gap: "0.5rem", width: "100%", maxWidth: "300px", marginTop: "0.5rem" }}>
                 <Button
                   style={{ flex: 1 }}
                   onClick={() => {
-                    setCreatorOpen(false);
-                    // trigger download of the newly added report
                     const newlyAdded = savedReports[0];
-                    if (newlyAdded) handleDownload(newlyAdded.id);
+                    setCreatorOpen(false);
+                    if (newlyAdded) handleDownload(newlyAdded);
                   }}
                 >
                   <Download size={14} />
-                  Download File
+                  Download CSV
                 </Button>
                 <DialogClose render={<Button variant="outline" style={{ flex: 1 }} />}>
                   Close
@@ -1545,7 +1555,7 @@ export default function ReportsPage() {
               </DialogClose>
               <Button onClick={generateReport} disabled={wizardVessels.length === 0}>
                 <Layers size={14} />
-                Generate Audit Pack
+                Add To Archive
               </Button>
             </DialogFooter>
           )}

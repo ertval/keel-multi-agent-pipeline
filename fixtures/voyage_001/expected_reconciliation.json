@@ -2,74 +2,221 @@
   "voyage_id": "voyage_001",
   "owner_total_usd": 187000.0,
   "charterer_total_usd": 62000.0,
-  "reconciled_total_usd": 112000.0,
-  "rule_authority": "BIMCO_2013",
   "disputed_items": [
     {
       "description": "Weather exception, 14 June 2026",
       "disputed_date": "2026-06-14",
-      "owner_position": "Exception does not apply: Force 5 sustained for 12 hours falls below the BIMCO 2013 WWD threshold of Force 6.",
-      "charterer_position": "Exception applies: SOF logs 12 hours of weather delay (10:00-22:00) during which loading was hampered.",
+      "owner_position": "The Owner claims the whole 12 hours as demurrage. The Owner's case is that the records do not reach the threshold over the claimed period, so the exception does not take these hours off the vessel's demurrage. The threshold applied is Beaufort Force 6 (or 2 mm/h precipitation), stated in the weather-exception clause (page 3) — this charterparty's own term. The port records for the claimed period show peak Beaufort Force 5 with 0.4 mm/h precipitation over 12 hours.",
+      "charterer_position": "The Charterer claims the 12 hours it logged as a weather delay as time lost on account of weather under the charterparty's weather clause. The window is the delay the Charterer's own Statement of Facts records, and the port records for those hours corroborate it: peak Beaufort Force 5 with 0.4 mm/h precipitation over the claimed period. The Charterer says those hours are therefore excepted from laytime.",
       "owner_amount_usd": 25000.0,
       "charterer_amount_usd": 0.0,
       "verdict": {
         "winner": "owner",
-        "justification": "Port weather records for 14 Jun 10:00-22:00 confirm Beaufort Force 5 with light precipitation (0.4 mm/h). Conditions did not meet the Clause 3.2 threshold; the weather exception is not validly invoked.",
-        "rule_id": "BIMCO_2013.WWD.threshold",
-        "rule_authority": "BIMCO_2013",
+        "justification": "Weather records show 0 of the 12 observed hours at or above the charterparty's weather-working threshold of Beaufort Force 6 (or precipitation of 2 mm/h), stated in the weather-exception clause (page 3) (peak: Force 5) — short of a majority. The strict-majority test applied here is this product's own policy reading the charterparty clause, not a test drawn from the Laytime Definitions. The measurement basis for an excepted period is Laytime Definitions for Charter Parties 2013, definition 16.",
+        "rule_id": "CP_WEATHER.MAJORITY_OF_HOURS",
+        "measurement_basis": "Laytime Definitions for Charter Parties 2013, definition 16",
+        "rule_authority": "custom",
         "hours_credited_to_owner": 12.0,
         "dollars_credited_to_owner_usd": 25000.0
       },
-      "clause_citations": [],
-      "sof_citations": [],
-      "weather_citations": [
-        {"source": "fixture://piraeus_port_records", "observation_id": "PIR-2026-0614-10"},
-        {"source": "fixture://piraeus_port_records", "observation_id": "PIR-2026-0614-21"}
-      ]
+      "clause_citations": [
+        {
+          "page": 3,
+          "bbox": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Time lost on account of weather shall not count as laytime, provided that such weather actually prevented loading operations. This clause is to be interpreted in accordance with the BIMCO Laytime Definitions for Charter Parties, 2013."
+        },
+        {
+          "page": 3,
+          "bbox": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "The threshold for invocation of the weather exception under Clause 3.1 shall be conditions of Beaufort Force 6 or above, or precipitation of 2.0 mm/h or above, recorded for a majority of the hours of the period claimed, together with actual prevention of loading operations."
+        }
+      ],
+      "sof_citations": [
+        {
+          "page": 1,
+          "bbox": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "row_text": "Loading hampered by adverse weather. Foreman halted Commenced shore equipment."
+        },
+        {
+          "page": 1,
+          "bbox": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "row_text": "Conditions moderated. 12 hours weather delay logged."
+        }
+      ],
+      "weather_citations": [],
+      "weather_summary": {
+        "peak_wind_force_beaufort": 5,
+        "peak_precipitation_mm_per_hour": 0.4,
+        "adverse_hours": 0.0,
+        "total_observed_hours": 12.0
+      }
     },
     {
       "description": "Weather exception, 15 June 2026",
       "disputed_date": "2026-06-15",
-      "owner_position": "Exception does not apply: Force 4 sustained for 12 hours is well below the BIMCO 2013 WWD threshold.",
-      "charterer_position": "Exception applies: SOF logs 12 hours of weather delay (06:00-18:00).",
+      "owner_position": "The Owner claims the whole 12 hours as demurrage. The Owner's case is that the records do not reach the threshold over the claimed period, so the exception does not take these hours off the vessel's demurrage. The threshold applied is Beaufort Force 6 (or 2 mm/h precipitation), stated in the weather-exception clause (page 3) — this charterparty's own term. The port records for the claimed period show peak Beaufort Force 4 with 0.1 mm/h precipitation over 12 hours.",
+      "charterer_position": "The Charterer claims the 12 hours it logged as a weather delay as time lost on account of weather under the charterparty's weather clause. The window is the delay the Charterer's own Statement of Facts records, and the port records for those hours corroborate it: peak Beaufort Force 4 with 0.1 mm/h precipitation over the claimed period. The Charterer says those hours are therefore excepted from laytime.",
       "owner_amount_usd": 25000.0,
       "charterer_amount_usd": 0.0,
       "verdict": {
         "winner": "owner",
-        "justification": "Port weather records for 15 Jun 06:00-18:00 confirm Beaufort Force 4 and negligible precipitation. Operations were not in fact prevented; the weather exception is not validly invoked.",
-        "rule_id": "BIMCO_2013.WWD.threshold",
-        "rule_authority": "BIMCO_2013",
+        "justification": "Weather records show 0 of the 12 observed hours at or above the charterparty's weather-working threshold of Beaufort Force 6 (or precipitation of 2 mm/h), stated in the weather-exception clause (page 3) (peak: Force 4) — short of a majority. The strict-majority test applied here is this product's own policy reading the charterparty clause, not a test drawn from the Laytime Definitions. The measurement basis for an excepted period is Laytime Definitions for Charter Parties 2013, definition 16.",
+        "rule_id": "CP_WEATHER.MAJORITY_OF_HOURS",
+        "measurement_basis": "Laytime Definitions for Charter Parties 2013, definition 16",
+        "rule_authority": "custom",
         "hours_credited_to_owner": 12.0,
         "dollars_credited_to_owner_usd": 25000.0
       },
-      "clause_citations": [],
-      "sof_citations": [],
-      "weather_citations": [
-        {"source": "fixture://piraeus_port_records", "observation_id": "PIR-2026-0615-06"},
-        {"source": "fixture://piraeus_port_records", "observation_id": "PIR-2026-0615-17"}
-      ]
+      "clause_citations": [
+        {
+          "page": 3,
+          "bbox": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Time lost on account of weather shall not count as laytime, provided that such weather actually prevented loading operations. This clause is to be interpreted in accordance with the BIMCO Laytime Definitions for Charter Parties, 2013."
+        },
+        {
+          "page": 3,
+          "bbox": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "The threshold for invocation of the weather exception under Clause 3.1 shall be conditions of Beaufort Force 6 or above, or precipitation of 2.0 mm/h or above, recorded for a majority of the hours of the period claimed, together with actual prevention of loading operations."
+        }
+      ],
+      "sof_citations": [
+        {
+          "page": 1,
+          "bbox": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "row_text": "Crane operations suspended. Commenced"
+        },
+        {
+          "page": 1,
+          "bbox": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "row_text": "12 hours weather delay logged."
+        }
+      ],
+      "weather_citations": [],
+      "weather_summary": {
+        "peak_wind_force_beaufort": 4,
+        "peak_precipitation_mm_per_hour": 0.1,
+        "adverse_hours": 0.0,
+        "total_observed_hours": 12.0
+      }
     },
     {
-      "description": "Weather exception, 16-17 June 2026 (heavy weather event)",
+      "description": "Weather exception, 16 June 2026",
       "disputed_date": "2026-06-16",
-      "owner_position": "Exception does not apply: vessel was already on demurrage and Clause 4.1 governs.",
-      "charterer_position": "Exception applies: Force 7 sustained with heavy rain prevented all loading operations for 36 hours.",
+      "owner_position": "The Owner claims the whole 36 hours as demurrage. The Owner's case is that a majority of the observed hours reaching the threshold is not a finding that every claimed hour was a period during which weather interrupted work, and a laytime exception does not of itself suspend the accrual of demurrage. The threshold applied is Beaufort Force 6 (or 2 mm/h precipitation), stated in the weather-exception clause (page 3) — this charterparty's own term. The port records for the claimed period show peak Beaufort Force 7 with 5.6 mm/h precipitation over 36 hours.",
+      "charterer_position": "The Charterer claims the 36 hours it logged as a weather delay as time lost on account of weather under the charterparty's weather clause. The window is the delay the Charterer's own Statement of Facts records, and the port records for those hours corroborate it: peak Beaufort Force 7 with 5.6 mm/h precipitation over the claimed period. The Charterer says those hours are therefore excepted from laytime. The threshold applied is Beaufort Force 6 (or 2 mm/h precipitation), stated in the weather-exception clause (page 3) — this charterparty's own term.",
       "owner_amount_usd": 75000.0,
       "charterer_amount_usd": 75000.0,
       "verdict": {
         "winner": "charterer",
-        "justification": "Port weather records for 16 Jun 00:00 through 17 Jun 12:00 show Beaufort Force 7 sustained with heavy precipitation (5.6 mm/h). Conditions meet the Clause 3.2 threshold and the weather exception under Clause 3.1 is validly invoked notwithstanding demurrage state, per BIMCO 2013.",
-        "rule_id": "BIMCO_2013.WWD.threshold",
-        "rule_authority": "BIMCO_2013",
+        "justification": "Weather records show all 36 of the 36 observed hours met or exceeded the charterparty's weather-working threshold of Beaufort Force 6 (or precipitation of 2 mm/h), stated in the weather-exception clause (page 3), and at least one of those hours records that loading operations were prevented. The whole of the claimed period is therefore excepted from laytime, because a majority of the observed hours met the threshold — that share test is this product's own policy against the charterparty clause, and it is not a test drawn from the Laytime Definitions, so a majority of hours is not a finding that every claimed hour was an interrupted period. The measurement basis for the excluded period is Laytime Definitions for Charter Parties 2013, definition 16.",
+        "rule_id": "CP_WEATHER.MAJORITY_OF_HOURS",
+        "measurement_basis": "Laytime Definitions for Charter Parties 2013, definition 16",
+        "rule_authority": "custom",
         "hours_credited_to_owner": 0.0,
         "dollars_credited_to_owner_usd": 0.0
       },
-      "clause_citations": [],
-      "sof_citations": [],
+      "clause_citations": [
+        {
+          "page": 3,
+          "bbox": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Time lost on account of weather shall not count as laytime, provided that such weather actually prevented loading operations. This clause is to be interpreted in accordance with the BIMCO Laytime Definitions for Charter Parties, 2013."
+        },
+        {
+          "page": 3,
+          "bbox": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "The threshold for invocation of the weather exception under Clause 3.1 shall be conditions of Beaufort Force 6 or above, or precipitation of 2.0 mm/h or above, recorded for a majority of the hours of the period claimed, together with actual prevention of loading operations."
+        }
+      ],
+      "sof_citations": [
+        {
+          "page": 1,
+          "bbox": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "row_text": "Severe gale, Force 7, heavy rain. Loading suspended on Master's instruction."
+        },
+        {
+          "page": 1,
+          "bbox": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "row_text": "Conditions moderated. 36 hours heavy weather logged."
+        }
+      ],
       "weather_citations": [
-        {"source": "fixture://piraeus_port_records", "observation_id": "PIR-2026-0616-00"},
-        {"source": "fixture://piraeus_port_records", "observation_id": "PIR-2026-0617-11"}
-      ]
+        {
+          "source": "fixture://piraeus_port_records",
+          "observation_id": "PIR-2026-0616-00"
+        },
+        {
+          "source": "fixture://piraeus_port_records",
+          "observation_id": "PIR-2026-0617-11"
+        }
+      ],
+      "weather_summary": {
+        "peak_wind_force_beaufort": 7,
+        "peak_precipitation_mm_per_hour": 5.6,
+        "adverse_hours": 36.0,
+        "total_observed_hours": 36.0
+      }
     }
-  ]
+  ],
+  "reconciled_total_usd": 112000.0,
+  "rule_authority": "BIMCO_2013"
 }
